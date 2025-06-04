@@ -1,5 +1,7 @@
 import { lessons_overview } from "./lessons_overview";
 import { lessons_parta } from "./lessons_parta";
+import { lessons_partb } from "./lessons_partb";
+import { lessons_partc } from "./lessons_partc";
 
 export const COURSES = [
     {
@@ -34,26 +36,29 @@ export const COURSES = [
         name: "Part B: Lessons Learned",
         slug: 'part-b-lessons-learned',
         shortDescription: "Part B: Lessons Learned",
-        description: "Part B: Lessons Learned",
+        description: "",
         icon_name: "",
         top_icon: "/imgs/icon_book.png",
         state: "inprogress",
         type: "lesson",
+        lessons: lessons_partb,
         extends: {
-            external_link: "https://www.sdv.guide/sdv101/part-b-lessons-learned",
+            // external_link: "https://www.sdv.guide/sdv101/part-b-lessons-learned",
         },
     },
     {
         _id: "6452a86e7895abcd12345681", // Random MongoDB ObjectId
         name: "Part C: Building Blocks",
-        shortDescription: "Part C: Building Blocks",
-        description: "Part C: Building Blocks",
+        slug: 'part-c-building-blocks',
+        shortDescription: "",
+        description: "",
         icon_name: "",
         state: "",
         top_icon: "/imgs/icon_book.png",
         type: "lesson",
+        lessons: lessons_partc,
         extends: {
-            external_link: "https://www.sdv.guide/sdv101/part-c-building-blocks",
+            // external_link: "https://www.sdv.guide/sdv101/part-c-building-blocks",
         },
     },
     {

@@ -52,7 +52,7 @@ export const COURSES = [
         state: "inprogress",
         type: "lesson",
         extends: {
-            external_link: "https://www.sdv.guide/sdv101/part-b-lessons-learned",
+            // external_link: "https://www.sdv.guide/sdv101/part-b-lessons-learned",
         },
     },
     {

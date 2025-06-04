@@ -58,3 +58,11 @@ mkdir -p ~/mongo-data
 docker run --name mongo-dev -p 27017:27017 -v ~/mongo-data:/data/db -d mongo
 
   ```
+
+
+# Prompt to prepare data
+
+### Clean up markdown
+  ```
+  Remove outline out of this markdown but keep # level of header, give me back raw markdown : 
+  ```
