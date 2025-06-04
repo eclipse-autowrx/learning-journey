@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import Markdown from 'react-markdown'
 import BtnFullRounded from "../atom/BtnFullRounded";
+import ViewportVisibleDetect from "../atom/ViewPortVisibleDetect";
 
 const components = {
     // Headings
@@ -123,30 +124,27 @@ const components = {
 
 const TextMarkdownLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
 
-    useEffect(() => {
-        setTimeout(() => {
-            if (onSumbitLesson) {
-                onSumbitLesson({})
-            }
-        }, [3000])
-    }, [])
-
     if (!lesson) return <></>
 
     return <div className="w-full px-2">
-        <div className="my-2 pb-2 border-b border-slate-600">
+        <div className="py-2 border-b border-slate-600">
             <div className="text-xl font-bold text-black">{lesson.name}</div>
             <div className="mt-2 text-gray-500 text-sm leading-tight">{lesson.description}</div>
         </div>
 
-        <div className="max-w-none mt-6 px-4 lg:px-8 min-h-[480px]">
+        <div className="max-w-none pt-6 px-4 lg:px-8 min-h-[300px]">
             <Markdown
                 components={components}
             >
                 {lesson.markdown_content}</Markdown>
+
+            <ViewportVisibleDetect onVisible={() => {
+                console.log("onVisible")
+                onSumbitLesson && onSumbitLesson({})
+            }}/>
         </div>
 
-        <div className="mt-2 px-2 py-2 border-t border-gray-500 flex items-center space-x-2">
+        <div className="mt-4 px-4 py-4 border-t border-gray-500 flex items-center space-x-2">
             <div className="grow"></div>
 
             <BtnFullRounded
@@ -157,10 +155,7 @@ const TextMarkdownLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
                 }}>
                 Next Lesson
             </BtnFullRounded>
-
         </div>
-
-
     </div>
 }
 

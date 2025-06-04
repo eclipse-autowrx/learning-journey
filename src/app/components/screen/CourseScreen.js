@@ -13,7 +13,7 @@ import BtnFullRounded from '../atom/BtnFullRounded';
 import { useRouter } from "next/navigation";
 
 const saveStateLessonFinish = async (course, lesson_slug, data) => {
-    if(!course || !course._id || !lesson_slug) return null
+    if (!course || !course._id || !lesson_slug) return null
     try {
 
         let payload = {
@@ -27,8 +27,8 @@ const saveStateLessonFinish = async (course, lesson_slug, data) => {
             }
         }
 
-        if(payload.lessons) {
-            let lessonProgress = payload.lessons[lesson_id] || { started_at: new Date(), records: []}
+        if (payload.lessons) {
+            let lessonProgress = payload.lessons[lesson_id] || { started_at: new Date(), records: [] }
             lessonProgress.records.push({
                 at: new Date(),
                 action: 'complete_lesson',
@@ -55,13 +55,13 @@ const saveStateLessonFinish = async (course, lesson_slug, data) => {
     }
 }
 
-const LessonListItem = ({ lesson, isActive, onActive}) => {
+const LessonListItem = ({ lesson, isActive, onActive }) => {
     return <div
         className={`border-2  pl-1 pr-1 py-1 flex items-center rounded cursor-pointer hover:border-black 
-            ${isActive?' border-black':'border-gray-300'}`}
+            ${isActive ? ' border-black' : 'border-gray-300'}`}
         onClick={(e) => {
-            if(lesson.lock) return
-            if(onActive){
+            if (lesson.lock) return
+            if (onActive) {
                 onActive(e)
             }
         }}>
@@ -70,12 +70,12 @@ const LessonListItem = ({ lesson, isActive, onActive}) => {
             {lesson.type === 'video' && <GoVideo size={36} className='text-slate-800]' />}
             {lesson.type === 'text-markdown' && <SlNotebook size={36} className='text-slate-800]' />}
         </div>
-        <div className='grow pl-2 py-0'>
-            <div className='font-bold text-black text-base flex items-center justify-between space-x-1'>
+        <div className='grow pl-3 py-0 flex h-full w-full items-start'>
+            <div className='font-semibold w-full text-gray-800 text-sm line-clamp-3 leading-tight flex items-start justify-between space-x-1'>
                 {lesson.name}
-                { lesson.context?.state == STATE_COMPLETED && <FaCheckCircle size={20} />}
+                {lesson.context?.state == STATE_COMPLETED && <FaCheckCircle className='min-w-6' size={20} />}
             </div>
-            <div className='text-xs line-clamp-2 leading-tight'>{lesson.description}</div>
+            {/* <div className='text-xs line-clamp-2 leading-tight'>{lesson.description}</div> */}
         </div>
     </div>
 }
@@ -89,12 +89,15 @@ const CourseScreen = ({ course, path_slug }) => {
     const [activeLesson, setActiveLesson] = useState()
     const [lessons, setLessons] = useState([])
     const [showCourseFinishAnnounce, setShowCourseFinishAnnounce] = useState(false)
-    
+
     useEffect(() => {
-        try{
+        try {
             let lesson = lessons[activeLessonIndex]
-            setActiveLesson(lesson)
-        } catch(err) {
+            setActiveLesson(null)
+            setTimeout(() => {
+                setActiveLesson(lesson)
+            }, 100)
+        } catch (err) {
             // console.log(err)
             setActiveLesson(null)
         }
@@ -102,7 +105,7 @@ const CourseScreen = ({ course, path_slug }) => {
 
 
     useEffect(() => {
-        if(course.lessons && course.lessons.length>0) {
+        if (course.lessons && course.lessons.length > 0) {
             // setActiveLessonSlug(course.lessons[0].slug)
             setLessons(course.lessons)
             setActiveLessonIndex(0)
@@ -110,21 +113,21 @@ const CourseScreen = ({ course, path_slug }) => {
     }, [course.lessons])
 
     const gotoNextLesson = () => {
-        if(activeLessonIndex < lessons.length-1) {
-            setActiveLessonIndex((v) => v+1)
+        if (activeLessonIndex < lessons.length - 1) {
+            setActiveLessonIndex((v) => v + 1)
         }
-        if(activeLessonIndex == lessons.length-1) {
+        if (activeLessonIndex == lessons.length - 1) {
             setShowCourseFinishAnnounce(true)
             setActiveLessonIndex(-1)
         }
     }
 
     const applyNewProgressToCourse = async (progress) => {
-        if(!progress || !progress.lessons || !lessons) return
+        if (!progress || !progress.lessons || !lessons) return
         let tmpLessons = JSON.parse(JSON.stringify(lessons))
         tmpLessons.forEach(lesson => {
             let matchProgress = progress.lessons[lesson.slug]
-            if(matchProgress) {
+            if (matchProgress) {
                 lesson.context = {
                     state: matchProgress.state,
                     progress: matchProgress
@@ -137,8 +140,8 @@ const CourseScreen = ({ course, path_slug }) => {
     }
 
 
-    return <div className='w-full'>
-        <div>
+    return <div className='w-full h-full flex flex-col'>
+        <div className='w-full flex pb-4'>
             <div className='text-2xl font-bold text-black'>
                 {course.name}
             </div>
@@ -147,20 +150,21 @@ const CourseScreen = ({ course, path_slug }) => {
             </div>
         </div>
 
-        <div className='mt-2 flex w-full text-base space-x-4'>
+        <div className='flex w-full h-full text-base space-x-4 overflow-auto'>
             <div className='w-1/3 max-w-[300px] min-w-[300px] px-0 rounded flex flex-col space-y-2'>
                 {
-                    lessons.length > 0 && lessons.map((lesson, lIndex) => <LessonListItem key={lIndex} 
-                        lesson={lesson} 
+                    lessons.length > 0 && lessons.map((lesson, lIndex) => <LessonListItem key={lIndex}
+                        lesson={lesson}
                         isActive={lIndex == activeLessonIndex}
-                        onActive={(e) => { 
+                        onActive={(e) => {
                             setActiveLessonIndex(lIndex)
-                        }}/>
+                        }} />
                     )}
             </div>
-            
-            <div className='grow border border-slate-200 px-2 rounded bg-white min-h-[80vh]'>
-                { showCourseFinishAnnounce && <div className='w-full mt-12 grid place-items-center'>
+
+            <div className='grow border border-slate-200 rounded bg-white flex flex-col relative' style={{ maxHeight: 'calc(100vh - 100px)' }}>
+                <div className='absolue w-full h-full top-0 left-0 bottom-0 right-0 overflow-y-auto'>
+                    {showCourseFinishAnnounce && <div className='w-full h-full grid place-items-center'>
                         <div className='flex flex-col px-4 py-4 w-fit h-fit'>
                             <div className="text-center">
                                 <h2 className="text-3xl font-bold text-green-600 mb-4">Congratulations! 🎉</h2>
@@ -178,39 +182,48 @@ const CourseScreen = ({ course, path_slug }) => {
                         </div>
                     </div>}
 
-                { activeLesson && <>
-                    { activeLesson.type === 'quiz' && <QuizLesson lesson={activeLesson} 
-                            onCloseRequest={() => {
-                                gotoNextLesson()
-                            }} 
-                            onSumbitLesson={async (data) => {
-                               const res = await  saveStateLessonFinish(course, activeLesson.slug, data || {})
-                               let newCourseProgress = res.data
-                               applyNewProgressToCourse(newCourseProgress)
-                            }}/>}
+                    {activeLesson && <div className='w-full h-full'>
 
-                    { activeLesson.type === 'video' && <VideoLesson lesson={activeLesson} 
+
+                        {activeLesson.type === 'quiz' && <QuizLesson lesson={activeLesson}
                             onCloseRequest={() => {
                                 gotoNextLesson()
-                            }} 
+                            }}
                             onSumbitLesson={async (data) => {
-                                const res = await  saveStateLessonFinish(course, activeLesson.slug, data || {})
+                                const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
                                 let newCourseProgress = res.data
                                 applyNewProgressToCourse(newCourseProgress)
-                             }}
-                            />}
+                            }} />}
 
-                    {   activeLesson.type === 'text-markdown' && <TextMarkdownLesson lesson={activeLesson}
-                        onCloseRequest={() => {
-                            gotoNextLesson()
-                        }} 
-                        onSumbitLesson={async (data) => {
-                            const res = await  saveStateLessonFinish(course, activeLesson.slug, data || {})
-                            let newCourseProgress = res.data
-                            applyNewProgressToCourse(newCourseProgress)
-                         }}
-                    />}
-                </> }
+                        {activeLesson.type === 'video' && <VideoLesson lesson={activeLesson}
+                            onCloseRequest={() => {
+                                gotoNextLesson()
+                            }}
+                            onSumbitLesson={async (data) => {
+                                const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
+                                let newCourseProgress = res.data
+                                applyNewProgressToCourse(newCourseProgress)
+                            }}
+                        />}
+
+                        {activeLesson.type === 'text-markdown' && <TextMarkdownLesson lesson={activeLesson}
+                            onCloseRequest={() => {
+                                gotoNextLesson()
+                            }}
+                            onSumbitLesson={async (data) => {
+                                if (activeLesson.context?.state != 'completed') {
+                                    try {
+                                        const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
+                                        let newCourseProgress = res.data
+                                        applyNewProgressToCourse(newCourseProgress)
+                                    } catch (e) { }
+                                }
+
+                            }}
+                        />}
+
+                    </div>}
+                </div>
             </div>
         </div>
     </div>

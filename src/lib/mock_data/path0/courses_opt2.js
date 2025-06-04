@@ -2,6 +2,27 @@ import { lessons_overview } from "./lessons_overview";
 import { lessons_parta } from "./lessons_parta";
 import { lessons_partb } from "./lessons_partb";
 import { lessons_partc } from "./lessons_partc";
+import { lessons_partd } from "./lessons_partd";
+// Start Generation Here
+export const courses_opt2 = [
+    {
+        _id: "6452a86e7895abcd12345682", // Random MongoDB ObjectId
+        name: "Part D: Advanced Topics",
+        slug: 'part-d-advanced-topics',
+        shortDescription: "Part D: Advanced Topics",
+        description: "This course covers advanced topics in Software-Defined Vehicle (SDV) development, including enterprise-level strategies and implementation.",
+        icon_name: "",
+        top_icon: "/imgs/icon_book.png",
+        state: "notstarted",
+        type: "lesson",
+        lessons: lessons_partd,
+        extends: {
+            // external_link: "https://www.sdv.guide/sdv101/part-d-advanced-topics",
+        },
+    }
+];
+
+
 
 export const COURSES = [
     {
@@ -65,13 +86,15 @@ export const COURSES = [
         _id: "6452a86e7895abcd12345682", // Random MongoDB ObjectId
         name: "Part D: Implementation Strategies",
         shortDescription: "Part D: Implementation Strategies",
-        description: "Part D: Implementation Strategies",
+        description: "",
+        slug: 'part-d-implementation-strategies',
         icon_name: "",
         state: "",
         top_icon: "/imgs/icon_book.png",
         type: "lesson",
+        lessons: lessons_partd,
         extends: {
-            external_link: "https://www.sdv.guide/sdv101/part-d-implementation-strategies",
+            // external_link: "https://www.sdv.guide/sdv101/part-d-implementation-strategies",
         },
     },
     // {
