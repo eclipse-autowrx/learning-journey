@@ -12,8 +12,11 @@ import { FaCheckCircle } from "react-icons/fa";
 import BtnFullRounded from '../atom/BtnFullRounded';
 import { useRouter } from "next/navigation";
 
+import { genQueryParamsForRequest } from '@/lib/frontend/utils';
+
 const saveStateLessonFinish = async (course, lesson_slug, data) => {
     if (!course || !course._id || !lesson_slug) return null
+
     try {
 
         let payload = {
@@ -37,7 +40,7 @@ const saveStateLessonFinish = async (course, lesson_slug, data) => {
             lessonProgress.progress = "completed"
         }
 
-        const res = await fetch(`/api/progress/courses/${course._id}/lessons/${lesson_slug}`, {
+        const res = await fetch(`/api/progress/courses/${course._id}/lessons/${lesson_slug}?${genQueryParamsForRequest()}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json"

@@ -1,3 +1,5 @@
+import { genQueryParamsForRequest } from './utils';
+
 export const saveStateCourseStarted = async (course) => {
     if(!course || !course._id) return null
     try {
@@ -9,7 +11,7 @@ export const saveStateCourseStarted = async (course) => {
         }
 
         payload.state = "in_progress"
-        const res = await fetch(`/api/progress/courses/${course._id}`, {
+        const res = await fetch(`/api/progress/courses/${course._id}?${genQueryParamsForRequest()}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json"
@@ -31,6 +33,14 @@ export const saveStateCourseCompleted = async (course) => {
     if(!course || !course._id) return null
     try {
 
+        const queryParams = {};
+        if (typeof window !== "undefined") {
+            const searchParams = new URLSearchParams(window.location.search);
+            for (const [key, value] of searchParams.entries()) {
+                queryParams[key] = value;
+            }
+        }
+
         let payload = course.progress || {
             course_id: course._id,
             data: {},
@@ -39,7 +49,7 @@ export const saveStateCourseCompleted = async (course) => {
 
         payload.state = "completed"
         payload.finished_at = new Date()
-        const res = await fetch(`/api/progress/courses/${course._id}`, {
+        const res = await fetch(`/api/progress/courses/${course._id}?${genQueryParamsForRequest()}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json"

@@ -13,8 +13,8 @@ export default function handler(req, res) {
 
     // Set cookies for user_id and token
     res.setHeader('Set-Cookie', [
-        `user_id=${user_id}; Path=/; HttpOnly; SameSite=Lax`,
-        `token=${token}; Path=/; HttpOnly; SameSite=Lax`
+        `user_id=${user_id}; Path=/; HttpOnly; SameSite=none;Secure;`,
+        `token=${token}; Path=/; HttpOnly; SameSite=none;Secure;`
     ]);
 
     res.status(200).json({ status: 'ok' });

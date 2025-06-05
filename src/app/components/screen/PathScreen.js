@@ -14,6 +14,7 @@ import dayjs from 'dayjs';
 import { useEffect } from "react";
 import { STATE_NOT_STARTED, STATE_IN_PROGRESS, STATE_COMPLETED, STATE_LOCKED } from "@/lib/const";
 import { IoReturnDownBackSharp } from "react-icons/io5";
+import { genQueryParamsForRequest } from "@/lib/frontend/utils";
 
 const ICON_SET = {
   not_started: 'https://bewebstudio.digitalauto.tech/data/projects/zb1Shh3qkfNG/course-notyet.png',
@@ -26,7 +27,7 @@ const fetchProgressForCourses = async (course_ids) => {
   if (!course_ids) return null
   try {
 
-    const res = await fetch(`/api/progress/courses/bulk/${course_ids}`, {
+    const res = await fetch(`/api/progress/courses/bulk/${course_ids}?${genQueryParamsForRequest()}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json"
@@ -65,7 +66,7 @@ function addMediaUrlForCourses(path, courses) {
       default:
         course.icon = ICONS.not_started;
     }
-    console.log(course.icon)
+    // console.log(course.icon)
   });
 }
 
@@ -172,7 +173,7 @@ const PathScreen = ({ path }) => {
           let tmpMaps = JSON.parse(JSON.stringify(maps))
           tmpMaps.forEach(map => {
             let matchCourse = tmpCourses.find(c => c._id === map.course_id)
-            console.log(matchCourse.icon)
+            // console.log(matchCourse.icon)
             if (matchCourse != map.course) {
               map.course = matchCourse
               hasChanged = true
