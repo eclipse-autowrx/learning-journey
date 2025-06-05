@@ -92,6 +92,7 @@ const CourseScreen = ({ course, path_slug }) => {
     const [activeLessonIndex, setActiveLessonIndex] = useState(0)
     const [activeLesson, setActiveLesson] = useState()
     const [lessons, setLessons] = useState([])
+    const [lessonsTable, setLessonsTable] = useState([])
     const [showCourseFinishAnnounce, setShowCourseFinishAnnounce] = useState(false)
 
     useEffect(() => {
@@ -112,6 +113,7 @@ const CourseScreen = ({ course, path_slug }) => {
         if (course.lessons && course.lessons.length > 0) {
             // setActiveLessonSlug(course.lessons[0].slug)
             setLessons(course.lessons)
+            setLessonsTable(course.lessons)
             setActiveLessonIndex(0)
         }
     }, [course.lessons])
@@ -128,7 +130,7 @@ const CourseScreen = ({ course, path_slug }) => {
 
     const applyNewProgressToCourse = async (progress) => {
         if (!progress || !progress.lessons || !lessons) return
-        let tmpLessons = JSON.parse(JSON.stringify(lessons))
+        let tmpLessons = JSON.parse(JSON.stringify(lessonsTable))
         tmpLessons.forEach(lesson => {
             let matchProgress = progress.lessons[lesson.slug]
             if (matchProgress) {
@@ -136,11 +138,9 @@ const CourseScreen = ({ course, path_slug }) => {
                     state: matchProgress.state,
                     progress: matchProgress
                 }
-                // lesson.context.state = matchProgress.state
-                // lesson.progress = matchProgress
             }
         })
-        setLessons(tmpLessons)
+        setLessonsTable(tmpLessons)
     }
 
 
@@ -157,7 +157,7 @@ const CourseScreen = ({ course, path_slug }) => {
         <div className='flex w-full h-full text-base space-x-4 overflow-auto'>
             <div className='w-1/4 min-w-[400px] px-0 rounded flex flex-col space-y-2'>
                 {
-                    lessons.length > 0 && lessons.map((lesson, lIndex) => <LessonListItem key={lIndex}
+                    lessonsTable.length > 0 && lessonsTable.map((lesson, lIndex) => <LessonListItem key={lIndex}
                         index={lIndex}
                         lesson={lesson}
                         isActive={lIndex == activeLessonIndex}
@@ -167,7 +167,8 @@ const CourseScreen = ({ course, path_slug }) => {
                     )}
             </div>
 
-            <div className='grow border border-slate-200 rounded bg-white flex flex-col relative' style={{ maxHeight: 'calc(100vh - 100px)' }}>
+            <div className='grow border border-slate-200 rounded flex flex-col relative' 
+                style={{ maxHeight: 'calc(100vh - 100px)' }}>
                 <div className='absolue w-full h-full top-0 left-0 bottom-0 right-0 overflow-y-auto'>
                     {showCourseFinishAnnounce && <div className='w-full h-full grid place-items-center'>
                         <div className='flex flex-col px-4 py-4 w-fit h-fit'>
@@ -216,7 +217,9 @@ const CourseScreen = ({ course, path_slug }) => {
                                 gotoNextLesson()
                             }}
                             onSumbitLesson={async (data) => {
-                                if (activeLesson.context?.state != 'completed') {
+                                let lessonInTable = lessonsTable.find(l => l.slug == activeLesson.slug)
+                                // console.log('lessonInTable', lessonInTable)
+                                if (lessonInTable && lessonInTable.context?.state != 'completed') {
                                     try {
                                         const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
                                         let newCourseProgress = res.data

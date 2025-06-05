@@ -69,7 +69,7 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
         setNumQuestions(lesson.questions.length)
         setQuestions(lesson.questions)
 
-        if(lesson.context?.state == STATE_COMPLETED ) {
+        if (lesson.context?.state == STATE_COMPLETED) {
             setTextResult("Your already finish this quiz.")
         } else {
             setTextResult("")
@@ -106,7 +106,7 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
 
     const setAnswerForThisQuestion = (answerIndex) => {
         setGotAnswer(answerIndex)
-        if(answerIndex == activeQuestion.answerIndex) return
+        if (answerIndex == activeQuestion.answerIndex) return
 
         let tmpQuestion = {
             ...activeQuestion,
@@ -131,7 +131,7 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
     if (!lesson) return <></>
 
     return <div className="w-full px-2">
-        <div className="my-2 pb-2 border-b border-slate-600">
+        <div className="my-2 pb-2">
             <div className="text-xl font-bold text-black">{lesson.name}</div>
             <div className="mt-2 text-gray-500 text-sm leading-tight">{lesson.description}</div>
         </div>
@@ -159,45 +159,52 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
 
         }
 
+
+
         {!testResult && <>
-            <div className="mt-6 px-4 lg:px-8 min-h-[440px]">
-                {/* Question Area */}
-                {activeQuestion && <QuizQuestion question={activeQuestion} index={curQuestionIndex + 1}
-                    onGotAnswer={setAnswerForThisQuestion}
-                />}
+            <div className="bg-white">
+
+
+                <div className="mt-2 px-2 py-2 lg:px-8 min-h-[440px] ">
+                    {/* Question Area */}
+                    {activeQuestion && <QuizQuestion question={activeQuestion} index={curQuestionIndex + 1}
+                        onGotAnswer={setAnswerForThisQuestion}
+                    />}
+                </div>
+
+                <div className="mt-2 px-2 pt-2 pb-4 flex items-center space-x-2">
+                    <div className="grow"></div>
+                    <BtnFullRounded disable={curQuestionIndex <= 0}
+                        onClick={() => {
+                            gotoPrevQuestion()
+                        }}>
+                        Prev
+                    </BtnFullRounded>
+
+                    <div className="w-10"></div>
+                    <div>{curQuestionIndex + 1}</div>
+                    <div>/</div>
+                    <div>{numQuestions}</div>
+                    <div className="w-10"></div>
+
+                    <BtnFullRounded disable={!(gotAnswer >= 0 && curQuestionIndex < (numQuestions - 1))}
+                        onClick={() => {
+                            gotoNextQuestion()
+                        }}>
+                        Next
+                    </BtnFullRounded>
+                    <div className="grow"></div>
+
+                </div>
+
             </div>
 
-            <div className="mt-2 px-2 py-2 flex items-center space-x-2">
-                <div className="grow"></div>
-                <BtnFullRounded disable={curQuestionIndex <= 0}
-                    onClick={() => {
-                        gotoPrevQuestion()
-                    }}>
-                    Prev
-                </BtnFullRounded>
-
-                <div className="w-10"></div>
-                <div>{curQuestionIndex + 1}</div>
-                <div>/</div>
-                <div>{numQuestions}</div>
-                <div className="w-10"></div>
-
-                <BtnFullRounded disable={!(gotAnswer >= 0 && curQuestionIndex < (numQuestions - 1))}
-                    onClick={() => {
-                        gotoNextQuestion()
-                    }}>
-                    Next
-                </BtnFullRounded>
-                <div className="grow"></div>
-
-            </div>
-
-            {gotAllAnswer && <div className="mt-2 px-2 py-2 border-t border-gray-500 flex items-center space-x-2">
+            {gotAllAnswer && <div className="mt-2 px-2 py-4 flex items-center space-x-2">
                 <div className="grow"></div>
 
                 <BtnFullRounded disable={!gotAllAnswer}
                     onClick={() => {
-                        if(onSumbitLesson) {
+                        if (onSumbitLesson) {
                             let data = questions.map(q => { return { answerIndex: q.answerIndex } })
                             onSumbitLesson(data)
                         }

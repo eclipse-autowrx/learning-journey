@@ -23,7 +23,7 @@ const VideoLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
             <div className="mt-2 text-gray-500 text-sm leading-tight">{lesson.description}</div>
         </div>
 
-        <div className="mt-6 px-4 lg:px-8 min-h-[480px] grid place-items-center">
+        <div className="mt-6 px-4 lg:px-8 min-h-[480px] grid place-items-center bg-white">
             <iframe
                 width="100%"
                 height="600"
@@ -31,28 +31,29 @@ const VideoLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
             ></iframe>
+
+            {lesson.markdown_content && <div className="my-4">
+                <MarkdownRender>
+                    {lesson.markdown_content}
+                </MarkdownRender>
+            </div>}
         </div>
 
-        {lesson.markdown_content && <div className="my-4">
-            <MarkdownRender>
-                {lesson.markdown_content}
-            </MarkdownRender>
+        
 
-            <div className="mt-2 px-2 py-2 border-t border-gray-500 flex items-center space-x-2">
-                <div className="grow"></div>
+        <div className="mt-4 px-2 py-2 border-t border-gray-500 flex items-center space-x-2">
+            <div className="grow"></div>
 
-                <BtnFullRounded
-                    onClick={() => {
-                        if (onCloseRequest) {
-                            onCloseRequest({})
-                        }
-                    }}>
-                    Next Lesson
-                </BtnFullRounded>
+            <BtnFullRounded
+                onClick={() => {
+                    if (onCloseRequest) {
+                        onCloseRequest({})
+                    }
+                }}>
+                Next Lesson
+            </BtnFullRounded>
 
-            </div>
-
-        </div>}
+        </div>
     </div>
 }
 

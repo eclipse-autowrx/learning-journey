@@ -71,27 +71,21 @@ body {
 }
 /* btn */
 .btn-primary {
-  background-image: url('/imgs/bare/btn_primary.svg');
+  background-image: url('/imgs/bare/button.png');
+  background-size: 100% 100%;
   background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center center;
-  padding: 8px 24px 12px 24px;
+  color: white;
 }
 
-.btn-primary-disabled {
-  background-image: url('/imgs/bare/btn_primary_disable.svg');
+.btn-primary-disable {
+  background-image: url('/imgs/bare/button_disable.png');
   background-repeat: no-repeat;
-  background-position: center center;
-  background-size: contain;
-  cursor: not-allowed;
-  padding: 8px 24px 12px 24px;
-  color: var(--color-content-disabled, #9FA8B4);
+  background-size: 100% 100%;
+  color: var(--color-content-disabled);
 }
-
-
-
 
 /* items */
+
 
 .item-border {
   border: 6px solid transparent;
