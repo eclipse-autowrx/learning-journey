@@ -57,21 +57,22 @@ const saveStateLessonFinish = async (course, lesson_slug, data) => {
 
 const LessonListItem = ({ lesson, isActive, onActive }) => {
     return <div
-        className={`border-2  pl-1 pr-1 py-1 flex items-center rounded cursor-pointer hover:border-black 
-            ${isActive ? ' border-black' : 'border-gray-300'}`}
+        className={`px-1 py-1 flex items-center cursor-pointer hover:opacity-100
+            wavy-border-svg 
+            ${isActive ? ' opacity-100' : 'opacity-60'}`}
         onClick={(e) => {
             if (lesson.lock) return
             if (onActive) {
                 onActive(e)
             }
         }}>
-        <div className='w-16 min-w-16 h-16 bg-gray-200 rounded grid place-items-center'>
-            {lesson.type === 'quiz' && <MdOutlineQuiz size={34} className='text-slate-800]' />}
-            {lesson.type === 'video' && <GoVideo size={36} className='text-slate-800]' />}
-            {lesson.type === 'text-markdown' && <SlNotebook size={36} className='text-slate-800]' />}
+        <div className='w-10 min-w-10 h-10 rounded grid place-items-center'>
+            {lesson.type === 'quiz' && <MdOutlineQuiz size={28} className='text-slate-800]' />}
+            {lesson.type === 'video' && <GoVideo size={28} className='text-slate-800]' />}
+            {lesson.type === 'text-markdown' && <SlNotebook size={28} className='text-slate-800]' />}
         </div>
         <div className='grow pl-3 py-0 flex h-full w-full items-start'>
-            <div className='font-semibold w-full text-gray-800 text-sm line-clamp-3 leading-tight flex items-start justify-between space-x-1'>
+            <div className='font-semibold w-full text-gray-900 text-sm line-clamp-3 leading-tight flex items-start justify-between space-x-1'>
                 {lesson.name}
                 {lesson.context?.state == STATE_COMPLETED && <FaCheckCircle className='min-w-6' size={20} />}
             </div>

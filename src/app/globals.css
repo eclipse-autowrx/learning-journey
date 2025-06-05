@@ -24,3 +24,10 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.wavy-border-svg {
+  border: 6px solid transparent; /* Essential for border-image to work */
+  /* Use your SVG as the border image source */
+  border-image: url('/imgs/bare/item_border.svg') 6 stretch;
+  /* The SVG is highly simplified here; you'd create a more complex one */
+}
