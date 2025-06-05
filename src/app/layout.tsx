@@ -4,12 +4,12 @@ import "./globals.css";
 
 
 // Configure Shantell Sans
-// const shantell_sans = Shantell_Sans({
-//   subsets: ['latin'], // Specify the desired subsets (e.g., 'latin', 'latin-ext', 'cyrillic', etc.)
-//   display: 'swap',   // 'swap' is generally recommended for FOUT (Flash of Unstyled Text)
-//                      // 'optional' can also be used for minimal layout shift
-//   variable: '--font-sans', // Optional: define a CSS variable for easy use
-// });
+const shantell_sans = Shantell_Sans({
+  subsets: ['latin'], // Specify the desired subsets (e.g., 'latin', 'latin-ext', 'cyrillic', etc.)
+  display: 'swap',   // 'swap' is generally recommended for FOUT (Flash of Unstyled Text)
+                     // 'optional' can also be used for minimal layout shift
+  variable: '--font-sans', // Optional: define a CSS variable for easy use
+});
 
 const quicksand = Quicksand({
   subsets: ['latin'],
@@ -49,6 +49,7 @@ export default function RootLayout({
       <body
         className={`h-screen w-screen overflow-y-auto ${quicksand.variable} antialiased`}
       >
+        {/* ${shantell_sans.variable} */}
         {/* <div className="w-full h-20 bg-slate-500 text-white flex items-center justify-center">I am header </div> */}
         {children}
       </body>
