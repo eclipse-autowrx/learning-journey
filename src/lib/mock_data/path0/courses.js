@@ -7,8 +7,8 @@ export const COURSES = [
     {
         _id: "6452a86e7895abcd12345678", // Random MongoDB ObjectId
         name: "Overview",
-        shortDescription: "Overview",
-        description: "Overview",
+        shortDescription: "",
+        description: "",
         icon_name: "",
         top_icon: "/imgs/icon_book.png",
         state: "finished",

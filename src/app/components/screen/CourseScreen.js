@@ -58,28 +58,28 @@ const saveStateLessonFinish = async (course, lesson_slug, data) => {
     }
 }
 
-const LessonListItem = ({ lesson, isActive, onActive }) => {
+const LessonListItem = ({ lesson, isActive, onActive, index }) => {
     return <div
-        className={`px-1 py-1 flex items-center cursor-pointer hover:opacity-100
-            wavy-border-svg 
-            ${isActive ? ' opacity-100' : 'opacity-60'}`}
+        className={`px-1 py-1 flex items-center cursor-pointer hover:item-border-active
+            
+            ${isActive ? 'item-border-active' : 'item-border'}`}
         onClick={(e) => {
             if (lesson.lock) return
             if (onActive) {
                 onActive(e)
             }
         }}>
-        <div className='w-10 min-w-10 h-10 rounded grid place-items-center'>
-            {lesson.type === 'quiz' && <MdOutlineQuiz size={28} className='text-slate-800]' />}
-            {lesson.type === 'video' && <GoVideo size={28} className='text-slate-800]' />}
-            {lesson.type === 'text-markdown' && <SlNotebook size={28} className='text-slate-800]' />}
+        <div className={`w-[42px] min-w-[42px] ${isActive && 'light-box' } aspect-square rounded-lg grid place-items-center`}>
+            {lesson.type === 'quiz' && <img className='w-8 h-8' src='/imgs/bare/lesson_quiz.svg' alt='lesson_video'/>}
+            {lesson.type === 'video' && <img className='w-8 h-8' src='/imgs/bare/lesson_video.svg' alt='lesson_video'/>}
+            {lesson.type === 'text-markdown' && <img className='w-8 h-8' src='/imgs/bare/lesson_book.svg' alt='lesson_markdown'/>}
         </div>
-        <div className='grow pl-3 py-0 flex h-full w-full items-start'>
-            <div className='font-semibold w-full text-gray-900 text-sm line-clamp-3 leading-tight flex items-start justify-between space-x-1'>
-                {lesson.name}
-                {lesson.context?.state == STATE_COMPLETED && <FaCheckCircle className='min-w-6' size={20} />}
+        <div className='grow pl-3 py-0 flex flex-col h-full w-full items-start'>
+            <div className='w-full txt-sub-title text-sm line-clamp-2 flex items-start justify-between space-x-1'>
+                 {`${index+1}. ${lesson.name}`}
+                {lesson.context?.state == STATE_COMPLETED && <img src='/imgs/bare/icon_checked.svg'/>}
             </div>
-            {/* <div className='text-xs line-clamp-2 leading-tight'>{lesson.description}</div> */}
+            <div className='text-xs pl-5 line-clamp-1 leading-tight'>{lesson.description}</div>
         </div>
     </div>
 }
@@ -145,19 +145,20 @@ const CourseScreen = ({ course, path_slug }) => {
 
 
     return <div className='w-full h-full flex flex-col'>
-        <div className='w-full flex pb-4'>
+        <div className='w-full flex flex-col pb-4'>
             <div className='text-2xl font-bold text-black'>
                 {course.name}
             </div>
-            <div className='text-base text-slate-600'>
+            { course.description && <div className='text-base text-slate-600'>
                 {course.description}
-            </div>
+            </div> }
         </div>
 
         <div className='flex w-full h-full text-base space-x-4 overflow-auto'>
-            <div className='w-1/3 max-w-[300px] min-w-[300px] px-0 rounded flex flex-col space-y-2'>
+            <div className='w-1/4 min-w-[400px] px-0 rounded flex flex-col space-y-2'>
                 {
                     lessons.length > 0 && lessons.map((lesson, lIndex) => <LessonListItem key={lIndex}
+                        index={lIndex}
                         lesson={lesson}
                         isActive={lIndex == activeLessonIndex}
                         onActive={(e) => {

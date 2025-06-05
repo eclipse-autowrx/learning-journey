@@ -1,16 +1,38 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Shantell_Sans, Quicksand } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+
+// Configure Shantell Sans
+// const shantell_sans = Shantell_Sans({
+//   subsets: ['latin'], // Specify the desired subsets (e.g., 'latin', 'latin-ext', 'cyrillic', etc.)
+//   display: 'swap',   // 'swap' is generally recommended for FOUT (Flash of Unstyled Text)
+//                      // 'optional' can also be used for minimal layout shift
+//   variable: '--font-sans', // Optional: define a CSS variable for easy use
+// });
+
+const quicksand = Quicksand({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-content',
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+
+// const shantell_mono = Shantell_Mono({
+//   subsets: ['latin'],
+//   display: 'swap',
+//   variable: '--font-mono', // CSS variable for Shantell Mono
+// });
+
+// const geistSans = Geist({
+//   variable: "--font-geist-sans",
+//   subsets: ["latin"],
+// });
+
+// const geistMono = Geist_Mono({
+//   variable: "--font-geist-mono",
+//   subsets: ["latin"],
+// });
 
 export const metadata: Metadata = {
   title: "Learning Journey",
@@ -25,7 +47,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`h-screen w-screen overflow-y-auto ${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`h-screen w-screen overflow-y-auto ${quicksand.variable} antialiased`}
       >
         {/* <div className="w-full h-20 bg-slate-500 text-white flex items-center justify-center">I am header </div> */}
         {children}

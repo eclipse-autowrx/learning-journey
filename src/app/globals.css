@@ -3,13 +3,16 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --text-primary: #13161A;
+  --bg-primary-light: #DBE9D1;
+  --color-content-disabled: #9FA8B4;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-content);
+  --font-content: var(--font-content);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,12 +25,80 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:  var(--font-sans), Helvetica, sans-serif;
+  /* Arial, 'Courier New', Georgia, Tahoma, 'Times New Roman', Verdana, sans-serif */
 }
 
-.wavy-border-svg {
-  border: 6px solid transparent; /* Essential for border-image to work */
-  /* Use your SVG as the border image source */
+/* color */
+
+
+
+
+/* typography */
+
+.font-content {
+  font-family: var(--font-content);
+}
+
+.txt-sub-title {
+  color: var(--text-primary);
+  font-feature-settings: 'cv01' on, 'cv02' on, 'cv03' on, 'cv04' on, 'cv10' on;
+  /* text-body/semibold */
+  /* font-family: "Shantell Sans"; */
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%; /* 22.4px */
+  letter-spacing: -0.32px;
+}
+
+.txt-content {
+  color: var(--text-primary);
+  font-feature-settings: 'cv01' on, 'cv02' on, 'cv03' on, 'cv04' on, 'cv10' on;
+  /* text-body/semibold */
+  /* font-family: "Shantell Sans"; */
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%; /* 22.4px */
+  letter-spacing: -0.32px;
+}
+
+/* box */
+
+.light-box {
+  background-color: var(--bg-primary-light);
+}
+/* btn */
+.btn-primary {
+  background-image: url('/imgs/bare/btn_primary.svg');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center center;
+  padding: 8px 24px 12px 24px;
+}
+
+.btn-primary-disabled {
+  background-image: url('/imgs/bare/btn_primary_disable.svg');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: contain;
+  cursor: not-allowed;
+  padding: 8px 24px 12px 24px;
+  color: var(--color-content-disabled, #9FA8B4);
+}
+
+
+
+
+/* items */
+
+.item-border {
+  border: 6px solid transparent;
   border-image: url('/imgs/bare/item_border.svg') 6 stretch;
-  /* The SVG is highly simplified here; you'd create a more complex one */
+}
+
+.item-border-active {
+  border: 6px solid transparent;
+  border-image: url('/imgs/bare/item_border_active.svg') 6 stretch;
 }
