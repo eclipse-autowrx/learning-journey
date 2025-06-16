@@ -2,9 +2,8 @@
 export default function BtnFullRounded({ children, onClick, disable}) {
     return (
         <button
-            className={`text-[12px] font-bold text-white 
-                         w-fit select-none
-                        ${disable?'btn-primary-disabled': 'btn-primary cursor-pointer hover:scale-110'}
+            className={`text-lg font-bold w-fit select-none px-6 py-2
+                        ${disable?'btn-primary-disable': 'btn-primary cursor-pointer hover:scale-110'}
                 `
             }
             onClick={(e) => {
