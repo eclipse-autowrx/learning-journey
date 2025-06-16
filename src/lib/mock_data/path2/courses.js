@@ -1,5 +1,7 @@
 import { welcome_lessons } from "./welcome_lesson"
 import { explorer_lessons } from './explore_prototype'
+import { lesson_login_user_profile } from './lesson_login_user_profile'
+import { vehicle_model_lessons } from './lessons_vehicle_model'
 
 export const COURSES = [
     {
@@ -32,7 +34,7 @@ export const COURSES = [
         icon_name: "",
         state: "finished",
         type: "lesson",
-        lessons: [],
+        lessons: lesson_login_user_profile,
         context: {  },
     },
     {
@@ -43,7 +45,7 @@ export const COURSES = [
         icon_name: "",
         state: "finished",
         type: "lesson",
-        lessons: [],
+        lessons: vehicle_model_lessons,
         context: { },
     },
     {
