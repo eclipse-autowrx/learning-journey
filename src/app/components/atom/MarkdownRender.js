@@ -1,5 +1,6 @@
 import React from 'react';
 import Markdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import { Quicksand } from "next/font/google";
 
 const quicksand = Quicksand({
@@ -123,13 +124,19 @@ const components = {
     kbd: ({ node, ...props }) => (
         <kbd className="inline-block px-1.5 py-0.5 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" {...props} />
     ),
+    video: ({node, ...props}) => (
+        <video controls style={{width: '100%', maxWidth: '1024px'}}>
+          <source src={props.src} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      )
 };
 
 
 const MarkdownRender = ({ children }) => {
     return (
         <div className={`markdown-render font-content`}>
-            <Markdown components={components}>
+            <Markdown components={components} rehypePlugins={[rehypeRaw]}>
                 {children}
             </Markdown>
         </div>
