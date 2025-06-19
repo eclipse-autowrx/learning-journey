@@ -149,7 +149,39 @@ const components = {
 
     // Images
     img: ({ node, ...props }) => (
-        <img className="max-w-full h-auto mx-auto my-4 rounded-lg shadow-md" {...props} />
+        <img 
+            className="max-w-full h-auto mx-auto my-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow" 
+            onClick={(e) => {
+                const fullscreenDiv = document.createElement('div');
+                fullscreenDiv.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
+                fullscreenDiv.innerHTML = `
+                    <div class="relative w-screen h-screen">
+                        <img src="${e.target.src}" alt="${e.target.alt || ''}" class="w-screen h-screen object-contain" />
+                        <button class="absolute top-4 right-4 text-white text-5xl bg-gray-700 bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-70 transition-colors" onclick="this.parentElement.parentElement.remove()">
+                            ×
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(fullscreenDiv);
+                
+                // Close on click outside image
+                fullscreenDiv.addEventListener('click', (event) => {
+                    if (event.target === fullscreenDiv) {
+                        fullscreenDiv.remove();
+                    }
+                });
+                
+                // Close on escape key
+                const handleEscape = (event) => {
+                    if (event.key === 'Escape') {
+                        fullscreenDiv.remove();
+                        document.removeEventListener('keydown', handleEscape);
+                    }
+                };
+                document.addEventListener('keydown', handleEscape);
+            }}
+            {...props} 
+        />
     ),
 
     // Horizontal Rule

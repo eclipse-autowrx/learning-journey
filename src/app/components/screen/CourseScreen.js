@@ -145,17 +145,18 @@ const CourseScreen = ({ course, path_slug }) => {
 
 
     return <div className='w-full h-full flex flex-col'>
-        <div className='w-full flex flex-col pb-2'>
-            <div className='text-2xl leading-tight font-bold text-black'>
-                {course.name}
-            </div>
-            { course.description && <div className='text-sm text-slate-600 line-clamp-2 leading-tight'>
-                {course.description}
-            </div> }
-        </div>
+        
 
         <div className='flex w-full h-full text-base space-x-4 overflow-auto'>
             <div className='w-1/4 min-w-[400px] px-0 rounded flex flex-col space-y-2'>
+                <div className='w-full flex flex-col pb-2'>
+                    <div className='text-xl leading-tight font-bold text-black'>
+                        {course.name}
+                    </div>
+                    { course.description && <div className='text-sm text-slate-600 leading-tight'>
+                        {course.description}
+                    </div> }
+                </div>
                 {
                     lessonsTable.length > 0 && lessonsTable.map((lesson, lIndex) => <LessonListItem key={lIndex}
                         index={lIndex}
@@ -167,8 +168,8 @@ const CourseScreen = ({ course, path_slug }) => {
                     )}
             </div>
 
-            <div className='grow border border-slate-200 rounded flex flex-col relative' 
-                style={{ maxHeight: 'calc(100vh - 100px)' }}>
+            <div className='grow border border-slate-200 bg-white rounded flex flex-col relative' 
+                style={{ maxHeight: 'calc(100vh - 40px)' }}>
                 <div className='absolue w-full h-full top-0 left-0 bottom-0 right-0 overflow-y-auto'>
                     {showCourseFinishAnnounce && <div className='w-full h-full grid place-items-center'>
                         <div className='flex flex-col px-4 py-4 w-fit h-fit'>
