@@ -22,7 +22,19 @@ Follow these steps to set up your Smart Ambient Light prototype that automatical
 3. Choose **COVESA VSS v4.1** for stability (recommended for learning)
 4. Ensure your model includes door and lighting signals
 
+<details>
+<summary>The following signals will be used in this prototype:</summary>
+
+- <small> <em>Vehicle.Cabin.Door.Row1.DriverSide.IsOpen</em>  Detects when driver door opens</small>
+- <small> <em>Vehicle.Cabin.Light.AmbientLight.DriverSide.IsLightOn</em>  Controls driver side ambient light</small>
+- <small> <em>Vehicle.Cabin.Light.AmbientLight.PassengerSide.IsLightOn</em>  Controls passenger side ambient light</small>
+- <small> <em>Vehicle.Cabin.Light.AmbientLight.DriverSide.Color</em>  Sets driver side ambient light color</small>
+- <small> <em>Vehicle.Cabin.Light.AmbientLight.PassengerSide.Color</em>  Sets passenger side ambient light color</small>
+</details>
+
+
 ![Creating or Selecting a Vehicle Model](https://bewebstudio.digitalauto.tech/data/projects/OyNGtTQf2N0l/vehicle_model/create_new_model.gif)
+
 
 ## Step 2: Create Prototype Workspace
 
@@ -32,8 +44,6 @@ Follow these steps to set up your Smart Ambient Light prototype that automatical
 1. Open **Prototype Library**
 2. Click **"+ Create New Prototype"**
 3. Name it: **"Smart Ambient Light"**
-4. Add description: **"Automatic ambient lighting when door opens"**
-5. Set visibility (public/private)
 
 ![Creating a New Prototype](https://bewebstudio.digitalauto.tech/data/projects/OyNGtTQf2N0l/create_prototype/1.0_create_prototype.gif)
 
@@ -41,9 +51,14 @@ Follow these steps to set up your Smart Ambient Light prototype that automatical
 
 **Objective**: Map out what happens when the user opens the car door.
 
+### Why Customer Journey Matters
+
+The customer journey is the backbone of any successful prototype - it defines the **real-world problem** your solution solves and the **user experience** you're creating. By mapping out each step from the user's perspective (approaching the car, opening the door, experiencing automatic lighting), you ensure your technical implementation serves a genuine need rather than just demonstrating technology. This journey becomes your north star, guiding every coding decision and helping stakeholders understand the practical value of your smart vehicle feature.
+
+
 ### Actions:
 1. Go to **Journey** tab
-2. Create new journey or use template
+2. Modify the sample journey template
 3. Define simple flow:
    - User approaches car
    - Opens driver door (trigger)
@@ -52,12 +67,6 @@ Follow these steps to set up your Smart Ambient Light prototype that automatical
 
 ![Defining the Customer Journey](https://bewebstudio.digitalauto.tech/data/projects/OyNGtTQf2N0l/create_prototype/2.0_customer_journey.gif)
 
-## Required Signals
-
-Your prototype will use these signals:
-- **Input**: \`Vehicle.Cabin.Door.Row1.DriverSide.IsOpen\` (detects door opening)
-- **Output**: \`Vehicle.Cabin.Light.AmbientLight.Row1.*.Color\` (sets light color)
-- **Output**: \`Vehicle.Cabin.Light.AmbientLight.Row1.*.IsLightOn\` (turns lights on/off)
 
 ## What's Next
 
@@ -81,13 +90,21 @@ Now you're ready to write the Python code that makes it work!
 
 Write Python code that listens for door opening events and automatically activates ambient lighting.
 
+<details>
+<summary>Understanding the Python Code Structure</summary>
+
+The Python code you'll write follows the **Eclipse Velocitas framework** - an industry-standard template for developing vehicle applications. This framework utilizes the [Vehicle App Python SDK](https://github.com/eclipse-velocitas/vehicle-app-python-sdk) which provides a standardized **Vehicle object** that gives you direct access to all vehicle signals and actuators. Instead of dealing with complex automotive protocols, you simply use intuitive Python methods like **Vehicle.Cabin.Door.Row1.DriverSide.IsOpen.get()** to read door status or **Vehicle.Body.Lights.AmbientLight.set(color)** to control lighting. This abstraction layer handles all the underlying communication, letting you focus on building innovative features rather than wrestling with vehicle networking protocols.
+
+</details>
+
+
 ## Step 1: Setup Development Environment
 
 **Objective**: Prepare your coding environment.
 
 ### Actions:
 1. Go to **SDV Code** tab
-2. Clear any existing sample code
+2. Clear any existing sample code from the **on_start** function
 3. Start with clean workspace
 
 ![Initializing on_start function](https://bewebstudio.digitalauto.tech/data/projects/OyNGtTQf2N0l/create_prototype/4.1_navigate_to_code_and_remove_sample.gif)
@@ -99,8 +116,24 @@ Write Python code that listens for door opening events and automatically activat
 ### Actions:
 1. Use **Signal Browser** (right panel)
 2. Search for **"driver"** to find door signal
-3. Find: \`Vehicle.Cabin.Door.Row1.DriverSide.IsOpen\`
-4. Note the signal path for your code
+3. Find: **Vehicle.Cabin.Door.Row1.DriverSide.IsOpen**
+4. Click on signal name, copy subscribe code snippet
+
+
+<details>
+<summary>💡 Signal Browser Code Snippets</summary>
+
+When you click on any signal name in the Signal Browser, a dialog box will appear with ready-to-use code snippets. These snippets provide three types of operations:
+
+- **Get**: Read current signal value once
+- **Set**: Update signal value (for actuators)  
+- **Subscribe**: Listen for signal changes continuously
+
+Simply copy the appropriate snippet and paste it into your code. This saves time and ensures you use the correct signal paths.
+
+</details>
+
+
 
 ![Searching for relevant vehicle signals](https://bewebstudio.digitalauto.tech/data/projects/OyNGtTQf2N0l/create_prototype/4.2_search_driver_door_signal_and_subscribe.gif)
 
@@ -111,7 +144,7 @@ Write Python code that listens for door opening events and automatically activat
 ### Actions:
 1. Write the door event handler function
 2. Extract door state from signal data
-3. Add logic to activate lights when door opens
+3. Print door state value for debugging purposes
 
 ![Writing the door event handler function](https://bewebstudio.digitalauto.tech/data/projects/OyNGtTQf2N0l/create_prototype/4.3_receive_door_open_event.gif)
 
@@ -120,9 +153,10 @@ Write Python code that listens for door opening events and automatically activat
 **Objective**: Control ambient lighting when door opens.
 
 ### Actions:
-1. Set light color to cyan (#00FFFF)
-2. Turn on lights for both driver and passenger sides
-3. Add console logging for debugging
+1. Check if door is open
+2. If open, set light color to cyan (#00FFFF)
+3. Turn on lights for both driver and passenger sides
+4. Add console logging for debugging
 
 ![Setting ambient light when door opens](https://bewebstudio.digitalauto.tech/data/projects/OyNGtTQf2N0l/create_prototype/4.4_turn_on_ambient_light_if_door_open.gif)
 
@@ -130,7 +164,7 @@ Write Python code that listens for door opening events and automatically activat
 
 Here's the complete working code:
 
-\\\`\\\`\\\`python
+\`\`\`python
 import time
 import asyncio
 import signal
@@ -183,14 +217,14 @@ LOOP = asyncio.get_event_loop()
 LOOP.add_signal_handler(signal.SIGTERM, LOOP.stop)
 LOOP.run_until_complete(main())
 LOOP.close()
-\\\`\\\`\\\`
+\`\`\`
 
 ## Key Components
 
-- **Event Handler**: \`on_driver_door_opened()\` responds to door changes
-- **Signal Subscription**: \`subscribe()\` connects door signal to handler
-- **Light Control**: \`set()\` commands control ambient lighting
-- **Async Pattern**: All functions use \`async/await\` for real-time response
+- **Event Handler**: *on_driver_door_opened()* responds to door changes
+- **Signal Subscription**: *subscribe()* connects door signal to handler
+- **Light Control**: *set()* commands control ambient lighting
+- **Async Pattern**: All functions use *async/await* for real-time response
 
 ## What's Next
 
@@ -210,9 +244,21 @@ Now create the dashboard to test your prototype!
         markdown_content: `
 # Create Interactive Dashboard
 
+
+## What is Dashboard?
+
+The dashboard provides a professional testing environment with visual feedback, manual control capabilities, and real-time display of your prototype's code execution results.
+
+**Key Features**:
+- **Grid System**: 5 columns x 2 rows (10 total cells) for flexible layout design
+- **Widget Marketplace**: Pre-built components for rapid dashboard development
+- **Custom Layouts**: Merge cells to create custom widget arrangements
+- **Real-time Testing**: Interactive controls for manual signal manipulation and validation
+
 ## Dashboard Overview
 
-Build an interactive testing interface with 3D visualization and manual signal controls.
+Now you'll create a visual testing environment to validate your Smart Ambient Light prototype. The dashboard combines 3D car visualization with real-time signal monitoring, enabling you to simulate door opening events and observe your code's lighting responses without physical hardware.
+
 
 ## Step 1: Setup Dashboard Layout
 
@@ -221,7 +267,6 @@ Build an interactive testing interface with 3D visualization and manual signal c
 ### Actions:
 1. Go to **Dashboard** tab
 2. Clear all existing widgets
-3. Prepare 5×2 grid layout (10 cells total)
 
 ![Navigate to dashboard and clear widgets](https://bewebstudio.digitalauto.tech/data/projects/OyNGtTQf2N0l/create_prototype/5.1_navigate_to_dashboard_clear_all.gif)
 
@@ -230,28 +275,46 @@ Build an interactive testing interface with 3D visualization and manual signal c
 **Objective**: Add interactive vehicle visualization.
 
 ### Actions:
-1. **Merge 6 cells** (3×2 area) for main display
-2. Add **3D Car Widget** from marketplace
-3. Configure to show your vehicle model
-4. Test door interaction (clicking door handle)
+1. Click **Edit Mode** button to enable layout changes
+2. **Select and merge 6 cells** in a 3x2 grid arrangement for the main display area
+3. Click **Add Widget** and select **3D Car Unity** from the widget marketplace
+4. Click **Save** to preserve your dashboard configuration
+
+
 
 ![Add 3D car model to dashboard](https://bewebstudio.digitalauto.tech/data/projects/OyNGtTQf2N0l/create_prototype/5.2_merge_6_cells_and_put_car.gif)
 
 ## Step 3: Add Signal Control Table
 
-**Objective**: Create manual testing controls.
+**Objective**: Create manual testing controls and real-time signal monitoring.
 
 ### Actions:
 1. **Merge 2 cells** for control panel
 2. Add **Signal Table Widget**
 3. Add these signals for monitoring and control:
-   - \`Vehicle.Cabin.Door.Row1.DriverSide.IsOpen\`
-   - \`Vehicle.Cabin.Light.AmbientLight.Row1.DriverSide.Color\`
-   - \`Vehicle.Cabin.Light.AmbientLight.Row1.DriverSide.IsLightOn\`
-   - \`Vehicle.Cabin.Light.AmbientLight.Row1.PassengerSide.Color\`
-   - \`Vehicle.Cabin.Light.AmbientLight.Row1.PassengerSide.IsLightOn\`
+\`\`\`
+Vehicle.Cabin.Door.Row1.DriverSide.IsOpen
+Vehicle.Cabin.Light.AmbientLight.Row1.DriverSide.Color
+Vehicle.Cabin.Light.AmbientLight.Row1.DriverSide.IsLightOn
+Vehicle.Cabin.Light.AmbientLight.Row1.PassengerSide.Color
+Vehicle.Cabin.Light.AmbientLight.Row1.PassengerSide.IsLightOn
+\`\`\`
+
 
 ![Add signal table widget](https://bewebstudio.digitalauto.tech/data/projects/OyNGtTQf2N0l/create_prototype/5.3_add_table_widget_and_signals.gif)
+
+<details>
+<summary><strong> Signal Selection Flexibility</strong></summary>
+
+The Signal Table widget is highly customizable - you can monitor and control **any vehicle signal** by adding it to the APIs configuration list. The signals listed above are specific to our Smart Ambient Light prototype, but you're free to:
+
+- **Add additional signals** for expanded testing capabilities
+- **Remove unnecessary signals** to simplify your testing interface  
+- **Modify signal paths** to match your specific vehicle model or use case
+
+Simply add any signal path to the widget configuration, and it will automatically appear in your control table with real-time monitoring and manual override capabilities.
+
+</details>
 
 ## Step 4: Test Dashboard Interaction
 
@@ -302,44 +365,39 @@ Now run your application and test the complete functionality!
         markdown_content: `
 # Run & Test Application
 
-## Final Testing
+Execute your complete **Smart Ambient Light** prototype and verify it works as designed.
 
-Execute your complete Smart Ambient Light prototype and verify it works as designed.
 
-## Step 1: Run Your Application
-
-**Objective**: Start your Python application.
-
-### Actions:
-1. Make sure your **Python code is complete**
-2. Select appropriate **SDV Runtime**
-3. **Run your application** using the execute button
-4. **Watch console logs** for startup messages
-5. **Verify** "Smart Ambient Light ready" message appears
-
-## Step 2: Test Door Opening Event
+## Run Your Application and Test Door Opening Event
 
 **Objective**: Verify door opening triggers ambient lighting.
 
+### Start Your Application
+
+Hit the **run button**, button with white play icon on the right bar
+
+
 ### Testing Methods:
 
-**Method A - 3D Model Interaction**:
+
+#### **Method A** - 3D Model Interaction:
 1. **Click door handle** on 3D car model
 2. **Watch door open** visually
 3. **See ambient lights** activate automatically
 4. **Check signal table** values update
 
-**Method B - Manual Signal Control**:
+
+#### **Method B** - Manual Signal Control:
 1. **Find door signal** in signal table
-2. **Click signal value** to edit
-3. **Change to "true"** (door open)
+2. Click **ON** button to set signal to true
+3. **Watch door open** visually
 4. **Watch lights activate** in 3D model
+
+> **Remember**: Our code logic triggers on signal **changes**, not just values. So toggling OFF→ON creates the change event that activates the lights. You can play with the signal value in the table to see how it works.
+
 
 ![Complete prototype demonstration](https://bewebstudio.digitalauto.tech/data/projects/OyNGtTQf2N0l/create_prototype/6.result.gif)
 
-## Step 3: Validate Complete Functionality
-
-**Objective**: Confirm all components work together.
 
 ### Validation Checklist:
 
@@ -354,17 +412,23 @@ Execute your complete Smart Ambient Light prototype and verify it works as desig
 
 ## Troubleshooting Quick Fixes
 
-**If lights don't activate**:
+#### **If run button is disabled** (grayed out):
+- It means no **sdv-runtime** is selected. Your Python code needs a runtime environment to execute. Make sure you have selected an appropriate sdv-runtime from the runtime selector before attempting to run your application.
+
+![Runtime selection and execution log](https://bewebstudio.digitalauto.tech/data/projects/OyNGtTQf2N0l/create_prototype/7.runtime_and_log.gif)
+
+
+#### **If lights don't activate**:
 - Check console for error messages
 - Verify signal paths in code match your model
 - Ensure door signal subscription is working
 
-**If 3D model doesn't respond**:
+#### **If 3D model doesn't respond**:
 - Refresh dashboard
 - Check widget configuration
 - Verify signals are connected properly
 
-**If manual signals don't work**:
+#### **If manual signals don't work**:
 - Check signal table configuration
 - Verify you're editing the correct signals
 - Ensure signal paths are correct
@@ -393,12 +457,6 @@ Execute your complete Smart Ambient Light prototype and verify it works as desig
 - Controls both driver and passenger side lights
 - Provides professional visual feedback
 - Demonstrates real vehicle software patterns
-
-## What's Next
-
-✅ **Working prototype** complete  
-✅ **End-to-end functionality** validated  
-✅ **Professional demonstration** ready  
 
 Your Smart Ambient Light prototype is now complete and demonstrates core automotive software development skills!
 `
@@ -440,15 +498,15 @@ Congratulations! You've successfully built a complete Smart Ambient Light protot
 ## Code Examples for Enhancements
 
 ### Turn Off Lights When Door Closes:
-\\\`\\\`\\\`python
+\`\`\`python
 if value:  # Door opened
     await self.activate_lights()
 else:  # Door closed
     await self.deactivate_lights()
-\\\`\\\`\\\`
+\`\`\`
 
 ### Multiple Door Support:
-\\\`\\\`\\\`python
+\`\`\`python
 # Subscribe to all doors
 await self.Vehicle.Cabin.Door.Row1.PassengerSide.IsOpen.subscribe(
     self.on_passenger_door_opened
@@ -456,10 +514,10 @@ await self.Vehicle.Cabin.Door.Row1.PassengerSide.IsOpen.subscribe(
 await self.Vehicle.Cabin.Door.Row2.DriverSide.IsOpen.subscribe(
     self.on_rear_door_opened
 )
-\\\`\\\`\\\`
+\`\`\`
 
 ### Dynamic Color Control:
-\\\`\\\`\\\`python
+\`\`\`python
 import datetime
 
 def get_ambient_color(self):
@@ -468,60 +526,31 @@ def get_ambient_color(self):
         return "#87CEEB"  # Light blue
     else:  # Nighttime
         return "#FF6600"  # Warm orange
-\\\`\\\`\\\`
+\`\`\`
 
 ## Troubleshooting Guide
 
 ### Common Issues:
 
-**Application won't start**:
+#### **Application won't start**:
 - Check Python syntax and indentation
 - Verify all import statements
 - Ensure vehicle model compatibility
 
-**Signals not responding**:
+#### **Signals not responding**:
 - Confirm signal paths match your vehicle model
 - Check COVESA VSS version compatibility
 - Verify subscription syntax
 
-**Dashboard not updating**:
+#### **Dashboard not updating**:
 - Refresh browser page
 - Check widget configuration
 - Verify signal selection in table
 
-**3D model issues**:
+#### **3D model issues**:
 - Clear browser cache
 - Check network connectivity
 - Try different browser
-
-## Learning Path Continuation
-
-### Next Recommended Topics:
-1. **Advanced Signal Processing** - Multi-signal event correlation
-2. **Performance Optimization** - Efficient signal handling patterns
-3. **User Interface Design** - Custom dashboard widgets
-4. **System Integration** - Cloud connectivity and external APIs
-5. **Production Deployment** - Scaling prototypes for real vehicles
-
-### Professional Development:
-- **COVESA Standards** - Deep dive into Vehicle Signal Specification
-- **Automotive Architecture** - Software-defined vehicle concepts
-- **Safety Standards** - ISO 26262 and automotive safety
-- **Real Vehicle Testing** - Hardware-in-the-loop testing methods
-
-## Community and Support
-
-### Getting Help:
-- **Documentation** - Platform documentation and API references
-- **Community Forums** - Connect with other automotive developers
-- **Sample Projects** - Explore more complex prototype examples
-- **Tutorials** - Additional hands-on learning content
-
-### Sharing Your Work:
-- **Portfolio Project** - Add to your development portfolio
-- **Team Collaboration** - Share with colleagues and stakeholders
-- **Open Source** - Contribute to automotive development community
-- **Professional Network** - Demonstrate skills to potential employers
 
 ## Congratulations!
 
@@ -532,18 +561,195 @@ You've completed a comprehensive automotive software development project that de
 🎨 **User Experience**: Interactive visualization and testing  
 📊 **Project Management**: Complete development lifecycle execution  
 
-Your Smart Ambient Light prototype showcases the core competencies needed for modern automotive software development roles.
-
-## Ready for Production?
-
-While this prototype demonstrates the core concepts, production-ready features would require:
-- **Safety validation** and compliance testing
-- **Performance optimization** for real-time constraints
-- **Error handling** for edge cases and failure modes
-- **Security implementation** for vehicle cybersecurity
-- **Integration testing** with actual vehicle hardware
-
 Keep building, keep learning, and welcome to the exciting world of Software-Defined Vehicles! 🚗✨
 `
+    },
+    {
+        slug: 'prototype_creation_quiz',
+        name: "Smart Ambient Light Prototype Quiz",
+        description: "This quiz evaluates your understanding of prototype creation, Python vehicle app development, dashboard design, and testing in the digital.auto playground.",
+        type: "quiz",
+        questions: [
+            {
+                "question": "What signals are required for the Smart Ambient Light prototype to detect when the driver door opens?",
+                "answers": [
+                    {
+                        "label": "Vehicle.Cabin.Door.Row1.DriverSide.IsOpen",
+                        "is_correct": true
+                    },
+                    {
+                        "label": "Vehicle.Body.Door.DriverSide.Status"
+                    },
+                    {
+                        "label": "Vehicle.Cabin.Seat.Row1.DriverSide.IsOccupied"
+                    },
+                    {
+                        "label": "Vehicle.Engine.IsRunning"
+                    }
+                ]
+            },
+            {
+                "question": "Which COVESA VSS version is recommended for learning and stability when creating a new vehicle model?",
+                "answers": [
+                    {
+                        "label": "COVESA VSS v5.0"
+                    },
+                    {
+                        "label": "COVESA VSS v4.1",
+                        "is_correct": true
+                    },
+                    {
+                        "label": "COVESA VSS v3.0"
+                    },
+                    {
+                        "label": "COVESA VSS v4.2rc0"
+                    }
+                ]
+            },
+            {
+                "question": "What is the primary purpose of the customer journey step in prototype development?",
+                "answers": [
+                    {
+                        "label": "To create technical documentation"
+                    },
+                    {
+                        "label": "To define the real-world problem and user experience being created",
+                        "is_correct": true
+                    },
+                    {
+                        "label": "To test the Python code"
+                    },
+                    {
+                        "label": "To configure the vehicle signals"
+                    }
+                ]
+            },
+            {
+                "question": "In the Python code, what method is used to listen for changes to vehicle signals?",
+                "answers": [
+                    {
+                        "label": "get()"
+                    },
+                    {
+                        "label": "set()"
+                    },
+                    {
+                        "label": "subscribe()",
+                        "is_correct": true
+                    },
+                    {
+                        "label": "listen()"
+                    }
+                ]
+            },
+            {
+                "question": "What Eclipse framework does the Python vehicle app development follow?",
+                "answers": [
+                    {
+                        "label": "Eclipse Che"
+                    },
+                    {
+                        "label": "Eclipse Velocitas",
+                        "is_correct": true
+                    },
+                    {
+                        "label": "Eclipse IDE"
+                    },
+                    {
+                        "label": "Eclipse Mosquitto"
+                    }
+                ]
+            },
+            {
+                "question": "What color code is used for the ambient light in the Smart Ambient Light prototype?",
+                "answers": [
+                    {
+                        "label": "#FF0000 (Red)"
+                    },
+                    {
+                        "label": "#00FF00 (Green)"
+                    },
+                    {
+                        "label": "#00FFFF (Cyan)",
+                        "is_correct": true
+                    },
+                    {
+                        "label": "#FFFF00 (Yellow)"
+                    }
+                ]
+            },
+            {
+                "question": "How many cells should be merged for the 3D car model widget in the dashboard layout?",
+                "answers": [
+                    {
+                        "label": "4 cells"
+                    },
+                    {
+                        "label": "6 cells",
+                        "is_correct": true
+                    },
+                    {
+                        "label": "8 cells"
+                    },
+                    {
+                        "label": "10 cells"
+                    }
+                ]
+            },
+            {
+                "question": "What are the two main testing methods described for validating the Smart Ambient Light prototype?",
+                "answers": [
+                    {
+                        "label": "Code debugging and signal monitoring"
+                    },
+                    {
+                        "label": "3D Model Interaction and Manual Signal Control",
+                        "is_correct": true
+                    },
+                    {
+                        "label": "Hardware testing and software simulation"
+                    },
+                    {
+                        "label": "Unit testing and integration testing"
+                    }
+                ]
+            },
+            {
+                "question": "Why might the run button be disabled (grayed out) when trying to execute the Python application?",
+                "answers": [
+                    {
+                        "label": "The Python code has syntax errors"
+                    },
+                    {
+                        "label": "No sdv-runtime is selected",
+                        "is_correct": true
+                    },
+                    {
+                        "label": "The dashboard is not configured properly"
+                    },
+                    {
+                        "label": "The vehicle model is missing signals"
+                    }
+                ]
+            },
+            {
+                "question": "According to the code logic, what triggers the ambient light activation?",
+                "answers": [
+                    {
+                        "label": "When the door signal value is true"
+                    },
+                    {
+                        "label": "When the door signal changes from false to true",
+                        "is_correct": true
+                    },
+                    {
+                        "label": "When the car engine starts"
+                    },
+                    {
+                        "label": "When a passenger enters the vehicle"
+                    }
+                ]
+            }
+        ]
     }
 ]

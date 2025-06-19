@@ -145,11 +145,11 @@ const CourseScreen = ({ course, path_slug }) => {
 
 
     return <div className='w-full h-full flex flex-col'>
-        <div className='w-full flex flex-col pb-4'>
-            <div className='text-2xl font-bold text-black'>
+        <div className='w-full flex flex-col pb-2'>
+            <div className='text-2xl leading-tight font-bold text-black'>
                 {course.name}
             </div>
-            { course.description && <div className='text-base text-slate-600'>
+            { course.description && <div className='text-sm text-slate-600 line-clamp-2 leading-tight'>
                 {course.description}
             </div> }
         </div>
