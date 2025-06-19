@@ -97,7 +97,7 @@ const CourseNode = ({ path, item, onRequestUpdateProgress }) => {
       </div>
 
       <div
-        className="mt-0 text-slate-700 text-[9px] lg:text:[10px] xl:text-base 
+        className="mt-0 text-slate-700 text-[10px] lg:text:[10px] xl:text-base 
                       font-semibold text-center leading-none"
         style={{
           maxWidth: "11vw",
