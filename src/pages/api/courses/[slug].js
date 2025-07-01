@@ -1,3 +1,11 @@
+// Copyright (c) 2025 Eclipse Foundation.
+// 
+// This program and the accompanying materials are made available under the
+// terms of the MIT License which is available at
+// https://opensource.org/licenses/MIT.
+//
+// SPDX-License-Identifier: MIT
+
 import { ALL_COURSES } from "@/lib/mock_data/all_courses";
 // import { LESSONs } from "@/lib/mock_data/course1_lessons";
 

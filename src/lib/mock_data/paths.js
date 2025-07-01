@@ -1,3 +1,11 @@
+// Copyright (c) 2025 Eclipse Foundation.
+// 
+// This program and the accompanying materials are made available under the
+// terms of the MIT License which is available at
+// https://opensource.org/licenses/MIT.
+//
+// SPDX-License-Identifier: MIT
+
 // import { PATH0 } from "./path0.js";
 import { PATH0 } from "./path0_opt2.js";
 import { PATH1 } from "./path1.js";
