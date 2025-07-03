@@ -13,10 +13,11 @@ import BtnFullRounded from '../atom/BtnFullRounded';
 import { useRouter } from "next/navigation";
 
 import { genQueryParamsForRequest } from '@/lib/frontend/utils';
+import InteractiveLesson from '../lessons/InteractiveLesson';
 
 const saveStateLessonFinish = async (course, lesson_slug, data) => {
     if (!course || !course._id || !lesson_slug) return null
-
+    // console.log('saveStateLessonFinish', course, lesson_slug, data)
     try {
 
         let payload = {
@@ -39,7 +40,7 @@ const saveStateLessonFinish = async (course, lesson_slug, data) => {
             lessonProgress.updated_at = new Date()
             lessonProgress.progress = "completed"
         }
-
+        // console.log("Set Lesson Finished", lesson_slug)
         const res = await fetch(`/api/progress/courses/${course._id}/lessons/${lesson_slug}?${genQueryParamsForRequest()}`, {
             method: "PUT",
             headers: {
@@ -73,6 +74,7 @@ const LessonListItem = ({ lesson, isActive, onActive, index }) => {
             {lesson.type === 'quiz' && <img className='w-8 h-8' src='/imgs/bare/lesson_quiz.svg' alt='lesson_video'/>}
             {lesson.type === 'video' && <img className='w-8 h-8' src='/imgs/bare/lesson_video.svg' alt='lesson_video'/>}
             {lesson.type === 'text-markdown' && <img className='w-8 h-8' src='/imgs/bare/lesson_book.svg' alt='lesson_markdown'/>}
+            {lesson.type === 'interactive' && <img className='w-10 h-10' src='/imgs/bare/lesson_interactive.svg' alt='lesson_interractive'/>}
         </div>
         <div className='grow pl-3 py-0 flex flex-col h-full w-full items-start'>
             <div className='w-full txt-sub-title text-sm line-clamp-2 flex items-start justify-between space-x-1'>
@@ -228,6 +230,20 @@ const CourseScreen = ({ course, path_slug }) => {
                                     } catch (e) { }
                                 }
 
+                            }}
+                        />}
+
+                        {activeLesson.type === 'interactive' && <InteractiveLesson lesson={activeLesson}
+                            onCloseRequest={() => {
+                                gotoNextLesson()
+                            }}
+                            onSumbitLesson={async (data) => {
+                                let lessonInTable = lessonsTable.find(l => l.slug == activeLesson.slug)
+                                if (lessonInTable && lessonInTable.context?.state != 'completed') {
+                                    const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
+                                    let newCourseProgress = res.data
+                                    applyNewProgressToCourse(newCourseProgress) 
+                                }
                             }}
                         />}
 
