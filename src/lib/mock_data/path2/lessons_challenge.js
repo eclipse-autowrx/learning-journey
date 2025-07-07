@@ -276,20 +276,20 @@ You will  go step by step to create:
                 //         expectedValue: '/model/:model_id/library/prototype/:prototype_id/view',
                 //     },
                 // },
-                // {
-                //     name: 'Go to Customer Journey',
-                //     path: `@[]:<dataid:prototype-overview-tab-customerJourney>`,
-                //     actionType: 'show_tooltip',
-                //     value: null,
-                //     tooltipMessage: 'Click here to open Customer Journey',
-                //     delayBefore: 500,
-                //     delayAfter: 500,
-                //     finish_condition: {
-                //         type: 'element_clicked',
-                //         expectedValue: '',
-                //         target_element_path: `@[]:<dataid:prototype-overview-tab-customerJourney>`,
-                //     },
-                // },
+                {
+                    name: 'Go to Customer Journey',
+                    path: `@[]:<dataid:prototype-overview-tab-customerJourney>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to open Customer Journey',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: `@[]:<dataid:prototype-overview-tab-customerJourney>`,
+                    },
+                },
                 {
                     name: 'Click Edit Customer Journey',
                     path: '@[]:<dataid:prototype-edit-button>',
@@ -315,7 +315,7 @@ You will  go step by step to create:
                     tooltipMessage: 'Click here to delete the third column',
                     delayBefore: 500,
                     delayAfter: 500,
-                    finish_condition: { 
+                    finish_condition: {
                         type: 'element_clicked',
                         expectedValue: '',
                         target_element_path: '@[]:<css:.journey-edit-btn-delete-column[2]>',
@@ -332,7 +332,7 @@ You will  go step by step to create:
                     tooltipMessage: 'Click here to delete the second column',
                     delayBefore: 500,
                     delayAfter: 500,
-                    finish_condition: { 
+                    finish_condition: {
                         type: 'element_clicked',
                         expectedValue: '',
                         target_element_path: '@[]:<css:.journey-edit-btn-delete-column[1]>',
@@ -349,7 +349,7 @@ You will  go step by step to create:
                     tooltipMessage: 'Click here and enter: "Driver open door"',
                     delayBefore: 500,
                     delayAfter: 500,
-                    finish_condition: { 
+                    finish_condition: {
                         type: 'has-value',
                         expectedValue: 'Driver open door',
                         target_element_path: '@[]:<css.journey-edit-content-cell-input[1]>',
@@ -363,7 +363,7 @@ You will  go step by step to create:
                     tooltipMessage: 'Click here and enter: "Driver door"',
                     delayBefore: 500,
                     delayAfter: 500,
-                    finish_condition: { 
+                    finish_condition: {
                         type: 'has-value',
                         expectedValue: 'Driver door',
                         target_element_path: '@[]:<css.journey-edit-content-cell-input[2]>',
@@ -377,7 +377,7 @@ You will  go step by step to create:
                     tooltipMessage: 'Click here to add a new column',
                     delayBefore: 500,
                     delayAfter: 500,
-                    finish_condition: { 
+                    finish_condition: {
                         type: 'element_clicked',
                         expectedValue: '',
                         target_element_path: '@[]:<dataid:journey-edit-add-column-btn>',
@@ -394,7 +394,7 @@ You will  go step by step to create:
                     tooltipMessage: 'Click here and enter: "SDV QM App"',
                     delayBefore: 500,
                     delayAfter: 500,
-                    finish_condition: { 
+                    finish_condition: {
                         type: 'has-value',
                         expectedValue: 'SDV QM App',
                         target_element_path: '@[]:<css.journey-edit-content-cell-input[1]>',
@@ -408,7 +408,7 @@ You will  go step by step to create:
                     tooltipMessage: 'Click here and enter: "Turn on ambient light"',
                     delayBefore: 500,
                     delayAfter: 500,
-                    finish_condition: { 
+                    finish_condition: {
                         type: 'has-value',
                         expectedValue: 'Turn on ambient light',
                         target_element_path: '@[]:<css.journey-edit-content-cell-input[3]>',
@@ -422,7 +422,7 @@ You will  go step by step to create:
                     tooltipMessage: 'Click here and enter: "Ambient light"',
                     delayBefore: 500,
                     delayAfter: 500,
-                    finish_condition: { 
+                    finish_condition: {
                         type: 'has-value',
                         expectedValue: 'Ambient light',
                         target_element_path: '@[]:<css.journey-edit-content-cell-input[5]>',
@@ -436,13 +436,451 @@ You will  go step by step to create:
                     tooltipMessage: 'Click the Save button to save your changes.',
                     delayBefore: 500,
                     delayAfter: 500,
-                    finish_condition: { 
+                    finish_condition: {
                         type: 'element_clicked',
                         expectedValue: '',
                         target_element_path: '@[]:<dataid:prototype-save-button>',
                     },
                     error_messeges: {
                         "path_not_found": "Save button not found."
+                    }
+                },
+            ]
+        }
+    },
+    {
+        slug: 'collect-requirements',
+        name: "Collect Requirements",
+        description: "Guide to collect requirements",
+        duration: "5 minutes",
+        type: "interactive",
+        sequence: {
+            name: 'Sequence to collect requirements',
+            description: 'This sequence walks the user through collecting requirements step by step.',
+            auto_run_next: true,
+            auto_start: true,
+            trigger_source: 'learning',
+            actions: [
+                {
+                    name: 'Go to Requirements',
+                    path: `@[]:<dataid:prototype-overview-tab-requirement>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to open Requirements',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: `@[]:<dataid:prototype-overview-tab-requirement>`,
+                    },
+                },
+                {
+                    name: 'Click Run new Scan',
+                    path: `@[]:<dataid:btn-run-new-scan>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to run a new scan',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: `@[]:<dataid:btn-run-new-scan>`,
+                    },
+                    error_messeges: {
+                        "path_not_found": "Run new scan button not found."
+                    }
+                }
+            ]
+        }
+    },
+    {
+        slug: 'write-python-app',
+        name: "Write Python App",
+        description: "Guide to write a python app",
+        duration: "5 minutes",
+        type: "interactive",
+        sequence: {
+            name: 'Sequence to write python app',
+            description: 'This sequence walks the user through writing a python app step by step.',
+            auto_run_next: true,
+            auto_start: true,
+            trigger_source: 'learning',
+            actions: [
+                {
+                    name: 'Go to Python App',
+                    path: `@[]:<dataid:tab-code>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to open Python App',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: `@[]:<dataid:tab-code>`,
+                    },
+                    error_messeges: {
+                        "path_not_found": "Python App tab not found."
+                    }
+                },
+                {
+                    name: 'Remove placeholder code',
+                    path: `@[]:<css:.line-numbers[16]>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Delete call code inside while loop',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                },
+                {
+                    name: 'Open all signals',
+                    path: `@[]:<dataid:all-signals-tab>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to open all signals',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: `@[]:<dataid:all-signals-tab>`,
+                    },
+                    error_messeges: {
+                        "path_not_found": "All signals tab not found."
+                    }
+                },
+                {
+                    name: 'Search for signal',
+                    path: `@[]:<dataid:search-signal-input>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Enter "Door" in the search input',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: `@[]:<dataid:search-signal-input>`,
+                    },
+                    error_messeges: {
+                        "path_not_found": "Search signal input not found."
+                    }
+                },
+                {
+                    name: 'Select signal',
+                    path: `@[]:<css:.signal-list-item-name[5]>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click on signal IsOpen',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: `@[]:<css:.signal-list-item-name[5]>`,
+                    },
+                    error_messeges: {
+                        "path_not_found": "Signal not found."
+                    }
+                },
+                {
+                    name: 'Copy code',
+                    path: `@[]:<css:.btn-copy-get-code>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to Copy code snippet',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: `@[]:<css:.btn-copy-get-code>`,
+                    },
+                    error_messeges: {
+                        "path_not_found": "Copy code snippet button not found."
+                    }
+                },
+                {
+                    name: 'Paste copied code here',
+                    path: `@[]:<css:.line-numbers[17]>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Paste copied code here',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                },
+                {
+                    name: 'Search for signal',
+                    path: `@[]:<dataid:search-signal-input>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Enter "Ambient" in the search input',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: `@[]:<dataid:search-signal-input>`,
+                    },
+                    error_messeges: {
+                        "path_not_found": "Search signal input not found."
+                    }
+                },
+                {
+                    name: 'Select signal',
+                    path: `@[]:<css:.signal-list-item-name[6]>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click on signal IsOpen',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: `@[]:<css:.signal-list-item-name[6]>`,
+                    },
+                    error_messeges: {
+                        "path_not_found": "Signal not found."
+                    }
+                },
+                {
+                    name: 'Copy code',
+                    path: `@[]:<css:.btn-copy-set-code>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to Copy code snippet',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: `@[]:<css:.btn-copy-set-code>`,
+                    },
+                    error_messeges: {
+                        "path_not_found": "Copy code snippet button not found."
+                    }
+                },
+                {
+                    name: 'Paste copied code here',
+                    path: `@[]:<css:.line-numbers[18]>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Paste copied code here',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                },
+                {
+                    name: 'Save code',
+                    path: `@[]:<css:.line-numbers[16]`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Base on these two API, write turn on ambient light when door is opened',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                }
+            ],
+        }
+    },
+    {
+        slug: 'design-dashboard',
+        name: "Configure Dashboard",
+        description: "Guide to configure a dashboard",
+        duration: "5 minutes",
+        type: "interactive",
+        sequence: {
+            name: 'Sequence to configure dashboard',
+            description: 'This sequence walks the user through configuring a dashboard step by step.',
+            auto_run_next: true,
+            auto_start: true,
+            trigger_source: 'learning',
+            actions: [
+                {
+                    name: 'Go to Dashboard',
+                    path: `@[]:<dataid:tab-dashboard>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to open Dashboard',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: `@[]:<dataid:tab-dashboard>`,
+                    },
+                    error_messeges: {
+                        "path_not_found": "Dashboard tab not found."
+                    }
+                },
+                {
+                    name: 'Enter Dashboard Edit Mode',
+                    path: `@[]:<dataid:dashboard-edit-button>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click to enter Dashboard Edit Mode',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: null,
+                        target_element_path: '@[]:<dataid:dashboard-edit-button>',
+                    },
+                    error_messeges: {
+                        "element_not_found": "Some thing went wrong. Dashboard Edit button not found."
+                    }
+                },
+                {
+                    name: 'Delete all widgets',
+                    path: `@[]:<dataid:dashboard-delete-all-widgets>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Delete all widgets',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: null,
+                        target_element_path: '@[]:<dataid:dashboard-delete-all-widgets>',
+                    },
+                    error_messeges: {
+                        "element_not_found": "Some thing went wrong. Dashboard Delete all widgets button not found."
+                    }
+                },
+                {
+                    name: 'Pick cells to place widget',
+                    path: `@[]:<css:.widget-grid-cell-empty[0]>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Pick cells to place widget',
+                    delayBefore: 200,
+                    delayAfter: 200,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: null,
+                        target_element_path: '@[]:<css:.widget-grid-cell-empty[0]>',
+                    },
+                    error_messeges: {
+                        "element_not_found": "Some thing went wrong. Widget cell not found"
+                    }
+                },
+                {
+                    name: 'Pick cells to place widget',
+                    path: `@[]:<css:.widget-grid-cell-empty[0]>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Pick cells to place widget',
+                    delayBefore: 200,
+                    delayAfter: 200,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: null,
+                        target_element_path: '@[]:<css:.widget-grid-cell-empty[0]>',
+                    },
+                    error_messeges: {
+                        "element_not_found": "Some thing went wrong. Widget cell not found"
+                    }
+                },
+                {
+                    name: 'Pick cells to place widget',
+                    path: `@[]:<css:.widget-grid-cell-empty[0]>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Pick cells to place widget',
+                    delayBefore: 200,
+                    delayAfter: 200,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: null,
+                        target_element_path: '@[]:<css:.widget-grid-cell-empty[0]>',
+                    },
+                    error_messeges: {
+                        "element_not_found": "Some thing went wrong. Widget cell not found"
+                    }
+                },
+                {
+                    name: 'Click Add Widget Button',
+                    path: `@[]:<dataid:dashboard-add-widget-button>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click add widget button',
+                    delayBefore: 200,
+                    delayAfter: 200,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: null,
+                        target_element_path: '@[]:<dataid:dashboard-add-widget-button>',
+                    },
+                    error_messeges: {
+                        "element_not_found": "Some thing went wrong. Element not found"
+                    }
+                },
+                {
+                    name: 'Search for Widget',
+                    path: `@[]:<dataid:widget-search-input>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Enter: 3d car unity',
+                    delayBefore: 200,
+                    delayAfter: 200,
+                    finish_condition: {
+                        type: 'text_contains',
+                        expectedValue: '3d car unity',
+                        target_element_path: '@[]:<dataid:widget-search-input>',
+                    },
+                    error_messeges: {
+                        "element_not_found": "Some thing went wrong. Element not found"
+                    }
+                },
+                {
+                    name: 'Select widget',
+                    path: `@[]:<css:.widget-list-item[0]>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Select "3d car unity" widget',
+                    delayBefore: 200,
+                    delayAfter: 200,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: null,
+                        target_element_path: '@[]:<css:.widget-list-item[0]>',
+                    },
+                    error_messeges: {
+                        "element_not_found": "Some thing went wrong. Element not found"
+                    }
+                },
+                {
+                    name: 'Click add widget',
+                    path: `@[]:<dataid:btn-add-widget-in-widget-library>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to add widget to dashboard',
+                    delayBefore: 200,
+                    delayAfter: 200,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: null,
+                        target_element_path: '@[]:<dataid:btn-add-widget-in-widget-library>',
+                    },
+                    error_messeges: {
+                        "element_not_found": "Some thing went wrong. Element not found"
+                    }
+                },
+                {
+                    name: 'Click Save',
+                    path: `@[]:<dataid:dashboard-save-button>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to save',
+                    delayBefore: 200,
+                    delayAfter: 200,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: null,
+                        target_element_path: '@[]:<dataid:dashboard-save-button>',
+                    },
+                    error_messeges: {
+                        "element_not_found": "Some thing went wrong. Element not found"
                     }
                 },
             ]
