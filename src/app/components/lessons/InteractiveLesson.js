@@ -130,8 +130,8 @@ const InteractiveLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
 
     const startSequence = async () => {
         setIsSequenceRunning(true)
-        console.log('startSequence')
-        console.log('lesson.sequence', lesson.sequence)
+        // console.log('startSequence')
+        // console.log('lesson.sequence', lesson.sequence)
         let sequence = JSON.parse(JSON.stringify(lesson.sequence))
         for (let action of sequence.actions) {
             action.status = ''

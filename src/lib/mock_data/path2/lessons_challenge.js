@@ -104,5 +104,210 @@ You will  go step by step to create:
                 },
             ],
         }
+    },
+    {
+        slug: 'create_new_prototype',
+        name: "Create New Prototype",
+        description: "Guide to create a new prototype in the system",
+        duration: "4 minutes",
+        type: "interactive",
+        sequence: {
+            name: 'Sequence to create new prototype',
+            description: 'This sequence walks the user through creating a new prototype step by step.',
+            auto_run_next: true,
+            auto_start: true,
+            trigger_source: 'learning',
+            actions: [
+                {
+                    name: 'Open Your Model',
+                    path: `@[/model]:<css:.my_model_grid_item>[0]`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click to open model',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'location-match',
+                        expectedValue: '/model/:model_id',
+                    },
+                    error_messeges: {
+                        "path_not_found": "You have no models yet. Please create a model first."
+                    }
+                },
+                {
+                    name: 'Open Prototype Library',
+                    path: `@[]:<dataid:tab-model-library>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to open Prototype Library',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: '@[]:<dataid:tab-model-library>',
+                    },
+                    error_messeges: {
+                        "path_not_found": "Something went wrong."
+                    }
+                },
+                {
+                    name: 'Click Create New Prototype',
+                    path: '@[]:<dataid:btn-create-new-prototype>',
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to Create a new prototype',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: '@[]:<dataid:btn-create-new-prototype>',
+                    },
+                    error_messeges: {
+                        "path_not_found": "Create New Prototype button not found."
+                    }
+                },
+                {
+                    name: 'Enter Prototype Name',
+                    path: '@[]:<dataid:prototype-name-input>',
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Enter a name for your new prototype',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'has-value',
+                        expectedValue: '',
+                        target_element_path: '@[]:<dataid:prototype-name-input>',
+                    },
+                    error_messeges: {
+                        "path_not_found": "Prototype name input not found."
+                    }
+                },
+                {
+                    name: 'Select Prototype Language',
+                    path: '@[]:<dataid:prototype-language-select>',
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Select a language for your prototype, prefer python for beginners',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    error_messeges: {
+                        "path_not_found": "Prototype language select not found."
+                    }
+                },
+                {
+                    name: 'Confirm Create Prototype',
+                    path: '@[]:<dataid:btn-create-prototype>',
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to confirm and create your prototype',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: '@[]:<dataid:btn-create-prototype>',
+                    },
+                    error_messeges: {
+                        "path_not_found": "Create Prototype button not found."
+                    }
+                }
+            ],
+        }
+    },
+    {
+        slug: 'create_customer_journey',
+        name: "Create Customer Journey",
+        description: "Guide to create a customer journey",
+        duration: "5 minutes",
+        type: "interactive",
+        sequence: {
+            name: 'Sequence to create customer journey',
+            description: 'This sequence walks the user through creating a customer journey step by step.',
+            auto_run_next: true,
+            auto_start: true,
+            trigger_source: 'learning',
+            actions: [,
+                {
+                    name: 'Open Your Model',
+                    path: `@[/model]:<css:.my_model_grid_item>[0]`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click to open model',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'location-match',
+                        expectedValue: '/model/:model_id',
+                    },
+                    error_messeges: {
+                        "path_not_found": "You have no models yet. Please create a model first."
+                    }
+                },
+                {
+                    name: 'Open Prototype Library',
+                    path: `@[]:<dataid:tab-model-library>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to open Prototype Library',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: '@[]:<dataid:tab-model-library>',
+                    },
+                    error_messeges: {
+                        "path_not_found": "Something went wrong."
+                    }
+                },
+                {
+                    name: 'Go to Prototype',
+                    path: `@[/prototype]:<css:.prototype-grid-item-wrapper[0]>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to open the Prototype',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'location-match',
+                        expectedValue: '/model/:model_id/library/prototype/:prototype_id/view',
+                    },
+                },
+                {
+                    name: 'Go to Customer Journey',
+                    path: `@[/prototype]:<dataid:prototype-overview-tab-customerJourney>`,
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to open Customer Journey',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: `@[]:<dataid:prototype-overview-tab-customerJourney>`,
+                    },
+                },
+                {
+                    name: 'Click Edit Customer Journey',
+                    path: '@[]:<dataid:prototype-edit-button>',
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to edit the Prototype',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: {
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: '@[]:<dataid:prototype-edit-button>',
+                    },
+                    error_messeges: {
+                        "path_not_found": "Edit Prototype button not found."
+                    }
+                },
+            ]
+        }
     }
 ]
