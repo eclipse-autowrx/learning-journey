@@ -6,8 +6,8 @@ import { check_auth } from "@/lib/backend/check_auth";
 
 let COLLECTIONs = [
     {
-        name: 'Concept & Methodology',
-        description: 'Key concepts and methodologies shaping software-defined vehicles',
+        name: 'Concepts and Methodology',
+        description: 'Concepts, and methodologies shaping software-defined vehicles',
         paths_slugs: ['sdv-guide-sdv101', 'sdv-guide-sdv102', 'pulse-framework'],
         paths: []
     },

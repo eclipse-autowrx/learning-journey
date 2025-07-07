@@ -16,13 +16,36 @@ const Page = async ({ params }) => {
   let dbCourse = null
 
   try {
-    dbPath = await fetchPathBySlug(path_slug,
-      cookieStore.get('user_id')?.value || "",
-      cookieStore.get('token')?.value || "");
-    if (dbPath.courses) {
-      dbCourse = dbPath.courses.find((c) => c.slug == course_slug)
-    }
-    // dbCourse = await fetchCourseBySlug(course_slug);
+    const user_id = cookieStore.get('user_id')?.value || "";
+    const token = cookieStore.get('token')?.value || "";
+    dbPath = await fetchPathBySlug(path_slug, user_id, token);
+    // if (dbPath.courses) {
+    //   dbCourse = dbPath.courses.find((c) => c.slug == course_slug)
+    // }
+    dbCourse = await fetchCourseBySlug(course_slug, `user_id=${user_id}&token=${token}`);
+    // // Call API to get progress for dbCourse
+    // if (dbCourse && dbCourse._id) {
+    //   try {
+    //     const user_id = cookieStore.get('user_id')?.value || "";
+    //     const token = cookieStore.get('token')?.value || "";
+    //     // Only fetch progress if user is logged in
+    //     if (user_id && token) {
+    //       const progressRes = await fetch(
+    //         process.env.HOST  +`/api/progress/courses/${dbCourse._id}?user_id=${user_id}&token=${token}`,
+    //         { cache: "no-store" }
+    //       );
+    //       if (progressRes.ok) {
+    //         const progressData = await progressRes.json();
+    //         if (progressData && progressData.success && progressData.data) {
+    //           dbCourse.progress = progressData.data;
+    //         }
+    //       }
+    //     }
+    //   } catch (err) {
+    //     // If progress fetch fails, just continue
+    //     console.log("Failed to fetch course progress", err);
+    //   }
+    // }
   } catch (err) {
     console.log(err)
   }

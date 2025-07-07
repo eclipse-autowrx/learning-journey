@@ -23,12 +23,12 @@ const QuizQuestion = ({ question, index, onGotAnswer }) => {
             <div className="font-bold text-black">Question {index}:</div>
             <div className="mt-1 text-base leading-tight">{question.question}</div>
         </div>
-        <div className={`py-4 w-full px-0 grid grid-cols-1 lg:grid-cols-1 gap-2 lg:gap-4
+        <div className={`py-3 xl:py-4 w-full px-0 grid grid-cols-1 lg:grid-cols-1 gap-2 lg:gap-3
                         `}>
             {question.answers && question.answers.map((ans, aIndex) => <div key={aIndex}
-                className={`p-3 border-2 border-slate-300 rounded-lg flex items-start
+                className={`px-4 py-2 xl:px-6 xl:py-3 border-2 border-slate-300 rounded-lg flex items-start
                             cursor-pointer hover:border-slate-800 hover:bg-slate-100
-                            ${tmpAnswer == aIndex && "border-slate-800 bg-slate-100"}`}
+                            ${tmpAnswer == aIndex ?'item-border-active':'item-border'}`}
                 onClick={() => {
                     setTmpAnswer(aIndex)
                     onGotAnswer(aIndex)
@@ -37,9 +37,9 @@ const QuizQuestion = ({ question, index, onGotAnswer }) => {
 
                 <div className="grow">{ans.label}</div>
 
-                <div className="w-6 min-w-6 font-bold">
-                    {aIndex == tmpAnswer && <FaCheckCircle size={20} />}
-                </div>
+                {/* <div className="w-6 min-w-6 font-bold">
+                    {aIndex == tmpAnswer && <img src='/imgs/bare/icon_checked.svg'/>}
+                </div> */}
 
             </div>)}
         </div>
@@ -130,11 +130,30 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
 
     if (!lesson) return <></>
 
-    return <div className="w-full px-2">
-        <div className="my-2 pb-2">
-            <div className="text-xl font-bold text-black">{lesson.name}</div>
-            <div className="mt-2 text-gray-500 text-sm leading-tight">{lesson.description}</div>
+    return <div className="w-full px-2 overflow-auto">
+        <div className="mt-2 flex pl-2 min-h-[12vh] max-h-[12vh] overflow-auto">
+            <div className="grow">
+                <div className="text-xl font-bold text-black">{lesson.name}</div>
+                <div className="mt-0 text-gray-500 text-sm leading-tight">{lesson.description}</div>
+            </div>
+            
+            <div className="mt-2 px-1 py-2 flex items-center space-x-2">
+                <BtnFullRounded disable={!gotAllAnswer}
+                    onClick={() => {
+                        if (onSumbitLesson) {
+                            let data = questions.map(q => { return { answerIndex: q.answerIndex } })
+                            onSumbitLesson(data)
+                        }
+                        const correctAnswers = Math.floor(Math.random() * 3) + (numQuestions - 3);
+                        setTextResult(`You answered ${correctAnswers} out of ${numQuestions} questions correctly.`)
+                        // call service to check result
+                    }}>
+                    Submit
+                </BtnFullRounded>
+            </div>
         </div>
+
+        <img className="w-full h-[6px] opacity-30" src="/imgs/bare/horizontal_line.svg"/>
 
         {testResult && <div className="w-full flex flex-col items-center justify-center px-4 py-4">
             <div className="min-h-[200px] max-h-[400px] overflow-auto">{testResult}</div>
@@ -164,15 +183,14 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
         {!testResult && <>
             <div className="bg-white">
 
-
-                <div className="mt-2 px-2 py-2 lg:px-8 min-h-[440px] ">
+                <div className="mt-0 px-2 py-2 lg:px-8 h-[64vh] overflow-auto ">
                     {/* Question Area */}
                     {activeQuestion && <QuizQuestion question={activeQuestion} index={curQuestionIndex + 1}
                         onGotAnswer={setAnswerForThisQuestion}
                     />}
                 </div>
 
-                <div className="mt-2 px-2 pt-2 pb-4 flex items-center space-x-2">
+                <div className="mt-2 px-2 pt-2 pb-2 flex items-center space-x-2 h-[12vh]">
                     <div className="grow"></div>
                     <BtnFullRounded disable={curQuestionIndex <= 0}
                         onClick={() => {
@@ -198,25 +216,6 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
                 </div>
 
             </div>
-
-            {gotAllAnswer && <div className="mt-2 px-2 py-4 flex items-center space-x-2">
-                <div className="grow"></div>
-
-                <BtnFullRounded disable={!gotAllAnswer}
-                    onClick={() => {
-                        if (onSumbitLesson) {
-                            let data = questions.map(q => { return { answerIndex: q.answerIndex } })
-                            onSumbitLesson(data)
-                        }
-                        const correctAnswers = Math.floor(Math.random() * 3) + (numQuestions - 3);
-                        setTextResult(`You answered ${correctAnswers} out of ${numQuestions} questions correctly.`)
-                        // call service to check result
-                    }}>
-                    Submit
-                </BtnFullRounded>
-
-            </div>
-            }
         </>}
 
 

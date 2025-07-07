@@ -17,18 +17,20 @@ const VideoLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
         }, [3000])
     }, [])
 
-    return <div className="w-full px-2">
-        <div className="my-2 pb-2 border-b border-slate-600">
+    return <div className="w-full px-2 lg:px-4">
+        <div className="my-2">
             <div className="text-xl font-bold text-black">{lesson.name}</div>
-            <div className="mt-2 text-gray-500 text-sm leading-tight">{lesson.description}</div>
+            <div className="mt-0 text-gray-500 text-sm leading-tight">{lesson.description}</div>
         </div>
 
-        <div className="mt-6 px-4 lg:px-8 min-h-[480px] grid place-items-center bg-white">
+        <img className="w-full h-[6px] opacity-30" src="/imgs/bare/horizontal_line.svg"/>
+
+        <div className="mt-2 min-h-[480px] grid place-items-center bg-white">
             <iframe
                 width="100%"
                 height="600"
                 src={lesson.video_url}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                 allowFullScreen
             ></iframe>
 
@@ -39,9 +41,9 @@ const VideoLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
             </div>}
         </div>
 
-        
+        <img className="w-full h-[6px] opacity-30" src="/imgs/bare/horizontal_line.svg"/>
 
-        <div className="mt-4 px-2 py-2 border-t border-gray-500 flex items-center space-x-2">
+        <div className="py-2 flex items-center space-x-2">
             <div className="grow"></div>
 
             <BtnFullRounded

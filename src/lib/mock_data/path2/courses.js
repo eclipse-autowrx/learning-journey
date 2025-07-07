@@ -1,5 +1,9 @@
 import { welcome_lessons } from "./welcome_lesson"
 import { explorer_lessons } from './explore_prototype'
+import { lesson_login_user_profile } from './lesson_login_user_profile'
+import { vehicle_model_lessons } from './lessons_vehicle_model'
+import { create_prototype_lessons } from './lesson_create_prototypes'
+import { lessons_challenge } from './lessons_challenge'
 
 export const COURSES = [
     {
@@ -32,7 +36,7 @@ export const COURSES = [
         icon_name: "",
         state: "finished",
         type: "lesson",
-        lessons: [],
+        lessons: lesson_login_user_profile,
         context: {  },
     },
     {
@@ -43,7 +47,7 @@ export const COURSES = [
         icon_name: "",
         state: "finished",
         type: "lesson",
-        lessons: [],
+        lessons: vehicle_model_lessons,
         context: { },
     },
     {
@@ -53,7 +57,7 @@ export const COURSES = [
         description: "In this course you will learn how to create a prototype using the playground. You will learn about the different components of a prototype and how to use them effectively.",
         icon_name: "",
         type: "lesson",
-        lessons: [],
+        lessons: create_prototype_lessons,
         state: "inprogress",
         context: { },
     },
@@ -99,12 +103,12 @@ export const COURSES = [
         icon_name: "",
         top_icon: "/imgs/badge/practice.png",
         state: "",
-        lessons: [],
+        lessons: lessons_challenge,
         type: "final-test",
         context: { },
     },
     {
-        _id: "507f1f77bcf86cd799439016", // Random MongoDB ObjectId
+        _id: "507f1f77bcf86cd799439017", // Random MongoDB ObjectId
         name: "Get Certificate",
         shortDescription: "Get your certification and show it off to the world!",
         description: "Congratulations! You have completed the course and are now ready to get your certification.",
