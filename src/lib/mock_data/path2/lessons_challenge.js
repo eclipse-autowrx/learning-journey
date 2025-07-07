@@ -229,67 +229,67 @@ You will  go step by step to create:
             auto_run_next: true,
             auto_start: true,
             trigger_source: 'learning',
-            actions: [,
-                {
-                    name: 'Open Your Model',
-                    path: `@[/model]:<css:.my_model_grid_item>[0]`,
-                    actionType: 'show_tooltip',
-                    value: null,
-                    tooltipMessage: 'Click to open model',
-                    delayBefore: 500,
-                    delayAfter: 500,
-                    finish_condition: {
-                        type: 'location-match',
-                        expectedValue: '/model/:model_id',
-                    },
-                    error_messeges: {
-                        "path_not_found": "You have no models yet. Please create a model first."
-                    }
-                },
-                {
-                    name: 'Open Prototype Library',
-                    path: `@[]:<dataid:tab-model-library>`,
-                    actionType: 'show_tooltip',
-                    value: null,
-                    tooltipMessage: 'Click here to open Prototype Library',
-                    delayBefore: 500,
-                    delayAfter: 500,
-                    finish_condition: {
-                        type: 'element_clicked',
-                        expectedValue: '',
-                        target_element_path: '@[]:<dataid:tab-model-library>',
-                    },
-                    error_messeges: {
-                        "path_not_found": "Something went wrong."
-                    }
-                },
-                {
-                    name: 'Go to Prototype',
-                    path: `@[/prototype]:<css:.prototype-grid-item-wrapper[0]>`,
-                    actionType: 'show_tooltip',
-                    value: null,
-                    tooltipMessage: 'Click here to open the Prototype',
-                    delayBefore: 500,
-                    delayAfter: 500,
-                    finish_condition: {
-                        type: 'location-match',
-                        expectedValue: '/model/:model_id/library/prototype/:prototype_id/view',
-                    },
-                },
-                {
-                    name: 'Go to Customer Journey',
-                    path: `@[/prototype]:<dataid:prototype-overview-tab-customerJourney>`,
-                    actionType: 'show_tooltip',
-                    value: null,
-                    tooltipMessage: 'Click here to open Customer Journey',
-                    delayBefore: 500,
-                    delayAfter: 500,
-                    finish_condition: {
-                        type: 'element_clicked',
-                        expectedValue: '',
-                        target_element_path: `@[]:<dataid:prototype-overview-tab-customerJourney>`,
-                    },
-                },
+            actions: [
+                // {
+                //     name: 'Open Your Model',
+                //     path: `@[/model]:<css:.my_model_grid_item>[0]`,
+                //     actionType: 'show_tooltip',
+                //     value: null,
+                //     tooltipMessage: 'Click to open model',
+                //     delayBefore: 500,
+                //     delayAfter: 500,
+                //     finish_condition: {
+                //         type: 'location-match',
+                //         expectedValue: '/model/:model_id',
+                //     },
+                //     error_messeges: {
+                //         "path_not_found": "You have no models yet. Please create a model first."
+                //     }
+                // },
+                // {
+                //     name: 'Open Prototype Library',
+                //     path: `@[]:<dataid:tab-model-library>`,
+                //     actionType: 'show_tooltip',
+                //     value: null,
+                //     tooltipMessage: 'Click here to open Prototype Library',
+                //     delayBefore: 500,
+                //     delayAfter: 500,
+                //     finish_condition: {
+                //         type: 'element_clicked',
+                //         expectedValue: '',
+                //         target_element_path: '@[]:<dataid:tab-model-library>',
+                //     },
+                //     error_messeges: {
+                //         "path_not_found": "Something went wrong."
+                //     }
+                // },
+                // {
+                //     name: 'Go to Prototype',
+                //     path: `@[]:<css:.prototype-grid-item-wrapper[0]>`,
+                //     actionType: 'show_tooltip',
+                //     value: null,
+                //     tooltipMessage: 'Click here to open the Prototype',
+                //     delayBefore: 500,
+                //     delayAfter: 500,
+                //     finish_condition: {
+                //         type: 'location-match',
+                //         expectedValue: '/model/:model_id/library/prototype/:prototype_id/view',
+                //     },
+                // },
+                // {
+                //     name: 'Go to Customer Journey',
+                //     path: `@[]:<dataid:prototype-overview-tab-customerJourney>`,
+                //     actionType: 'show_tooltip',
+                //     value: null,
+                //     tooltipMessage: 'Click here to open Customer Journey',
+                //     delayBefore: 500,
+                //     delayAfter: 500,
+                //     finish_condition: {
+                //         type: 'element_clicked',
+                //         expectedValue: '',
+                //         target_element_path: `@[]:<dataid:prototype-overview-tab-customerJourney>`,
+                //     },
+                // },
                 {
                     name: 'Click Edit Customer Journey',
                     path: '@[]:<dataid:prototype-edit-button>',
@@ -305,6 +305,144 @@ You will  go step by step to create:
                     },
                     error_messeges: {
                         "path_not_found": "Edit Prototype button not found."
+                    }
+                },
+                {
+                    name: 'Delete third Column',
+                    path: '@[]:<css:.journey-edit-btn-delete-column[2]>',
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to delete the third column',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: { 
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: '@[]:<css:.journey-edit-btn-delete-column[2]>',
+                    },
+                    error_messeges: {
+                        "path_not_found": "Delete third column button not found."
+                    }
+                },
+                {
+                    name: 'Delete second Column',
+                    path: '@[]:<css:.journey-edit-btn-delete-column[1]>',
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to delete the second column',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: { 
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: '@[]:<css:.journey-edit-btn-delete-column[1]>',
+                    },
+                    error_messeges: {
+                        "path_not_found": "Delete second column button not found."
+                    }
+                },
+                {
+                    name: 'Edit Step 1 What',
+                    path: '@[]:<css:.journey-edit-content-cell-input[1]>',
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here and enter: "Driver open door"',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: { 
+                        type: 'has-value',
+                        expectedValue: 'Driver open door',
+                        target_element_path: '@[]:<css.journey-edit-content-cell-input[1]>',
+                    },
+                },
+                {
+                    name: 'Edit Step 1 Touchpoints',
+                    path: '@[]:<css:.journey-edit-content-cell-input[2]>',
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here and enter: "Driver door"',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: { 
+                        type: 'has-value',
+                        expectedValue: 'Driver door',
+                        target_element_path: '@[]:<css.journey-edit-content-cell-input[2]>',
+                    },
+                },
+                {
+                    name: 'Add New Column',
+                    path: '@[]:<dataid:journey-edit-add-column-btn>',
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here to add a new column',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: { 
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: '@[]:<dataid:journey-edit-add-column-btn>',
+                    },
+                    error_messeges: {
+                        "path_not_found": "Add new column button not found."
+                    }
+                },
+                {
+                    name: 'Edit Step 2 Who',
+                    path: '@[]:<css:.journey-edit-content-cell-input[1]>',
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here and enter: "SDV QM App"',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: { 
+                        type: 'has-value',
+                        expectedValue: 'SDV QM App',
+                        target_element_path: '@[]:<css.journey-edit-content-cell-input[1]>',
+                    },
+                },
+                {
+                    name: 'Edit Step 2 What',
+                    path: '@[]:<css:.journey-edit-content-cell-input[3]>',
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here and enter: "Turn on ambient light"',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: { 
+                        type: 'has-value',
+                        expectedValue: 'Turn on ambient light',
+                        target_element_path: '@[]:<css.journey-edit-content-cell-input[3]>',
+                    },
+                },
+                {
+                    name: 'Edit Step 2 Touchpoint',
+                    path: '@[]:<css:.journey-edit-content-cell-input[5]>',
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click here and enter: "Ambient light"',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: { 
+                        type: 'has-value',
+                        expectedValue: 'Ambient light',
+                        target_element_path: '@[]:<css.journey-edit-content-cell-input[5]>',
+                    },
+                },
+                {
+                    name: 'Click Save Button',
+                    path: '@[]:<dataid:prototype-save-button>',
+                    actionType: 'show_tooltip',
+                    value: null,
+                    tooltipMessage: 'Click the Save button to save your changes.',
+                    delayBefore: 500,
+                    delayAfter: 500,
+                    finish_condition: { 
+                        type: 'element_clicked',
+                        expectedValue: '',
+                        target_element_path: '@[]:<dataid:prototype-save-button>',
+                    },
+                    error_messeges: {
+                        "path_not_found": "Save button not found."
                     }
                 },
             ]
