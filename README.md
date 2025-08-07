@@ -29,16 +29,60 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+### Development Setup (Recommended for Developers)
 
+1. **Run the development setup script:**
+   ```bash
+   npm run setup:dev
+   ```
+   This will:
+   - Check Docker installation
+   - Create `.env.dev` file
+   - Start MongoDB and MongoDB Express
+   - Migrate mock data to the database
+
+2. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+
+3. **Access the services:**
+   - **Next.js App:** http://localhost:3000
+   - **MongoDB Express (Admin):** http://localhost:8081 (admin/password123)
+
+### Production Setup
+
+1. **Run the production setup script:**
+   ```bash
+   npm run setup:prod
+   ```
+   This will:
+   - Check Docker installation
+   - Create `.env.prod` file from template
+   - Build the Next.js application
+   - Start all production services
+   - Migrate data to the database
+
+2. **Access the application:**
+   - **Application:** http://localhost:3000
+   - **MongoDB Express (if enabled):** http://localhost:8081
+
+### Manual Setup
+
+#### Development
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run docker:dev:up    # Start MongoDB and MongoDB Express
+npm run migrate          # Migrate data
+npm run dev              # Start development server
+```
+
+#### Production
+```bash
+cp env.prod.example .env.prod  # Configure production environment
+npm run docker:prod:up         # Start production services
+npm run docker:prod:admin      # With MongoDB Express
+npm run docker:prod:nginx      # With Nginx
+npm run docker:prod:full       # With all services
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
@@ -46,6 +90,75 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Available Scripts
+
+### Development
+- `npm run setup:dev` - Automated development setup
+- `npm run docker:dev:up` - Start development services (MongoDB + MongoDB Express)
+- `npm run docker:dev:down` - Stop development services
+- `npm run docker:dev:logs` - View development logs
+- `npm run dev` - Start development server
+
+### Production
+- `npm run setup:prod` - Automated production setup
+- `npm run docker:prod:up` - Start production services
+- `npm run docker:prod:down` - Stop production services
+- `npm run docker:prod:logs` - View production logs
+- `npm run docker:prod:admin` - Start with MongoDB Express
+- `npm run docker:prod:nginx` - Start with Nginx
+- `npm run docker:prod:full` - Start with all services
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+
+### General
+- `npm run migrate` - Migrate mock data to database
+- `npm run lint` - Run ESLint
+
+## API Endpoints
+
+The application now supports both database and mock data with automatic fallback:
+
+### Paths
+- `GET /api/paths` - Get all paths
+- `GET /api/paths/[slug]` - Get path by slug
+- `POST /api/paths` - Create new path
+- `PUT /api/paths/[slug]` - Update path
+- `DELETE /api/paths/[slug]` - Delete path
+
+### Courses
+- `GET /api/courses` - Get all courses
+- `GET /api/courses/[slug]` - Get course by slug
+- `POST /api/courses` - Create new course
+- `PUT /api/courses/[slug]` - Update course
+- `DELETE /api/courses/[slug]` - Delete course
+
+### Lessons
+- `GET /api/lessons` - Get all lessons
+- `GET /api/lessons/[slug]` - Get lesson by slug
+- `POST /api/lessons` - Create new lesson
+- `PUT /api/lessons/[slug]` - Update lesson
+- `DELETE /api/lessons/[slug]` - Delete lesson
+
+### Quiz Questions
+- `GET /api/quiz-questions` - Get all quiz questions (with filters)
+- `GET /api/quiz-questions/[id]` - Get quiz question by ID
+- `POST /api/quiz-questions` - Create new quiz question
+- `PUT /api/quiz-questions/[id]` - Update quiz question
+- `DELETE /api/quiz-questions/[id]` - Delete quiz question
+- `POST /api/quiz-questions/[id]/grade` - Grade a quiz answer
+
+### Health Check
+- `GET /api/health` - Check application and database status
+
+## Database Schema
+
+The application uses MongoDB with the following collections:
+- **paths** - Learning paths with course references
+- **courses** - Courses with lesson references and sections
+- **lessons** - Individual lessons with different types (video, text, quiz, interactive, etc.)
+- **courseprogresses** - User progress tracking
+- **quizquestions** - Quiz questions for assessment lessons
 
 ## Learn More
 
@@ -55,6 +168,8 @@ To learn more about Next.js, take a look at the following resources:
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+For detailed setup instructions, see [SETUP.md](./SETUP.md).
 
 
 ## For uploaded media

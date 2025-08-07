@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
-import { COURSE_STATES, LESSON_STATES, STATE_NOT_STARTED } from '@/lib/const.js';
+import { COURSE_STATES, LESSON_STATES, STATE_NOT_STARTED } from '../const.js';
 
 
 const CourseProgressSchema = new mongoose.Schema(

@@ -1,7 +1,7 @@
-import {LESSONS as TEST_A } from "./test_a"
-import {LESSONS as TEST_B } from "./test_b"
-import {LESSONS as TEST_C } from "./test_c"
-import {LESSONS as TEST_D } from "./test_d"
+import {LESSONS as TEST_A } from "./test_a.js"
+import {LESSONS as TEST_B } from "./test_b.js"
+import {LESSONS as TEST_C } from "./test_c.js"
+import {LESSONS as TEST_D } from "./test_d.js"
 
 export const COURSES = [
     {

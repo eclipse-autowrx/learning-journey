@@ -1,225 +1,488 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from "react"
-import { FaCheckCircle } from "react-icons/fa";
-import BtnFullRounded from "../atom/BtnFullRounded";
-import { STATE_COMPLETED } from "@/lib/const";
+import { useState, useEffect } from 'react';
+import { FaCheck, FaTimes, FaEye, FaEyeSlash } from 'react-icons/fa';
 
-const QuizQuestion = ({ question, index, onGotAnswer }) => {
+export default function QuizLesson({ lesson, onComplete }) {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [userAnswers, setUserAnswers] = useState({});
+  const [showResults, setShowResults] = useState(false);
+  const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
+  const [showExplanations, setShowExplanations] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const [tmpAnswer, setTmpAnswer] = useState(-1)
+  const questions = lesson.quiz_questions || [];
+  const currentQuestion = questions[currentQuestionIndex];
 
-    useEffect(() => {
-        if (Number.isNaN(question.answerIndex)) {
-            setTmpAnswer(-1)
-        } else {
-            onGotAnswer(question.answerIndex)
-            setTmpAnswer(question.answerIndex)
-        }
-    }, [question])
+  useEffect(() => {
+    // Check if user has already completed this quiz
+    const completedQuizzes = JSON.parse(localStorage.getItem('completedQuizzes') || '{}');
+    if (completedQuizzes[lesson.slug]) {
+      setShowResults(true);
+      setScore(completedQuizzes[lesson.slug].score);
+      setUserAnswers(completedQuizzes[lesson.slug].answers);
+    }
+  }, [lesson.slug]);
 
-    return <div className="w-full">
-        <div className="flex flex-col">
-            <div className="font-bold text-black">Question {index}:</div>
-            <div className="mt-1 text-base leading-tight">{question.question}</div>
+  const handleAnswerSelect = (answer) => {
+    if (showResults) return; // Don't allow changes after submission
+
+    setUserAnswers(prev => ({
+      ...prev,
+      [currentQuestionIndex]: answer
+    }));
+  };
+
+  const handleMultipleChoiceSelect = (selectedOption) => {
+    if (showResults) return;
+
+    const currentAnswers = userAnswers[currentQuestionIndex] || [];
+    let newAnswers;
+
+    if (currentQuestion.question_type === 'multiple_choice') {
+      // For multiple choice, toggle the selected option
+      if (currentAnswers.includes(selectedOption)) {
+        newAnswers = currentAnswers.filter(ans => ans !== selectedOption);
+      } else {
+        newAnswers = [...currentAnswers, selectedOption];
+      }
+    } else {
+      // For single choice, replace the answer
+      newAnswers = [selectedOption];
+    }
+
+    setUserAnswers(prev => ({
+      ...prev,
+      [currentQuestionIndex]: newAnswers
+    }));
+  };
+
+  const handleTrueFalseSelect = (value) => {
+    if (showResults) return;
+    setUserAnswers(prev => ({
+      ...prev,
+      [currentQuestionIndex]: value
+    }));
+  };
+
+  const handleFillBlankSubmit = (value) => {
+    if (showResults) return;
+    setUserAnswers(prev => ({
+      ...prev,
+      [currentQuestionIndex]: value
+    }));
+  };
+
+  const handleEssaySubmit = (value) => {
+    if (showResults) return;
+    setUserAnswers(prev => ({
+      ...prev,
+      [currentQuestionIndex]: value
+    }));
+  };
+
+  const calculateScore = () => {
+    let correctAnswers = 0;
+    let totalPoints = 0;
+
+    questions.forEach((question, index) => {
+      const userAnswer = userAnswers[index];
+      if (!userAnswer) return;
+
+      totalPoints += question.points || 1;
+
+      switch (question.question_type) {
+        case 'single_choice':
+        case 'multiple_choice':
+          const correctOptions = question.options
+            .filter(opt => opt.is_correct)
+            .map(opt => opt.text);
+          
+          if (Array.isArray(userAnswer)) {
+            if (userAnswer.length === correctOptions.length &&
+                userAnswer.every(ans => correctOptions.includes(ans))) {
+              correctAnswers += question.points || 1;
+            }
+          }
+          break;
+
+        case 'true_false':
+          if (userAnswer === question.correct_answer) {
+            correctAnswers += question.points || 1;
+          }
+          break;
+
+        case 'fill_blank':
+          const isCorrect = question.correct_answers.some(correct => 
+            question.case_sensitive 
+              ? userAnswer === correct
+              : userAnswer.toLowerCase() === correct.toLowerCase()
+          );
+          if (isCorrect) {
+            correctAnswers += question.points || 1;
+          }
+          break;
+
+        case 'essay':
+          // Essay questions typically need manual grading
+          // For now, give partial credit if answer is provided
+          if (userAnswer && userAnswer.trim().length > 0) {
+            correctAnswers += (question.points || 1) * 0.5;
+          }
+          break;
+      }
+    });
+
+    return { correctAnswers, totalPoints };
+  };
+
+  const handleSubmitQuiz = async () => {
+    setIsSubmitting(true);
+    
+    const { correctAnswers, totalPoints } = calculateScore();
+    const finalScore = Math.round((correctAnswers / totalPoints) * 100);
+    
+    setScore(finalScore);
+    setShowResults(true);
+    setAttempts(prev => prev + 1);
+
+    // Save completion to localStorage
+    const completedQuizzes = JSON.parse(localStorage.getItem('completedQuizzes') || '{}');
+    completedQuizzes[lesson.slug] = {
+      score: finalScore,
+      answers: userAnswers,
+      completedAt: new Date().toISOString()
+    };
+    localStorage.setItem('completedQuizzes', JSON.stringify(completedQuizzes));
+
+    // Check if passed
+    const passed = finalScore >= (lesson.passing_score || 70);
+    
+    if (passed && onComplete) {
+      onComplete(lesson.slug);
+    }
+
+    setIsSubmitting(false);
+  };
+
+  const renderQuestion = () => {
+    if (!currentQuestion) return null;
+
+    switch (currentQuestion.question_type) {
+      case 'single_choice':
+      case 'multiple_choice':
+        return (
+          <div className="space-y-3">
+            {currentQuestion.options.map((option, optionIndex) => {
+              const isSelected = userAnswers[currentQuestionIndex]?.includes(option.text);
+              const isCorrect = option.is_correct;
+              const showCorrect = showResults && isCorrect;
+              const showIncorrect = showResults && isSelected && !isCorrect;
+
+              return (
+                <label
+                  key={optionIndex}
+                  className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
+                    isSelected
+                      ? showResults
+                        ? showCorrect
+                          ? 'bg-green-50 border-green-500'
+                          : showIncorrect
+                          ? 'bg-red-50 border-red-500'
+                          : 'bg-blue-50 border-blue-500'
+                        : 'bg-blue-50 border-blue-500'
+                      : showCorrect
+                      ? 'bg-green-50 border-green-500'
+                      : 'bg-white border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <input
+                    type={currentQuestion.question_type === 'multiple_choice' ? 'checkbox' : 'radio'}
+                    name={`question-${currentQuestionIndex}`}
+                    value={option.text}
+                    checked={isSelected}
+                    onChange={() => handleMultipleChoiceSelect(option.text)}
+                    disabled={showResults}
+                    className="mr-3"
+                  />
+                  <span className="flex-1">{option.text}</span>
+                  {showResults && (
+                    <span className="ml-2">
+                      {showCorrect && <FaCheck className="text-green-600" />}
+                      {showIncorrect && <FaTimes className="text-red-600" />}
+                    </span>
+                  )}
+                </label>
+              );
+            })}
+          </div>
+        );
+
+      case 'true_false':
+        return (
+          <div className="space-y-3">
+            {[true, false].map((value) => {
+              const isSelected = userAnswers[currentQuestionIndex] === value;
+              const isCorrect = value === currentQuestion.correct_answer;
+              const showCorrect = showResults && isCorrect;
+              const showIncorrect = showResults && isSelected && !isCorrect;
+
+              return (
+                <label
+                  key={value}
+                  className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
+                    isSelected
+                      ? showResults
+                        ? showCorrect
+                          ? 'bg-green-50 border-green-500'
+                          : showIncorrect
+                          ? 'bg-red-50 border-red-500'
+                          : 'bg-blue-50 border-blue-500'
+                        : 'bg-blue-50 border-blue-500'
+                      : showCorrect
+                      ? 'bg-green-50 border-green-500'
+                      : 'bg-white border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name={`question-${currentQuestionIndex}`}
+                    value={value}
+                    checked={isSelected}
+                    onChange={() => handleTrueFalseSelect(value)}
+                    disabled={showResults}
+                    className="mr-3"
+                  />
+                  <span className="flex-1">{value ? 'True' : 'False'}</span>
+                  {showResults && (
+                    <span className="ml-2">
+                      {showCorrect && <FaCheck className="text-green-600" />}
+                      {showIncorrect && <FaTimes className="text-red-600" />}
+                    </span>
+                  )}
+                </label>
+              );
+            })}
+          </div>
+        );
+
+      case 'fill_blank':
+        return (
+          <div className="space-y-3">
+            <input
+              type="text"
+              value={userAnswers[currentQuestionIndex] || ''}
+              onChange={(e) => handleFillBlankSubmit(e.target.value)}
+              disabled={showResults}
+              placeholder="Enter your answer..."
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            {showResults && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  Correct answers: {currentQuestion.correct_answers.join(', ')}
+                </p>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'essay':
+        return (
+          <div className="space-y-3">
+            <textarea
+              value={userAnswers[currentQuestionIndex] || ''}
+              onChange={(e) => handleEssaySubmit(e.target.value)}
+              disabled={showResults}
+              placeholder="Write your answer here..."
+              rows={6}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            {currentQuestion.essay_guidelines && (
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">{currentQuestion.essay_guidelines}</p>
+              </div>
+            )}
+          </div>
+        );
+
+      default:
+        return <p>Unsupported question type</p>;
+    }
+  };
+
+  if (questions.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+          <p className="text-gray-600">No questions available for this quiz.</p>
         </div>
-        <div className={`py-3 xl:py-4 w-full px-0 grid grid-cols-1 lg:grid-cols-1 gap-2 lg:gap-3
-                        `}>
-            {question.answers && question.answers.map((ans, aIndex) => <div key={aIndex}
-                className={`px-4 py-2 xl:px-6 xl:py-3 border-2 border-slate-300 rounded-lg flex items-start
-                            cursor-pointer hover:border-slate-800 hover:bg-slate-100
-                            ${tmpAnswer == aIndex ?'item-border-active':'item-border'}`}
-                onClick={() => {
-                    setTmpAnswer(aIndex)
-                    onGotAnswer(aIndex)
-                }}>
-                <div className="w-6 min-w-6 font-bold">{aIndex + 1}.</div>
+      </div>
+    );
+  }
 
-                <div className="grow">{ans.label}</div>
-
-                {/* <div className="w-6 min-w-6 font-bold">
-                    {aIndex == tmpAnswer && <img src='/imgs/bare/icon_checked.svg'/>}
-                </div> */}
-
-            </div>)}
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        {/* Quiz Header */}
+        <div className="p-6 border-b border-gray-200">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{lesson.name}</h1>
+          <p className="text-gray-600 mb-4">{lesson.description}</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4 text-sm text-gray-500">
+              <span>Questions: {questions.length}</span>
+              <span>Passing Score: {lesson.passing_score || 70}%</span>
+              <span>Attempts: {attempts}</span>
+            </div>
+            {showResults && (
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                score >= (lesson.passing_score || 70)
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                Score: {score}%
+              </div>
+            )}
+          </div>
         </div>
+
+        {!showResults ? (
+          <>
+            {/* Question Navigation */}
+            <div className="p-4 bg-gray-50 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">
+                  Question {currentQuestionIndex + 1} of {questions.length}
+                </span>
+                <div className="flex space-x-1">
+                  {questions.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentQuestionIndex(index)}
+                      className={`w-8 h-8 rounded-full text-xs font-medium ${
+                        index === currentQuestionIndex
+                          ? 'bg-blue-500 text-white'
+                          : userAnswers[index]
+                          ? 'bg-green-500 text-white'
+                          : 'bg-gray-200 text-gray-600'
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Current Question */}
+            <div className="p-6">
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  {currentQuestion.question}
+                </h2>
+                {renderQuestion()}
+              </div>
+
+              {/* Navigation Buttons */}
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
+                  disabled={currentQuestionIndex === 0}
+                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+
+                <div className="flex space-x-2">
+                  {currentQuestionIndex < questions.length - 1 ? (
+                    <button
+                      onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                    >
+                      Next
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleSubmitQuiz}
+                      disabled={isSubmitting || Object.keys(userAnswers).length < questions.length}
+                      className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSubmitting ? 'Submitting...' : 'Submit Quiz'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          /* Results View */
+          <div className="p-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Quiz Results</h2>
+              <div className={`text-4xl font-bold mb-4 ${
+                score >= (lesson.passing_score || 70)
+                  ? 'text-green-600'
+                  : 'text-red-600'
+              }`}>
+                {score}%
+              </div>
+              <p className={`text-lg ${
+                score >= (lesson.passing_score || 70)
+                  ? 'text-green-600'
+                  : 'text-red-600'
+              }`}>
+                {score >= (lesson.passing_score || 70) ? 'Congratulations! You passed!' : 'Keep trying! You can do better!'}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {questions.map((question, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4">
+                  <h3 className="font-medium text-gray-900 mb-2">
+                    Question {index + 1}: {question.question}
+                  </h3>
+                  <div className="mb-2">
+                    <p className="text-sm text-gray-600">
+                      Your answer: {Array.isArray(userAnswers[index]) ? userAnswers[index].join(', ') : userAnswers[index] || 'Not answered'}
+                    </p>
+                  </div>
+                  {showExplanations && question.options?.find(opt => opt.explanation) && (
+                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-800">
+                        {question.options.find(opt => opt.is_correct)?.explanation}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 flex items-center justify-between">
+              <button
+                onClick={() => setShowExplanations(!showExplanations)}
+                className="flex items-center space-x-2 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                {showExplanations ? <FaEyeSlash /> : <FaEye />}
+                <span>{showExplanations ? 'Hide' : 'Show'} Explanations</span>
+              </button>
+
+              {score < (lesson.passing_score || 70) && attempts < (lesson.max_attempts || 3) && (
+                <button
+                  onClick={() => {
+                    setShowResults(false);
+                    setUserAnswers({});
+                    setCurrentQuestionIndex(0);
+                  }}
+                  className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Try Again
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
+  );
 }
-
-const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
-
-    const [numQuestions, setNumQuestions] = useState(0)
-    const [curQuestionIndex, setCurQuestionIndex] = useState(0)
-    const [activeQuestion, setActiveQuestion] = useState(null)
-    const [gotAnswer, setGotAnswer] = useState(-1)
-    const [questions, setQuestions] = useState([])
-    const [gotAllAnswer, setGotAllAnswer] = useState(false)
-    const [testResult, setTextResult] = useState('')
-
-    useEffect(() => {
-        // console.log(`Lesson changed`, lesson)
-        if (!lesson || !lesson.questions) {
-            setNumQuestions(0)
-            setCurQuestionIndex(0)
-            setActiveQuestion(null)
-            setQuestions([])
-        }
-        setActiveQuestion(null)
-        setCurQuestionIndex(0)
-        setNumQuestions(lesson.questions.length)
-        setQuestions(lesson.questions)
-
-        if (lesson.context?.state == STATE_COMPLETED) {
-            setTextResult("Your already finish this quiz.")
-        } else {
-            setTextResult("")
-        }
-    }, [lesson])
-
-    useEffect(() => {
-        if (!questions?.length) {
-            setGotAllAnswer(false)
-            return
-        }
-
-        const hasAllQuestions = questions.every(q => q.answerIndex !== undefined && q.answerIndex !== null && q.answerIndex >= 0)
-        setGotAllAnswer(hasAllQuestions)
-    }, [questions])
-
-    useEffect(() => {
-        try {
-            let question = questions[curQuestionIndex]
-            setActiveQuestion(question)
-        } catch (e) {
-            console.log(e)
-        }
-    }, [curQuestionIndex, questions])
-
-    const resetTest = () => {
-        setCurQuestionIndex(0)
-        setGotAnswer(-1)
-        let tmpQuestions = JSON.parse(JSON.stringify(questions))
-        tmpQuestions.forEach(q => { q.answerIndex = -1 })
-        setQuestions(tmpQuestions)
-        setTextResult("")
-    }
-
-    const setAnswerForThisQuestion = (answerIndex) => {
-        setGotAnswer(answerIndex)
-        if (answerIndex == activeQuestion.answerIndex) return
-
-        let tmpQuestion = {
-            ...activeQuestion,
-            answerIndex: answerIndex
-        }
-        let tmpQuestions = JSON.parse(JSON.stringify(questions))
-        tmpQuestions[curQuestionIndex] = tmpQuestion
-        setQuestions(tmpQuestions)
-    }
-
-    const gotoNextQuestion = () => {
-        setGotAnswer(-1)
-        setCurQuestionIndex((v) => v + 1)
-    }
-
-    const gotoPrevQuestion = () => {
-
-        setGotAnswer(-1)
-        setCurQuestionIndex((v) => v - 1)
-    }
-
-    if (!lesson) return <></>
-
-    return <div className="w-full px-2 overflow-auto">
-        <div className="mt-2 flex pl-2 min-h-[12vh] max-h-[12vh] overflow-auto">
-            <div className="grow">
-                <div className="text-xl font-bold text-black">{lesson.name}</div>
-                <div className="mt-0 text-gray-500 text-sm leading-tight">{lesson.description}</div>
-            </div>
-            
-            <div className="mt-2 px-1 py-2 flex items-center space-x-2">
-                <BtnFullRounded disable={!gotAllAnswer}
-                    onClick={() => {
-                        if (onSumbitLesson) {
-                            let data = questions.map(q => { return { answerIndex: q.answerIndex } })
-                            onSumbitLesson(data)
-                        }
-                        const correctAnswers = Math.floor(Math.random() * 3) + (numQuestions - 3);
-                        setTextResult(`You answered ${correctAnswers} out of ${numQuestions} questions correctly.`)
-                        // call service to check result
-                    }}>
-                    Submit
-                </BtnFullRounded>
-            </div>
-        </div>
-
-        <img className="w-full h-[6px] opacity-30" src="/imgs/bare/horizontal_line.svg"/>
-
-        {testResult && <div className="w-full flex flex-col items-center justify-center px-4 py-4">
-            <div className="min-h-[200px] max-h-[400px] overflow-auto">{testResult}</div>
-
-            <div className="w-full mt-4 px-8 flex items-center space-x-4">
-                <div className="grow">
-                </div>
-
-                <BtnFullRounded onClick={resetTest}>
-                    Start again
-                </BtnFullRounded>
-
-                <BtnFullRounded onClick={() => {
-                    if (onCloseRequest) {
-                        onCloseRequest()
-                    }
-                }}>
-                    Next Lesson
-                </BtnFullRounded>
-            </div>
-        </div>
-
-        }
-
-
-
-        {!testResult && <>
-            <div className="bg-white">
-
-                <div className="mt-0 px-2 py-2 lg:px-8 h-[64vh] overflow-auto ">
-                    {/* Question Area */}
-                    {activeQuestion && <QuizQuestion question={activeQuestion} index={curQuestionIndex + 1}
-                        onGotAnswer={setAnswerForThisQuestion}
-                    />}
-                </div>
-
-                <div className="mt-2 px-2 pt-2 pb-2 flex items-center space-x-2 h-[12vh]">
-                    <div className="grow"></div>
-                    <BtnFullRounded disable={curQuestionIndex <= 0}
-                        onClick={() => {
-                            gotoPrevQuestion()
-                        }}>
-                        Prev
-                    </BtnFullRounded>
-
-                    <div className="w-10"></div>
-                    <div>{curQuestionIndex + 1}</div>
-                    <div>/</div>
-                    <div>{numQuestions}</div>
-                    <div className="w-10"></div>
-
-                    <BtnFullRounded disable={!(gotAnswer >= 0 && curQuestionIndex < (numQuestions - 1))}
-                        onClick={() => {
-                            gotoNextQuestion()
-                        }}>
-                        Next
-                    </BtnFullRounded>
-                    <div className="grow"></div>
-
-                </div>
-
-            </div>
-        </>}
-
-
-    </div>
-}
-
-export default QuizLesson

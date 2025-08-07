@@ -1,12 +1,12 @@
-import { COURSES as path5_courses } from "@/lib/mock_data/path5/courses.js" 
-import { COURSES as path3a_courses } from "@/lib/mock_data/path3a/courses.js" 
-import { COURSES as path3_courses } from "@/lib/mock_data/path3/courses.js" 
-import { COURSES as path2_5_courses } from "@/lib/mock_data/path2.5/courses.js" 
-import { COURSES as path2_courses } from "@/lib/mock_data/path2/courses.js" 
-import { COURSES as path1b_courses } from "@/lib/mock_data/path1b/courses.js"
-import { COURSES as path1_courses } from "@/lib/mock_data/path1/courses.js"
-// import { COURSES as path0_courses } from "@/lib/mock_data/path0/courses.js"
-import { COURSES as path0_courses } from "@/lib/mock_data/path0/courses_opt2.js"
+import { COURSES as path5_courses } from "./path5/courses.js" 
+import { COURSES as path3a_courses } from "./path3a/courses.js" 
+import { COURSES as path3_courses } from "./path3/courses.js" 
+import { COURSES as path2_5_courses } from "./path2.5/courses.js" 
+import { COURSES as path2_courses } from "./path2/courses.js" 
+import { COURSES as path1b_courses } from "./path1b/courses.js"
+import { COURSES as path1_courses } from "./path1/courses.js"
+// import { COURSES as path0_courses } from "./path0/courses.js"
+import { COURSES as path0_courses } from "./path0/courses_opt2.js"
 
 const processCourse = (course) => {
     course.forEach(c => {

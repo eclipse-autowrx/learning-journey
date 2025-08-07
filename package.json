@@ -2,15 +2,26 @@
   "name": "learning-journey",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate": "node scripts/migrate-data.js",
+    "migrate-collections": "node scripts/migrate-collections.js",
+    "clean-migrate": "node scripts/clean-and-migrate.js",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml --env-file .env.prod",
+    "backup": "node scripts/backup-db.js",
+    "backup:sh": "bash scripts/backup-db.sh",
+    "restore": "node scripts/restore-db.js",
+    "restore:sh": "bash scripts/restore-db.sh"
   },
   "dependencies": {
     "@ckeditor/ckeditor5-react": "^9.5.0",
     "dayjs": "^1.11.13",
+    "dotenv": "^16.6.1",
     "formidable": "^3.5.4",
     "mongoose": "^8.14.1",
     "next": "15.3.1",

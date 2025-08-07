@@ -1,14 +1,7 @@
-import connectToDatabase from "@/lib/mongodb";
-import { ALL_COURSES } from "@/lib/mock_data/all_courses";
+import { PathService, CourseService, MockDataService } from "@/lib/services/dataService";
 import { ICONs } from "@/lib/mock_data/media";
-import { PATHS } from "@/lib/mock_data/paths";
-
-// import { getProgressForCourses } from "@/pages/api/progress/courses/utils";
 import { check_auth } from "@/lib/backend/check_auth";
-// import { processCourseContext } from "@/pages/api/progress/courses/utils";
-
 import { STATE_NOT_STARTED, STATE_IN_PROGRESS, STATE_COMPLETED, STATE_LOCKED } from "@/lib/const";
-
 
 const ICON_SET = {
   not_started: 'https://bewebstudio.digitalauto.tech/data/projects/zb1Shh3qkfNG/course-notyet.png',
@@ -18,10 +11,8 @@ const ICON_SET = {
 }
 
 function addMediaUrlForCourses(path) {
-
   if (!path || !path.courses) return
   let ICONS = path.icon_set || ICON_SET
-
 
   path.courses.forEach((course) => {
     if (!course.icon) {
@@ -50,10 +41,27 @@ export default async function handler(req, res) {
   const { slug } = req.query;
 
   const { user_id, token } = check_auth(req, res);
+  
   switch (method) {
     case "GET":
       try {
-        let dbPath = PATHS.find((path) => path.slug === slug);
+        let dbPath;
+        
+        // Try to get data from database first
+        try {
+          dbPath = await PathService.getPathBySlug(slug);
+          // If no data in database, fallback to mock data
+          if (!dbPath) {
+            console.log(`Path ${slug} not found in database, using mock data`);
+            const mockPaths = await MockDataService.getAllPaths();
+            dbPath = mockPaths.find((path) => path.slug === slug);
+          }
+        } catch (dbError) {
+          console.log('Database error, using mock data:', dbError.message);
+          const mockPaths = await MockDataService.getAllPaths();
+          dbPath = mockPaths.find((path) => path.slug === slug);
+        }
+
         if (!dbPath) {
           return res
             .status(404)
@@ -61,44 +69,56 @@ export default async function handler(req, res) {
         }
 
         try {
-          dbPath.courses = ALL_COURSES.filter((course) =>
-            dbPath.course_ids.includes(course._id)
-          );
+          // Get courses for this path
+          if (dbPath.courses && dbPath.courses.length > 0) {
+            // If courses are already populated (from database), use them
+            if (typeof dbPath.courses[0] === 'object' && dbPath.courses[0].name) {
+              // Courses are already populated
+            } else {
+              // Need to fetch courses by IDs
+              const courseIds = dbPath.courses;
+              dbPath.courses = await CourseService.getCoursesByPath({ courses: courseIds });
+            }
+          } else if (dbPath.course_ids) {
+            // Fallback to mock data for courses
+            const { ALL_COURSES } = await import("@/lib/mock_data/all_courses");
+            dbPath.courses = ALL_COURSES.filter((course) =>
+              dbPath.course_ids.includes(course._id)
+            );
+          }
 
-          // if (user_id) {
-          //   let progresses = await getProgressForCourses(user_id, dbPath.course_ids)
-          //   if (progresses && Array.isArray(progresses)) {
-          //     progresses = JSON.parse(JSON.stringify(progresses))
-          //     dbPath.courses.forEach((course) => {
-          //       const progress = progresses.find(
-          //         (p) => p.course_id === course._id
-          //       );
-          //       // if(!progress) {
-          //       //   console.log(`Found no progress for course ${course.name}`)
-          //       // }
-          //       course.progress = progress || null;
-
-          //       processCourseContext(course)
-          //     });
-          //   } else {
-          //     console.log("Found not progresses")
-          //   }
-          // } else {
-          //   console.log(">>>>> Missing user_id")
-          // }
-
-          // addMediaUrlForCourses(dbPath);
-          // console.log(`dbCourse`, dbPath.courses)
+          addMediaUrlForCourses(dbPath);
         } catch (err) {
-          console.log(err);
+          console.log('Error processing courses:', err);
         }
 
         res.status(200).json({ success: true, data: dbPath });
       } catch (error) {
+        console.error('Error fetching path:', error);
+        res.status(400).json({ success: false, error: error.message });
+      }
+      break;
+    case "PUT":
+      try {
+        const updateData = req.body;
+        const updatedPath = await PathService.updatePath(slug, updateData);
+        res.status(200).json({ success: true, data: updatedPath });
+      } catch (error) {
+        console.error('Error updating path:', error);
+        res.status(400).json({ success: false, error: error.message });
+      }
+      break;
+    case "DELETE":
+      try {
+        await PathService.deletePath(slug);
+        res.status(200).json({ success: true, message: "Path deleted successfully" });
+      } catch (error) {
+        console.error('Error deleting path:', error);
         res.status(400).json({ success: false, error: error.message });
       }
       break;
     default:
+      res.status(405).json({ success: false, error: 'Method not allowed' });
       break;
   }
 }

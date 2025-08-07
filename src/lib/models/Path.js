@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
-const PostSchema = new mongoose.Schema(
+const PathSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, limit: 1024 },
     description: { type: String, limit: 4096 },
@@ -29,11 +29,11 @@ const PostSchema = new mongoose.Schema(
   }
 );
 
-PostSchema.index({ category: 1 });
-PostSchema.index({ slug: 1 });
-PostSchema.index({ tags: 1 });
-PostSchema.index({ name: 1 });
-PostSchema.index({ state: 1 });
+PathSchema.index({ category: 1 });
+PathSchema.index({ slug: 1 });
+PathSchema.index({ tags: 1 });
+PathSchema.index({ name: 1 });
+PathSchema.index({ state: 1 });
 
 
-export default mongoose.models.Post || mongoose.model("Path", PostSchema);
+export default mongoose.models.Path || mongoose.model("Path", PathSchema);

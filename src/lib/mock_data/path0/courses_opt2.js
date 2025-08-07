@@ -1,8 +1,8 @@
-import { lessons_overview } from "./lessons_overview";
-import { lessons_parta } from "./lessons_parta";
-import { lessons_partb } from "./lessons_partb";
-import { lessons_partc } from "./lessons_partc";
-import { lessons_partd } from "./lessons_partd";
+import { lessons_overview } from "./lessons_overview.js";
+import { lessons_parta } from "./lessons_parta.js";
+import { lessons_partb } from "./lessons_partb.js";
+import { lessons_partc } from "./lessons_partc.js";
+import { lessons_partd } from "./lessons_partd.js";
 // Start Generation Here
 export const courses_opt2 = [
     {

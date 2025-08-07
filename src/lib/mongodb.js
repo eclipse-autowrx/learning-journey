@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/";
+const MONGO_URI = process.env.MONGO_URI || "mongodb://admin:password123@localhost:27017/learning_journey?authSource=admin";
 
 if (!MONGO_URI) {
   throw new Error("Please define the MONGO_URI environment variable");
