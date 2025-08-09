@@ -1,4 +1,4 @@
-import { ICONs } from "@/lib/mock_data/media";
+// This endpoint served mock media icons. Remove or replace with DB-backed source if needed.
 
 export default async function handler(req, res) {
   const { method } = req;
@@ -6,8 +6,7 @@ export default async function handler(req, res) {
   switch (method) {
     case "GET":
       try {
-        let mediaList = ICONs
-        res.status(200).json({ success: true, data: mediaList });
+        return res.status(410).json({ success: false, error: "Deprecated: media icons are no longer served from mock data" });
       } catch (error) {
         res.status(400).json({ success: false, error: error.message });
       }

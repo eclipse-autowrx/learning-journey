@@ -2,15 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   FaFolder, 
   FaRoute, 
   FaGraduationCap, 
   FaBook, 
   FaPlus, 
-  FaEdit, 
-  FaTrash, 
-  FaEye,
+  FaArrowRight, 
+  FaEllipsisV,
+  FaEdit,
+  FaTrash,
   FaChartBar
 } from 'react-icons/fa';
 
@@ -27,6 +29,7 @@ interface Collection {
   slug: string;
   description: string;
   category: string;
+  tags?: string[];
   state: string;
   total_paths: number;
   created_at: string;
@@ -44,6 +47,7 @@ interface Path {
 }
 
 export default function ManagePage() {
+  const router = useRouter();
   const [stats, setStats] = useState<Stats>({
     collections: 0,
     paths: 0,
@@ -54,6 +58,20 @@ export default function ManagePage() {
   const [paths, setPaths] = useState<Path[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'collections' | 'paths'>('collections');
+  
+  // Collection modal states
+  const [showCollectionModal, setShowCollectionModal] = useState(false);
+  const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
+  const [collectionForm, setCollectionForm] = useState({
+    name: '',
+    description: '',
+    category: '',
+    tags: [] as string[],
+    state: 'draft'
+  });
+  
+  // Dropdown state
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -113,15 +131,112 @@ export default function ManagePage() {
   const getStateColor = (state: string) => {
     switch (state) {
       case 'published':
-        return 'bg-green-100 text-green-800';
+        return 'bg-blue-100 text-blue-800';
       case 'draft':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-blue-100 text-blue-800';
       case 'archived':
         return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  // Collection functions
+  const openCreateCollection = () => {
+    setEditingCollection(null);
+    setCollectionForm({
+      name: '',
+      description: '',
+      category: '',
+      tags: [],
+      state: 'draft'
+    });
+    setShowCollectionModal(true);
+  };
+
+  const openEditCollection = (collection: Collection) => {
+    setEditingCollection(collection);
+    setCollectionForm({
+      name: collection.name,
+      description: collection.description || '',
+      category: collection.category || '',
+      tags: collection.tags || [],
+      state: collection.state
+    });
+    setShowCollectionModal(true);
+  };
+
+  const handleCollectionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const url = editingCollection 
+        ? `/api/collections/${editingCollection.slug}`
+        : '/api/collections';
+      
+      const method = editingCollection ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(collectionForm),
+      });
+
+      if (response.ok) {
+        setShowCollectionModal(false);
+        fetchData(); // Refresh data
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error || 'Failed to save collection'}`);
+      }
+    } catch (error) {
+      console.error('Error saving collection:', error);
+      alert('Failed to save collection');
+    }
+  };
+
+  const handleDeleteCollection = async (collection: Collection) => {
+    if (!confirm(`Are you sure you want to delete "${collection.name}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/collections/${collection.slug}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        fetchData(); // Refresh data
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error || 'Failed to delete collection'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting collection:', error);
+      alert('Failed to delete collection');
+    }
+  };
+
+  const handleViewCollection = (collection: Collection) => {
+    // Navigate to collection detail page
+    router.push(`/manage/collections/${collection.slug}`);
+  };
+
+  const handleClickOutside = (event: MouseEvent) => {
+    const target = event.target as Element;
+    if (!target.closest('.dropdown-container')) {
+      setOpenDropdown(null);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -186,7 +301,7 @@ export default function ManagePage() {
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <FaRoute className="h-6 w-6 text-green-500" />
+                  <FaRoute className="h-6 w-6 text-blue-500" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
@@ -206,7 +321,7 @@ export default function ManagePage() {
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <FaGraduationCap className="h-6 w-6 text-purple-500" />
+                  <FaGraduationCap className="h-6 w-6 text-blue-500" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
@@ -226,7 +341,7 @@ export default function ManagePage() {
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <FaBook className="h-6 w-6 text-orange-500" />
+                  <FaBook className="h-6 w-6 text-blue-500" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
@@ -261,7 +376,7 @@ export default function ManagePage() {
                 onClick={() => setActiveTab('paths')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'paths'
-                    ? 'border-green-500 text-green-600'
+                    ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -277,7 +392,10 @@ export default function ManagePage() {
                   <h3 className="text-lg leading-6 font-medium text-gray-900">
                     Collections
                   </h3>
-                  <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                  <button 
+                    onClick={openCreateCollection}
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                  >
                     <FaPlus className="mr-2 h-4 w-4" />
                     Create Collection
                   </button>
@@ -327,9 +445,12 @@ export default function ManagePage() {
                                   </div>
                                 </div>
                                 <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-900">
+                                  <Link 
+                                    href={`/manage/collections/${collection.slug}`}
+                                    className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                                  >
                                     {collection.name}
-                                  </div>
+                                  </Link>
                                   <div className="text-sm text-gray-500">
                                     {collection.slug}
                                   </div>
@@ -352,15 +473,48 @@ export default function ManagePage() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <div className="flex justify-end space-x-2">
-                                <button className="text-blue-600 hover:text-blue-900">
-                                  <FaEye className="h-4 w-4" />
+                                <button 
+                                  onClick={() => handleViewCollection(collection)}
+                                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
+                                  title="View Collection"
+                                >
+                                  <FaArrowRight className="h-4 w-4" />
                                 </button>
-                                <button className="text-indigo-600 hover:text-indigo-900">
-                                  <FaEdit className="h-4 w-4" />
-                                </button>
-                                <button className="text-red-600 hover:text-red-900">
-                                  <FaTrash className="h-4 w-4" />
-                                </button>
+                                <div className="relative dropdown-container">
+                                  <button 
+                                    onClick={() => setOpenDropdown(openDropdown === collection._id ? null : collection._id)}
+                                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
+                                    title="More options"
+                                  >
+                                    <FaEllipsisV className="h-4 w-4" />
+                                  </button>
+                                  {openDropdown === collection._id && (
+                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                      <div className="py-1">
+                                        <button
+                                          onClick={() => {
+                                            openEditCollection(collection);
+                                            setOpenDropdown(null);
+                                          }}
+                                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                        >
+                                          <FaEdit className="h-4 w-4 mr-2" />
+                                          Edit Collection
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            handleDeleteCollection(collection);
+                                            setOpenDropdown(null);
+                                          }}
+                                          className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center"
+                                        >
+                                          <FaTrash className="h-4 w-4 mr-2" />
+                                          Delete Collection
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </td>
                           </tr>
@@ -378,7 +532,7 @@ export default function ManagePage() {
                   <h3 className="text-lg leading-6 font-medium text-gray-900">
                     Paths
                   </h3>
-                  <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700">
+                  <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
                     <FaPlus className="mr-2 h-4 w-4" />
                     Create Path
                   </button>
@@ -423,14 +577,14 @@ export default function ManagePage() {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 <div className="flex-shrink-0 h-10 w-10">
-                                  <div className="h-10 w-10 rounded-lg bg-green-500 flex items-center justify-center">
+                                  <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center">
                                     <FaRoute className="h-6 w-6 text-white" />
                                   </div>
                                 </div>
                                 <div className="ml-4">
                                   <Link 
                                     href={`/manage/paths/${path.slug}`}
-                                    className="text-sm font-medium text-gray-900 hover:text-green-600"
+                                    className="text-sm font-medium text-gray-900 hover:text-blue-600"
                                   >
                                     {path.name}
                                   </Link>
@@ -458,16 +612,45 @@ export default function ManagePage() {
                               <div className="flex justify-end space-x-2">
                                 <Link 
                                   href={`/manage/paths/${path.slug}`}
-                                  className="text-blue-600 hover:text-blue-900"
+                                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200"
                                 >
-                                  <FaEye className="h-4 w-4" />
+                                  <FaArrowRight className="h-4 w-4" />
                                 </Link>
-                                <button className="text-indigo-600 hover:text-indigo-900">
-                                  <FaEdit className="h-4 w-4" />
-                                </button>
-                                <button className="text-red-600 hover:text-red-900">
-                                  <FaTrash className="h-4 w-4" />
-                                </button>
+                                <div className="relative dropdown-container">
+                                  <button 
+                                    onClick={() => setOpenDropdown(openDropdown === path._id ? null : path._id)}
+                                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
+                                    title="More options"
+                                  >
+                                    <FaEllipsisV className="h-4 w-4" />
+                                  </button>
+                                  {openDropdown === path._id && (
+                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                      <div className="py-1">
+                                        <button
+                                          onClick={() => {
+                                            // TODO: Implement edit path functionality
+                                            setOpenDropdown(null);
+                                          }}
+                                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                        >
+                                          <FaEdit className="h-4 w-4 mr-2" />
+                                          Edit Path
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            // TODO: Implement delete path functionality
+                                            setOpenDropdown(null);
+                                          }}
+                                          className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center"
+                                        >
+                                          <FaTrash className="h-4 w-4 mr-2" />
+                                          Delete Path
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </td>
                           </tr>
@@ -481,6 +664,108 @@ export default function ManagePage() {
           </div>
         </div>
       </div>
+
+      {/* Collection Modal */}
+      {showCollectionModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                {editingCollection ? 'Edit Collection' : 'Create Collection'}
+              </h3>
+              
+              <form onSubmit={handleCollectionSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={collectionForm.name}
+                    onChange={(e) => setCollectionForm({...collectionForm, name: e.target.value})}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Collection name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <textarea
+                    value={collectionForm.description}
+                    onChange={(e) => setCollectionForm({...collectionForm, description: e.target.value})}
+                    rows={3}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Collection description"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Category
+                  </label>
+                  <input
+                    type="text"
+                    value={collectionForm.category}
+                    onChange={(e) => setCollectionForm({...collectionForm, category: e.target.value})}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., fundamentals, hands-on"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Tags
+                  </label>
+                  <input
+                    type="text"
+                    value={collectionForm.tags.join(', ')}
+                    onChange={(e) => setCollectionForm({
+                      ...collectionForm, 
+                      tags: e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag)
+                    })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="tag1, tag2, tag3"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    State
+                  </label>
+                  <select
+                    value={collectionForm.state}
+                    onChange={(e) => setCollectionForm({...collectionForm, state: e.target.value})}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowCollectionModal(false)}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {editingCollection ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import Path from '../src/lib/models/Path.js';
 import Course from '../src/lib/models/Course.js';
 import Lesson from '../src/lib/models/Lesson.js';
 import CourseProgress from '../src/lib/models/CourseProgress.js';
-import QuizQuestion from '../src/lib/models/QuizQuestion.js';
+
 
 // Import mock data
 import { PATHS } from '../src/lib/mock_data/paths.js';
@@ -21,30 +21,63 @@ async function migrateData() {
     await Course.deleteMany({});
     await Lesson.deleteMany({});
     await CourseProgress.deleteMany({});
-    await QuizQuestion.deleteMany({});
+
     console.log('Existing data cleared!');
 
     // Migrate Paths
     console.log('Migrating paths...');
     const pathDocuments = PATHS.map(path => ({
-      ...path,
-      _id: path._id || undefined, // Let MongoDB generate new IDs
-      courses: [] // Will be populated after courses are created
+      // do not carry over mock _id to avoid invalid ObjectId errors
+      name: path.name,
+      slug: path.slug,
+      description: path.description,
+      path_type: path.path_type,
+      level: path.level,
+      time_to_complete: path.time_to_complete,
+      background_img: path.background_img,
+      image: path.image,
+      thumb: path.thumb,
+      category: path.category,
+      tags: path.tags,
+      valid_from: path.valid_from,
+      valid_to: path.valid_to,
+      state: path.state,
+      configs: path.configs,
+      extends: path.extends,
+      hiddenContent: path.hiddenContent,
+      maps: path.maps,
+      icon_set: path.icon_set,
+      created_by: path.created_by,
+      num_learners: path.num_learners,
+      num_certified_learners: path.num_certified_learners,
+      key_points: path.key_points,
+      courses: [] // populate later
     }));
     
     const createdPaths = await Path.insertMany(pathDocuments);
     console.log(`Migrated ${createdPaths.length} paths`);
 
     // Create a map of old path IDs to new MongoDB IDs
-    const pathIdMap = new Map();
+    const pathSlugToId = new Map();
     PATHS.forEach((path, index) => {
-      pathIdMap.set(path._id, createdPaths[index]._id);
+      pathSlugToId.set(path.slug, createdPaths[index]._id);
     });
 
     // Migrate Lessons first (if any exist in the mock data)
     console.log('Looking for lessons to migrate...');
     let lessonCount = 0;
-    const lessonIdMap = new Map();
+    const lessonIdMap = new Map(); // by original _id if present
+    const lessonSlugToId = new Map();
+
+    function parseDurationToMinutes(val) {
+      if (typeof val === 'number' && Number.isFinite(val)) return val;
+      if (typeof val !== 'string') return 0;
+      const h = val.match(/(\d+)h/);
+      const m = val.match(/(\d+)m/);
+      const hours = h ? parseInt(h[1], 10) : 0;
+      const minutes = m ? parseInt(m[1], 10) : 0;
+      return hours * 60 + minutes;
+    }
     
     // Check if there are any lessons in the courses
     for (const course of ALL_COURSES) {
@@ -53,27 +86,33 @@ async function migrateData() {
         
         for (const lesson of course.lessons) {
           // Create lesson document with proper structure
+          // Ensure unique slug per lesson
+          let baseSlug = lesson.slug || lesson.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `lesson-${Date.now()}`;
+          let uniqueSlug = baseSlug;
+          let counter = 1;
+          while (await Lesson.findOne({ slug: uniqueSlug })) {
+            uniqueSlug = `${baseSlug}-${counter++}`;
+          }
+
           const lessonDoc = {
             name: lesson.name || 'Untitled Lesson',
-            slug: lesson.slug || `lesson-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            slug: uniqueSlug,
             description: lesson.description || '',
-            lesson_type: lesson.type || 'text', // Map 'type' to 'lesson_type'
+            lesson_type: lesson.lesson_type || lesson.type || 'text-markdown',
             order: lesson.order || 0,
-            duration: lesson.duration || 0,
-            content: {
-              markdown_content: lesson.markdown_content || '',
-              sections: lesson.sections || []
-            },
+            duration: parseDurationToMinutes(lesson.duration),
+            markdown_content: lesson.markdown_content || '',
             state: lesson.state || 'released',
             tags: lesson.tags || [],
             // Map old lesson fields to new structure
             video_url: lesson.video_url,
             video_duration: lesson.video_duration,
             video_provider: lesson.video_provider,
-            quiz_questions: lesson.quiz_questions || [],
+            quiz_questions: lesson.quiz_questions || lesson.questions || [],
             passing_score: lesson.passing_score,
             max_attempts: lesson.max_attempts,
             interactive_config: lesson.interactive_config,
+            sequence: lesson.sequence,
             assignment_instructions: lesson.assignment_instructions,
             submission_deadline: lesson.submission_deadline,
             max_points: lesson.max_points,
@@ -81,18 +120,12 @@ async function migrateData() {
             workshop_duration: lesson.workshop_duration,
             prerequisites: lesson.prerequisites || [],
             completion_criteria: lesson.completion_criteria || 'view',
-            valid_from: lesson.valid_from,
-            valid_to: lesson.valid_to,
+            // removed: valid_from, valid_to
             configs: lesson.configs || {},
             extends: lesson.extends || {},
             hiddenContent: lesson.hiddenContent || {},
-            meta_title: lesson.meta_title,
-            meta_description: lesson.meta_description,
-            accessibility_notes: lesson.accessibility_notes,
-            view_count: lesson.view_count || 0,
-            completion_count: lesson.completion_count || 0,
-            average_rating: lesson.average_rating || 0,
-            rating_count: lesson.rating_count || 0
+            // removed: meta_title, meta_description, accessibility_notes
+            // removed: view_count, completion_count, average_rating, rating_count
           };
           
           const createdLesson = await Lesson.create(lessonDoc);
@@ -102,6 +135,7 @@ async function migrateData() {
           if (lesson._id) {
             lessonIdMap.set(lesson._id, createdLesson._id);
           }
+          lessonSlugToId.set(lessonDoc.slug, createdLesson._id);
         }
       }
     }
@@ -110,11 +144,29 @@ async function migrateData() {
 
     // Migrate Courses
     console.log('Migrating courses...');
+    function parseCourseDuration(val) {
+      if (typeof val === 'number' && Number.isFinite(val)) return val;
+      if (typeof val !== 'string') return 0;
+      const h = val.match(/(\d+)\s*h/);
+      const m = val.match(/(\d+)\s*m/);
+      const hours = h ? parseInt(h[1], 10) : 0;
+      const minutes = m ? parseInt(m[1], 10) : 0;
+      return hours + (minutes > 0 ? 1 : 0); // store rough hours to satisfy Number
+    }
+
+    const usedCourseSlugs = new Set();
+    const toSlug = (s) => (s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
     const courseDocuments = ALL_COURSES.map(course => {
       // Map old course fields to new structure
+      let baseSlug = course.slug || toSlug(course.name) || `course-${Date.now()}`;
+      let uniqueSlug = baseSlug;
+      let i = 1;
+      while (usedCourseSlugs.has(uniqueSlug)) uniqueSlug = `${baseSlug}-${i++}`;
+      usedCourseSlugs.add(uniqueSlug);
+
       const courseDoc = {
         name: course.name || 'Untitled Course',
-        slug: course.slug || `course-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        slug: uniqueSlug,
         description: course.description || course.shortDescription || '',
         course_type: course.course_type || 'standard',
         image: course.image,
@@ -123,7 +175,7 @@ async function migrateData() {
         category: course.category,
         icon: course.icon || course.top_icon,
         difficulty: course.difficulty || 'beginner',
-        duration: course.duration || 0,
+        duration: parseCourseDuration(course.duration),
         total_lessons: 0, // Will be calculated
         total_duration: 0, // Will be calculated
         lessons: [], // Will be populated after lessons are created
@@ -145,7 +197,7 @@ async function migrateData() {
         enrollment_deadline: course.enrollment_deadline,
         valid_from: course.valid_from,
         valid_to: course.valid_to,
-        state: course.state || 'released',
+        state: (['draft','reviewed','released','archived'].includes(course.state)) ? course.state : 'released',
         configs: course.configs || {},
         extends: course.extends || {},
         hiddenContent: course.hiddenContent || {},
@@ -166,20 +218,22 @@ async function migrateData() {
     console.log(`Migrated ${createdCourses.length} courses`);
 
     // Create a map of old course IDs to new MongoDB IDs
-    const courseIdMap = new Map();
+    const courseIdByOldId = new Map();
+    const courseIdBySlug = new Map();
     ALL_COURSES.forEach((course, index) => {
-      courseIdMap.set(course._id, createdCourses[index]._id);
+      if (course._id) courseIdByOldId.set(course._id, createdCourses[index]._id);
+      courseIdBySlug.set(course.slug, createdCourses[index]._id);
     });
 
     // Update paths with course references
     console.log('Updating path-course relationships...');
     for (const path of PATHS) {
-      if (path.courses && path.courses.length > 0) {
-        const newCourseIds = path.courses.map(courseId => courseIdMap.get(courseId)).filter(Boolean);
-        await Path.findByIdAndUpdate(
-          pathIdMap.get(path._id),
-          { courses: newCourseIds }
-        );
+      const pathId = pathSlugToId.get(path.slug);
+      if (!pathId) continue;
+      const refs = path.courses || path.course_ids || [];
+      if (refs.length > 0) {
+        const newCourseIds = refs.map(ref => courseIdByOldId.get(ref) || courseIdBySlug.get(ref)).filter(Boolean);
+        await Path.findByIdAndUpdate(pathId, { courses: newCourseIds });
       }
     }
 
@@ -187,9 +241,9 @@ async function migrateData() {
     console.log('Updating course-lesson relationships...');
     for (const course of ALL_COURSES) {
       if (course.lessons && course.lessons.length > 0) {
-        const newCourseId = courseIdMap.get(course._id);
+        const newCourseId = courseIdByOldId.get(course._id) || courseIdBySlug.get(course.slug);
         const newLessonIds = course.lessons
-          .map(lesson => lessonIdMap.get(lesson._id))
+          .map(lesson => (lessonSlugToId.get(lesson.slug) || (lesson._id && lessonIdMap.get(lesson._id))))
           .filter(Boolean);
         
         if (newLessonIds.length > 0) {

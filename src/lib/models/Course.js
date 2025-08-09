@@ -103,7 +103,6 @@ const CourseSchema = new mongoose.Schema(
 
 // Indexes for better performance
 CourseSchema.index({ category: 1 });
-CourseSchema.index({ slug: 1 });
 CourseSchema.index({ tags: 1 });
 CourseSchema.index({ name: 1 });
 CourseSchema.index({ state: 1 });

@@ -1,5 +1,5 @@
 import connectToDatabase from "@/lib/mongodb";
-import CourseProgress from "@/lib/models/CourseProgress";
+import { CourseProgress } from "@/lib/models/index.js";
 import { check_auth } from "@/lib/backend/check_auth";
 
 export default async function handler(req, res) {

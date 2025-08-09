@@ -8,8 +8,8 @@ const LessonSchema = new mongoose.Schema(
     lesson_type: { 
       type: String, 
       required: true,
-      enum: ['video', 'text', 'quiz', 'interactive', 'assignment', 'workshop'],
-      default: 'text'
+      enum: ['video', 'text', 'text-markdown', 'quiz', 'interactive', 'assignment', 'workshop'],
+      default: 'text-markdown'
     },
     slug: { type: String, required: true, unique: true },
     image: { type: String },
@@ -22,6 +22,8 @@ const LessonSchema = new mongoose.Schema(
     
     // Content based on lesson type
     content: { type: Schema.Types.Mixed },
+    // Text-Markdown lesson specific
+    markdown_content: { type: String },
     
     // Video lesson specific fields
     video_url: { type: String },
@@ -29,12 +31,13 @@ const LessonSchema = new mongoose.Schema(
     video_provider: { type: String }, // youtube, vimeo, etc.
     
     // Quiz lesson specific fields
-    quiz_questions: [{ type: Schema.Types.ObjectId, ref: 'QuizQuestion' }],
+    quiz_questions: { type: [Schema.Types.Mixed], default: [] },
     passing_score: { type: Number, default: 70 },
     max_attempts: { type: Number, default: 3 },
     
     // Interactive lesson specific fields
     interactive_config: { type: Schema.Types.Mixed },
+    sequence: { type: Schema.Types.Mixed },
     
     // Assignment lesson specific fields
     assignment_instructions: { type: String },
@@ -56,8 +59,6 @@ const LessonSchema = new mongoose.Schema(
     },
     
     // Metadata
-    valid_from: { type: Date },
-    valid_to: { type: Date },
     state: { 
       type: String, 
       limit: 255, 
@@ -69,17 +70,6 @@ const LessonSchema = new mongoose.Schema(
     configs: { type: Schema.Types.Mixed },
     extends: { type: Schema.Types.Mixed },
     hiddenContent: { type: Schema.Types.Mixed },
-    
-    // SEO and accessibility
-    meta_title: { type: String, limit: 255 },
-    meta_description: { type: String, limit: 500 },
-    accessibility_notes: { type: String },
-    
-    // Analytics
-    view_count: { type: Number, default: 0 },
-    completion_count: { type: Number, default: 0 },
-    average_rating: { type: Number, default: 0 },
-    rating_count: { type: Number, default: 0 },
   },
   {
     timestamps: {
@@ -90,7 +80,6 @@ const LessonSchema = new mongoose.Schema(
 );
 
 // Indexes for better performance
-LessonSchema.index({ slug: 1 });
 LessonSchema.index({ name: 1 });
 LessonSchema.index({ state: 1 });
 LessonSchema.index({ lesson_type: 1 });
@@ -105,10 +94,7 @@ LessonSchema.virtual('url').get(function() {
 
 // Method to check if lesson is accessible
 LessonSchema.methods.isAccessible = function() {
-  const now = new Date();
-  return this.state === 'released' && 
-         (!this.valid_from || this.valid_from <= now) &&
-         (!this.valid_to || this.valid_to >= now);
+  return this.state === 'released';
 };
 
 // Method to get lesson duration in human readable format

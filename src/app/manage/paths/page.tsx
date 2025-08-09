@@ -41,9 +41,9 @@ export default function PathsPage() {
   const getStateColor = (state: string) => {
     switch (state) {
       case 'published':
-        return 'bg-green-100 text-green-800';
+        return 'bg-blue-100 text-blue-800';
       case 'draft':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-blue-100 text-blue-800';
       case 'archived':
         return 'bg-gray-100 text-gray-800';
       default:
@@ -55,7 +55,7 @@ export default function PathsPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading paths...</p>
         </div>
       </div>
@@ -83,7 +83,7 @@ export default function PathsPage() {
               </Link>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
               >
                 <FaPlus className="mr-2 h-4 w-4" />
                 Create Path
@@ -101,7 +101,7 @@ export default function PathsPage() {
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <FaRoute className="h-6 w-6 text-green-500" />
+                  <FaRoute className="h-6 w-6 text-blue-500" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
@@ -121,7 +121,7 @@ export default function PathsPage() {
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="h-6 w-6 bg-green-500 rounded"></div>
+                  <div className="h-6 w-6 bg-blue-500 rounded"></div>
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
@@ -141,7 +141,7 @@ export default function PathsPage() {
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="h-6 w-6 bg-yellow-500 rounded"></div>
+                  <div className="h-6 w-6 bg-blue-500 rounded"></div>
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
@@ -210,7 +210,7 @@ export default function PathsPage() {
                 <div className="mt-6">
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                   >
                     <FaPlus className="mr-2 h-4 w-4" />
                     Create Path
@@ -248,7 +248,7 @@ export default function PathsPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
-                              <div className="h-10 w-10 rounded-lg bg-green-500 flex items-center justify-center">
+                              <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center"
                                 <FaRoute className="h-6 w-6 text-white" />
                               </div>
                             </div>
@@ -281,10 +281,10 @@ export default function PathsPage() {
                             <button className="text-blue-600 hover:text-blue-900">
                               <FaEye className="h-4 w-4" />
                             </button>
-                            <button className="text-indigo-600 hover:text-indigo-900">
+                            <button className="text-blue-600 hover:text-blue-900">
                               <FaEdit className="h-4 w-4" />
                             </button>
-                            <button className="text-red-600 hover:text-red-900">
+                            <button className="text-blue-600 hover:text-blue-900">
                               <FaTrash className="h-4 w-4" />
                             </button>
                           </div>

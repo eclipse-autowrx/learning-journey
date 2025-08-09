@@ -41,9 +41,9 @@ export default function CollectionsPage() {
   const getStateColor = (state: string) => {
     switch (state) {
       case 'published':
-        return 'bg-green-100 text-green-800';
+        return 'bg-blue-100 text-blue-800';
       case 'draft':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-blue-100 text-blue-800';
       case 'archived':
         return 'bg-gray-100 text-gray-800';
       default:
@@ -121,7 +121,7 @@ export default function CollectionsPage() {
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="h-6 w-6 bg-green-500 rounded"></div>
+                  <div className="h-6 w-6 bg-blue-500 rounded"></div>
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
@@ -141,7 +141,7 @@ export default function CollectionsPage() {
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="h-6 w-6 bg-yellow-500 rounded"></div>
+                  <div className="h-6 w-6 bg-blue-500 rounded"></div>
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>

@@ -95,7 +95,6 @@ const collectionSchema = new Schema({
 });
 
 // Indexes
-collectionSchema.index({ slug: 1 }, { unique: true });
 collectionSchema.index({ category: 1 });
 collectionSchema.index({ tags: 1 });
 collectionSchema.index({ name: 1 });

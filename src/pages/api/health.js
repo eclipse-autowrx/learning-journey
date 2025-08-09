@@ -13,8 +13,8 @@ export default async function handler(req, res) {
     await connectToDatabase();
     
     // Get basic stats
-    const pathCount = await PathService.getAllPaths().then(paths => paths.length).catch(() => 0);
-    const courseCount = await CourseService.getAllCourses().then(courses => courses.length).catch(() => 0);
+    const pathCount = await PathService.getAll().then(paths => paths.length).catch(() => 0);
+    const courseCount = await CourseService.getAll().then(courses => courses.length).catch(() => 0);
     
     res.status(200).json({
       success: true,

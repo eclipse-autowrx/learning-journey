@@ -221,7 +221,7 @@ The Learning Journey application uses a MongoDB database with a well-structured 
 ### Compound Indexes
 - `{ user_id: 1, course_id: 1 }` on courseprogresses
 - `{ lesson_type: 1, state: 1 }` on lessons
-- `{ question_type: 1, difficulty: 1 }` on quizquestions
+
 
 ## Data Integrity
 

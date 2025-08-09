@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import './models/index.js'; // Import all models to ensure they are registered
 
 const MONGO_URI = process.env.MONGO_URI || "mongodb://admin:password123@localhost:27017/learning_journey?authSource=admin";
 

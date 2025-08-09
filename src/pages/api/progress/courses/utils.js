@@ -1,5 +1,5 @@
 import connectToDatabase from "@/lib/mongodb";
-import CourseProgress from "@/lib/models/CourseProgress";
+import { CourseProgress } from "@/lib/models/index.js";
 
 
 import { STATE_NOT_STARTED, STATE_IN_PROGRESS, STATE_COMPLETED, STATE_LOCKED } from "@/lib/const";

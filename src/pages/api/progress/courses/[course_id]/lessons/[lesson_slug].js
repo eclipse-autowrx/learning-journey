@@ -1,8 +1,8 @@
 import connectToDatabase from "@/lib/mongodb";
-import CourseProgress from "@/lib/models/CourseProgress";
+import { CourseProgress } from "@/lib/models/index.js";
 import { check_auth } from "@/lib/backend/check_auth";
 import { STATE_IN_PROGRESS, STATE_NOT_STARTED, STATE_COMPLETED, STATE_LOCKED } from "@/lib/const";
-import { ALL_COURSES } from "@/lib/mock_data/all_courses";
+// Removed mock data usage; database is the single source of truth
 
 export default async function handler(req, res) {
     const { method } = req;
@@ -121,23 +121,22 @@ export default async function handler(req, res) {
                         })
 
                         // for this course, check that is all lesson finished
-                        if (existingProgress.state != STATE_COMPLETED) {
-                            let dbCourse = ALL_COURSES.find((course) => course._id === course_id);
-                            if (dbCourse) {
-                                let allLessonsCompleted = true;
-                                for (const lesson of dbCourse.lessons) {
-                                    if (lesson.slug != lesson_slug) {
-                                        const lessonProgress = existingProgress.lessons.get(lesson.slug);
-                                        if (!lessonProgress || lessonProgress.state !== STATE_COMPLETED) {
-                                            allLessonsCompleted = false;
-                                            break;
-                                        }
+                        // If all lesson progresses are completed, mark course as completed
+                        if (existingProgress.state !== STATE_COMPLETED) {
+                            let allLessonsCompleted = true;
+                            if (existingProgress.lessons && existingProgress.lessons.size > 0) {
+                                for (const [, lp] of existingProgress.lessons) {
+                                    if (!lp || lp.state !== STATE_COMPLETED) {
+                                        allLessonsCompleted = false;
+                                        break;
                                     }
                                 }
-                                if (allLessonsCompleted) {
-                                    existingProgress.state = STATE_COMPLETED;
-                                    existingProgress.finished_at = new Date();
-                                }
+                            } else {
+                                allLessonsCompleted = false;
+                            }
+                            if (allLessonsCompleted) {
+                                existingProgress.state = STATE_COMPLETED;
+                                existingProgress.finished_at = new Date();
                             }
                         }
 

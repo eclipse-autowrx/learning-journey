@@ -5,7 +5,7 @@ import Path from '../src/lib/models/Path.js';
 import Course from '../src/lib/models/Course.js';
 import Lesson from '../src/lib/models/Lesson.js';
 import CourseProgress from '../src/lib/models/CourseProgress.js';
-import QuizQuestion from '../src/lib/models/QuizQuestion.js';
+
 
 console.log('🧹 Cleaning Database and Running Migration');
 console.log('==========================================\n');
@@ -22,14 +22,14 @@ async function cleanAndMigrate() {
     const courseResult = await Course.deleteMany({});
     const lessonResult = await Lesson.deleteMany({});
     const progressResult = await CourseProgress.deleteMany({});
-    const quizResult = await QuizQuestion.deleteMany({});
+    
     
     console.log('✅ Cleaned existing data:');
     console.log(`   - Paths: ${pathResult.deletedCount}`);
     console.log(`   - Courses: ${courseResult.deletedCount}`);
     console.log(`   - Lessons: ${lessonResult.deletedCount}`);
     console.log(`   - Course Progress: ${progressResult.deletedCount}`);
-    console.log(`   - Quiz Questions: ${quizResult.deletedCount}`);
+    
 
     // Import and run the migration
     console.log('\n📦 Running data migration...');

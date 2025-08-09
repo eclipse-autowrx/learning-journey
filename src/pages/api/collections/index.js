@@ -1,6 +1,5 @@
-import connectToDatabase from '../../../lib/mongodb.js';
-import Collection from '../../../lib/models/Collection.js';
-import CourseProgress from '../../../lib/models/CourseProgress.js';
+import { CollectionService } from '../../../lib/services/dataService.js';
+import { CourseProgress, Path } from '../../../lib/models/index.js';
 import { check_auth } from '../../../lib/backend/check_auth.js';
 
 const getProgressForCourse = async (user_id, course) => {
@@ -17,23 +16,13 @@ export default async function handler(req, res) {
   const { method } = req;
   const { user_id, token } = check_auth(req, res);
 
-  await connectToDatabase();
+  // DB connection is handled in the service
 
   switch (method) {
     case "GET":
       try {
         // Get collections from database with populated paths and courses
-        let dbCollections = await Collection.find({})
-          .populate({
-            path: 'paths',
-            populate: {
-              path: 'courses',
-              populate: {
-                path: 'lessons'
-              }
-            }
-          })
-          .sort({ created_at: -1 });
+        const dbCollections = await CollectionService.getAll();
 
         // If user is authenticated, add progress data to courses
         if (user_id) {
@@ -54,27 +43,45 @@ export default async function handler(req, res) {
         }
 
         // Transform to match the expected format
-        const transformedCollections = dbCollections.map(collection => ({
-          _id: collection._id,
-          name: collection.name,
-          slug: collection.slug,
-          description: collection.description,
-          category: collection.category,
-          tags: collection.tags,
-          paths: collection.paths || [],
-          path_order: collection.path_order || [],
-          state: collection.state,
-          valid_from: collection.valid_from,
-          valid_to: collection.valid_to,
-          configs: collection.configs,
-          extends: collection.extends,
-          hiddenContent: collection.hiddenContent,
-          meta_title: collection.meta_title,
-          meta_description: collection.meta_description,
-          accessibility_notes: collection.accessibility_notes,
-          created_at: collection.createdAt,
-          updated_at: collection.updatedAt
-        }));
+        const transformedCollections = [];
+        for (const collection of dbCollections) {
+          let effectivePaths = collection.paths || [];
+          // If paths were not populated (or are empty) but we have an order list, fetch by IDs and preserve order
+          if ((!effectivePaths || effectivePaths.length === 0) && Array.isArray(collection.path_order) && collection.path_order.length > 0) {
+            const ids = collection.path_order;
+            const docs = await Path.find({ _id: { $in: ids } }).select('name slug description').lean();
+            const byId = new Map(docs.map(d => [d._id.toString(), d]));
+            effectivePaths = ids.map(id => byId.get(id.toString())).filter(Boolean);
+          }
+
+          transformedCollections.push({
+            _id: collection._id,
+            name: collection.name,
+            slug: collection.slug,
+            description: collection.description,
+            category: collection.category,
+            tags: collection.tags,
+            paths: (effectivePaths || []).map(p => ({
+              _id: p._id,
+              slug: p.slug,
+              name: p.name,
+              description: p.description,
+            })),
+            path_order: collection.path_order || [],
+            total_paths: effectivePaths ? effectivePaths.length : 0,
+            state: collection.state,
+            valid_from: collection.valid_from,
+            valid_to: collection.valid_to,
+            configs: collection.configs,
+            extends: collection.extends,
+            hiddenContent: collection.hiddenContent,
+            meta_title: collection.meta_title,
+            meta_description: collection.meta_description,
+            accessibility_notes: collection.accessibility_notes,
+            created_at: collection.createdAt,
+            updated_at: collection.updatedAt
+          });
+        }
 
         res.status(200).json({ success: true, data: transformedCollections });
       } catch (error) {

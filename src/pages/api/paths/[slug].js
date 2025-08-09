@@ -1,4 +1,4 @@
-import { PathService, CourseService, MockDataService } from "@/lib/services/dataService";
+import { PathService, CourseService } from "@/lib/services/dataService";
 import { ICONs } from "@/lib/mock_data/media";
 import { check_auth } from "@/lib/backend/check_auth";
 import { STATE_NOT_STARTED, STATE_IN_PROGRESS, STATE_COMPLETED, STATE_LOCKED } from "@/lib/const";
@@ -11,10 +11,11 @@ const ICON_SET = {
 }
 
 function addMediaUrlForCourses(path) {
-  if (!path || !path.courses) return
-  let ICONS = path.icon_set || ICON_SET
-
+  if (!path || !Array.isArray(path.courses)) return;
+  const ICONS = path.icon_set || ICON_SET;
+  path.courses = path.courses.filter(Boolean);
   path.courses.forEach((course) => {
+    if (!course) return;
     if (!course.icon) {
       switch (course.context?.state) {
         case STATE_NOT_STARTED:
@@ -45,46 +46,24 @@ export default async function handler(req, res) {
   switch (method) {
     case "GET":
       try {
-        let dbPath;
-        
-        // Try to get data from database first
-        try {
-          dbPath = await PathService.getPathBySlug(slug);
-          // If no data in database, fallback to mock data
-          if (!dbPath) {
-            console.log(`Path ${slug} not found in database, using mock data`);
-            const mockPaths = await MockDataService.getAllPaths();
-            dbPath = mockPaths.find((path) => path.slug === slug);
-          }
-        } catch (dbError) {
-          console.log('Database error, using mock data:', dbError.message);
-          const mockPaths = await MockDataService.getAllPaths();
-          dbPath = mockPaths.find((path) => path.slug === slug);
-        }
-
-        if (!dbPath) {
-          return res
-            .status(404)
-            .json({ success: false, error: "Path not found" });
-        }
+        const dbPath = await PathService.getBySlug(slug);
+        if (!dbPath) return res.status(404).json({ success: false, error: "Path not found" });
 
         try {
-          // Get courses for this path
-          if (dbPath.courses && dbPath.courses.length > 0) {
-            // If courses are already populated (from database), use them
-            if (typeof dbPath.courses[0] === 'object' && dbPath.courses[0].name) {
-              // Courses are already populated
-            } else {
-              // Need to fetch courses by IDs
-              const courseIds = dbPath.courses;
-              dbPath.courses = await CourseService.getCoursesByPath({ courses: courseIds });
+          // Normalize and populate courses
+          const hasCoursesArray = Array.isArray(dbPath.courses) && dbPath.courses.length > 0;
+          if (hasCoursesArray) {
+            const first = dbPath.courses[0];
+            const looksPopulated = first && typeof first === 'object' && !!first.name;
+            if (!looksPopulated) {
+              const ids = dbPath.courses;
+              dbPath.courses = await CourseService.getCoursesByPath({ courses: ids });
             }
-          } else if (dbPath.course_ids) {
-            // Fallback to mock data for courses
-            const { ALL_COURSES } = await import("@/lib/mock_data/all_courses");
-            dbPath.courses = ALL_COURSES.filter((course) =>
-              dbPath.course_ids.includes(course._id)
-            );
+          }
+
+          // If courses are missing, leave as empty array
+          if (!hasCoursesArray || !dbPath.courses || dbPath.courses.length === 0) {
+            dbPath.courses = [];
           }
 
           addMediaUrlForCourses(dbPath);

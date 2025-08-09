@@ -1,4 +1,4 @@
-import { PathService, MockDataService } from "../../../lib/services/dataService.js";
+import { PathService } from "../../../lib/services/dataService.js";
 
 export default async function handler(req, res) {
   const { method } = req;
@@ -6,22 +6,12 @@ export default async function handler(req, res) {
   switch (method) {
     case "GET":
       try {
-        let dbPaths;
-        
-        // Try to get data from database first
-        try {
-          dbPaths = await PathService.getAll();
-          // If no data in database, fallback to mock data
-          if (!dbPaths || dbPaths.length === 0) {
-            console.log('No paths found in database, using mock data');
-            dbPaths = await MockDataService.getPaths();
-          }
-        } catch (dbError) {
-          console.log('Database error, using mock data:', dbError.message);
-          dbPaths = await MockDataService.getPaths();
-        }
-        
-        res.status(200).json({ success: true, data: dbPaths });
+        const dbPaths = await PathService.getAll();
+        const transformedPaths = dbPaths.map(path => ({
+          ...path,
+          total_courses: path.courses ? path.courses.length : 0
+        }));
+        res.status(200).json({ success: true, data: transformedPaths });
       } catch (error) {
         console.error('Error fetching paths:', error);
         res.status(400).json({ success: false, error: error.message });

@@ -16,7 +16,9 @@
     "backup": "node scripts/backup-db.js",
     "backup:sh": "bash scripts/backup-db.sh",
     "restore": "node scripts/restore-db.js",
-    "restore:sh": "bash scripts/restore-db.sh"
+    "restore:sh": "bash scripts/restore-db.sh",
+    "populate-lessons": "node scripts/populate-lesson-content.js",
+    "populate-lessons:dry": "node scripts/populate-lesson-content.js --dry-run"
   },
   "dependencies": {
     "@ckeditor/ckeditor5-react": "^9.5.0",

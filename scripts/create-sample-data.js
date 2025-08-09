@@ -3,7 +3,7 @@
 import connectToDatabase from '../src/lib/mongodb.js';
 import Course from '../src/lib/models/Course.js';
 import Lesson from '../src/lib/models/Lesson.js';
-import QuizQuestion from '../src/lib/models/QuizQuestion.js';
+
 
 console.log('🎯 Creating Sample Data for Learning Journey');
 console.log('============================================\n');
@@ -17,7 +17,7 @@ async function createSampleData() {
     console.log('🧹 Clearing existing sample data...');
     await Course.deleteMany({ slug: { $regex: /^sample-/ } });
     await Lesson.deleteMany({ slug: { $regex: /^sample-/ } });
-    await QuizQuestion.deleteMany({ question: { $regex: /^Sample:/ } });
+    
     console.log('✅ Cleared existing sample data');
 
     // Create sample lessons
@@ -109,77 +109,7 @@ async function createSampleData() {
     const createdLessons = await Lesson.insertMany(sampleLessons);
     console.log(`✅ Created ${createdLessons.length} sample lessons`);
 
-    // Create sample quiz questions
-    console.log('\n❓ Creating sample quiz questions...');
-    
-    const sampleQuestions = [
-      {
-        question: "Sample: What does HTML stand for?",
-        question_type: "single_choice",
-        options: [
-          { text: "HyperText Markup Language", is_correct: true, explanation: "HTML stands for HyperText Markup Language, which is the standard markup language for creating web pages." },
-          { text: "High Tech Modern Language", is_correct: false, explanation: "This is not the correct expansion of HTML." },
-          { text: "Home Tool Markup Language", is_correct: false, explanation: "This is not the correct expansion of HTML." },
-          { text: "Hyperlink and Text Markup Language", is_correct: false, explanation: "This is not the correct expansion of HTML." }
-        ],
-        points: 1,
-        difficulty: "easy",
-        category: "html-basics",
-        tags: ["html", "basics"],
-        state: "active"
-      },
-      {
-        question: "Sample: Which HTML tag is used to create a heading?",
-        question_type: "single_choice",
-        options: [
-          { text: "<heading>", is_correct: false, explanation: "There is no <heading> tag in HTML." },
-          { text: "<h1>", is_correct: true, explanation: "The <h1> tag is used to create the main heading of a webpage." },
-          { text: "<header>", is_correct: false, explanation: "The <header> tag is used for the header section, not for headings." },
-          { text: "<title>", is_correct: false, explanation: "The <title> tag is used for the page title in the browser tab." }
-        ],
-        points: 1,
-        difficulty: "easy",
-        category: "html-basics",
-        tags: ["html", "headings"],
-        state: "active"
-      },
-      {
-        question: "Sample: HTML is a programming language.",
-        question_type: "true_false",
-        correct_answer: false,
-        points: 1,
-        difficulty: "medium",
-        category: "html-basics",
-        tags: ["html", "concepts"],
-        state: "active"
-      },
-      {
-        question: "Sample: Fill in the blank: The _____ tag is used to create a paragraph in HTML.",
-        question_type: "fill_blank",
-        correct_answers: ["p", "paragraph"],
-        case_sensitive: false,
-        points: 1,
-        difficulty: "easy",
-        category: "html-basics",
-        tags: ["html", "paragraphs"],
-        state: "active"
-      },
-      {
-        question: "Sample: Explain the difference between HTML and CSS in your own words.",
-        question_type: "essay",
-        essay_guidelines: "Write a clear explanation of how HTML and CSS work together to create web pages. Include examples if possible.",
-        min_words: 50,
-        max_words: 200,
-        points: 5,
-        difficulty: "medium",
-        category: "html-basics",
-        tags: ["html", "css", "concepts"],
-        state: "active"
-      }
-    ];
 
-    const createdQuestions = await QuizQuestion.insertMany(sampleQuestions);
-    console.log(`✅ Created ${createdQuestions.length} sample quiz questions`);
 
     // Create a sample course
     console.log('\n📖 Creating sample course...');
@@ -211,23 +141,17 @@ async function createSampleData() {
     const createdCourse = await Course.create(sampleCourse);
     console.log(`✅ Created sample course: ${createdCourse.name}`);
 
-    // Update the quiz lesson with questions
-    const quizLesson = createdLessons.find(lesson => lesson.lesson_type === 'quiz');
-    if (quizLesson) {
-      quizLesson.quiz_questions = createdQuestions.map(q => q._id);
-      await quizLesson.save();
-      console.log('✅ Updated quiz lesson with questions');
-    }
+
 
     console.log('\n🎉 Sample data created successfully!');
     console.log('\n📋 Summary:');
     console.log(`   - ${createdLessons.length} lessons created`);
-    console.log(`   - ${createdQuestions.length} quiz questions created`);
+
     console.log(`   - 1 course created`);
     console.log('\n🔗 Test URLs:');
     console.log('   - Course: http://localhost:3000/api/courses/sample-html-fundamentals');
     console.log('   - Lessons: http://localhost:3000/api/lessons');
-    console.log('   - Quiz Questions: http://localhost:3000/api/quiz-questions');
+
 
   } catch (error) {
     console.error('❌ Error creating sample data:', error);

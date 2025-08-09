@@ -158,7 +158,7 @@ The application uses MongoDB with the following collections:
 - **courses** - Courses with lesson references and sections
 - **lessons** - Individual lessons with different types (video, text, quiz, interactive, etc.)
 - **courseprogresses** - User progress tracking
-- **quizquestions** - Quiz questions for assessment lessons
+
 
 ## Learn More
 

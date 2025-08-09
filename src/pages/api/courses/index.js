@@ -1,4 +1,4 @@
-import { CourseService, MockDataService } from "@/lib/services/dataService";
+import { CourseService } from "@/lib/services/dataService";
 
 export default async function handler(req, res) {
   const { method } = req;
@@ -6,21 +6,7 @@ export default async function handler(req, res) {
   switch (method) {
     case "GET":
       try {
-        let dbCourses;
-        
-        // Try to get data from database first
-        try {
-          dbCourses = await CourseService.getAll();
-          // If no data in database, fallback to mock data
-          if (!dbCourses || dbCourses.length === 0) {
-            console.log('No courses found in database, using mock data');
-            dbCourses = await MockDataService.getCourses();
-          }
-        } catch (dbError) {
-          console.log('Database error, using mock data:', dbError.message);
-          dbCourses = await MockDataService.getCourses();
-        }
-        
+        const dbCourses = await CourseService.getAll();
         res.status(200).json({ success: true, data: dbCourses });
       } catch (error) {
         console.error('Error fetching courses:', error);

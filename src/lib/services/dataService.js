@@ -1,21 +1,22 @@
 import connectToDatabase from '../mongodb.js';
-import Path from '../models/Path.js';
-import Course from '../models/Course.js';
-import Lesson from '../models/Lesson.js';
-import CourseProgress from '../models/CourseProgress.js';
-import Collection from '../models/Collection.js';
+import { Path, Course, Lesson, CourseProgress, Collection } from '../models/index.js';
 
 // Collection Service
 export const CollectionService = {
   async getAll() {
-    return await Collection.find({}).populate('paths', 'name slug').sort({ created_at: -1 });
+    await connectToDatabase();
+    return await Collection.find({})
+      .populate('paths', 'name slug description')
+      .sort({ created_at: -1 });
   },
 
   async getById(id) {
+    await connectToDatabase();
     return await Collection.findById(id).populate('paths', 'name slug description');
   },
 
   async getBySlug(slug) {
+    await connectToDatabase();
     return await Collection.findOne({ slug }).populate('paths', 'name slug description');
   },
 
@@ -72,15 +73,24 @@ export const CollectionService = {
 // Path Service
 export const PathService = {
   async getAll() {
-    return await Path.find({}).populate('courses', 'name slug').sort({ created_at: -1 });
+    await connectToDatabase();
+    return await Path.find({})
+      .populate('courses', 'name slug description category state total_lessons duration created_at')
+      .sort({ created_at: -1 })
+      .lean();
   },
 
   async getById(id) {
-    return await Path.findById(id).populate('courses', 'name slug description');
+    return await Path.findById(id)
+      .populate('courses', 'name slug description category state total_lessons duration created_at')
+      .lean();
   },
 
   async getBySlug(slug) {
-    return await Path.findOne({ slug }).populate('courses', 'name slug description');
+    await connectToDatabase();
+    return await Path.findOne({ slug })
+      .populate('courses', 'name slug description category state total_lessons duration created_at')
+      .lean();
   },
 
   async create(data) {
@@ -136,15 +146,22 @@ export const PathService = {
 // Course Service
 export const CourseService = {
   async getAll() {
-    return await Course.find({}).populate('lessons', 'name slug').sort({ created_at: -1 });
+    await connectToDatabase();
+    return await Course.find({})
+      .populate('lessons', 'name slug')
+      .sort({ created_at: -1 });
   },
 
   async getById(id) {
-    return await Course.findById(id).populate('lessons', 'name slug description');
+    await connectToDatabase();
+    return await Course.findById(id)
+      .populate('lessons', 'name slug description lesson_type state duration created_at markdown_content content quiz_questions passing_score max_attempts video_url video_duration video_provider interactive_config sequence');
   },
 
   async getBySlug(slug) {
-    return await Course.findOne({ slug }).populate('lessons', 'name slug description');
+    await connectToDatabase();
+    return await Course.findOne({ slug })
+      .populate('lessons', 'name slug description lesson_type state duration created_at markdown_content content quiz_questions passing_score max_attempts video_url video_duration video_provider interactive_config sequence');
   },
 
   async create(data) {
@@ -197,17 +214,32 @@ export const CourseService = {
   }
 };
 
+// Helper to fetch courses by a list of IDs (preserving order)
+CourseService.getCoursesByPath = async function({ courses }) {
+  const courseIds = (courses || []).map((c) => (typeof c === 'string' ? c : c?._id?.toString?.() || c?.toString?.()));
+  if (courseIds.length === 0) return [];
+  await connectToDatabase();
+  const docs = await Course.find({ _id: { $in: courseIds } })
+    .select('name slug description category state total_lessons duration created_at')
+    .lean();
+  const byId = new Map(docs.map((d) => [d._id.toString(), d]));
+  return courseIds.map((id) => byId.get(id)).filter(Boolean);
+};
+
 // Lesson Service
 export const LessonService = {
   async getAll() {
+    await connectToDatabase();
     return await Lesson.find({}).sort({ created_at: -1 });
   },
 
   async getById(id) {
+    await connectToDatabase();
     return await Lesson.findById(id);
   },
 
   async getBySlug(slug) {
+    await connectToDatabase();
     return await Lesson.findOne({ slug });
   },
 
@@ -217,22 +249,27 @@ export const LessonService = {
   },
 
   async update(id, data) {
+    await connectToDatabase();
     return await Lesson.findByIdAndUpdate(id, data, { new: true });
   },
 
   async delete(id) {
+    await connectToDatabase();
     return await Lesson.findByIdAndDelete(id);
   },
 
   async getByType(lessonType) {
+    await connectToDatabase();
     return await Lesson.find({ lesson_type: lessonType });
   },
 
   async getWithPrerequisites() {
+    await connectToDatabase();
     return await Lesson.find({ 'prerequisites.0': { $exists: true } });
   },
 
   async reorderLessons(lessonIds) {
+    await connectToDatabase();
     const updates = lessonIds.map((id, index) => 
       Lesson.findByIdAndUpdate(id, { order: index + 1 })
     );
