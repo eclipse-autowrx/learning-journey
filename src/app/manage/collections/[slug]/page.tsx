@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { showToast, showDeleteConfirm, showBulkDeleteConfirm, showStateChangeConfirm, showBulkOperationResult } from '@/lib/utils/notifications';
 import StateFilter from '@/app/components/atom/StateFilter';
 import Btn from '@/app/components/atom/Btn';
+import TagEditor from '@/app/components/atom/TagEditor';
 import { 
   FaArrowLeft, 
   FaEdit, 
@@ -64,9 +65,9 @@ export default function CollectionDetailPage() {
     name: '',
     description: '',
     category: '',
-    tags: [] as string[],
-    state: 'draft'
+    tags: [] as string[]
   });
+  const [collectionState, setCollectionState] = useState('draft');
   
   // Path management states
   const [showAddPathModal, setShowAddPathModal] = useState(false);
@@ -127,9 +128,9 @@ export default function CollectionDetailPage() {
           name: data.data.name,
           description: data.data.description || '',
           category: data.data.category || '',
-          tags: data.data.tags || [],
-          state: data.data.state
+          tags: data.data.tags || []
         });
+        setCollectionState(data.data.state || 'draft');
         
         // Set paths from the populated data
         if (data.data.paths && data.data.paths.length > 0) {
@@ -164,7 +165,10 @@ export default function CollectionDetailPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify({
+          ...editForm,
+          slug: collection?.slug // Preserve the current slug
+        }),
       });
 
       if (response.ok) {
@@ -187,9 +191,33 @@ export default function CollectionDetailPage() {
       name: collection?.name || '',
       description: collection?.description || '',
       category: collection?.category || '',
-      tags: collection?.tags || [],
-      state: collection?.state || 'draft'
+      tags: collection?.tags || []
     });
+  };
+
+  // State change handler
+  const handleStateChange = async (newState: string) => {
+    try {
+      const response = await fetch(`/api/collections/${slug}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ state: newState }),
+      });
+
+      if (response.ok) {
+        showToast.success('Collection state updated successfully');
+        setCollectionState(newState);
+        fetchCollectionData(); // Refresh data
+      } else {
+        const error = await response.json();
+        showToast.error(`Error: ${error.error || 'Failed to update collection state'}`);
+      }
+    } catch (error) {
+      console.error('Error updating collection state:', error);
+      showToast.error('Failed to update collection state');
+    }
   };
 
   const handleAddPath = async (pathId: string) => {
@@ -208,6 +236,7 @@ export default function CollectionDetailPage() {
         },
         body: JSON.stringify({
           ...editForm,
+          slug: collection?.slug, // Preserve the current slug
           paths: updatedPaths.map(p => p._id)
         }),
       });
@@ -243,6 +272,7 @@ export default function CollectionDetailPage() {
         },
         body: JSON.stringify({
           ...editForm,
+          slug: collection?.slug, // Preserve the current slug
           paths: updatedPaths.map(p => p._id)
         }),
       });
@@ -335,6 +365,7 @@ export default function CollectionDetailPage() {
         },
         body: JSON.stringify({
           ...editForm,
+          slug: collection?.slug, // Preserve the current slug
           paths: updatedPaths.map(p => p._id)
         }),
       });
@@ -409,40 +440,27 @@ export default function CollectionDetailPage() {
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{collection.name}</h1>
                 <p className="mt-1 text-sm text-gray-500">
-                  Collection • {collection.paths.length} paths
+                  {collection.slug}
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              {activeTab === 'info' && (
-                <>
-                  {isEditing ? (
-                    <>
-                      <Btn
-                        onClick={handleSave}
-                      >
-                        <FaSave className="mr-2 h-4 w-4" />
-                        Save
-                      </Btn>
-                      <Btn
-                        variant="outlined"
-                        onClick={handleCancelEdit}
-                      >
-                        <FaTimes className="mr-2 h-4 w-4" />
-                        Cancel
-                      </Btn>
-                    </>
-                  ) : (
-                    <Btn
-                      onClick={() => setIsEditing(true)}
-                    >
-                      <FaEdit className="mr-2 h-4 w-4" />
-                      <FaEdit className="mr-2 h-4 w-4" />
-                      Edit
-                    </Btn>
-                  )}
-                </>
-              )}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500">State:</span>
+                <select
+                  value={collectionState}
+                  onChange={(e) => handleStateChange(e.target.value)}
+                  className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                  <option value="archived">Archived</option>
+                  <option value="locked">Locked</option>
+                </select>
+              </div>
+              <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStateColor(collectionState)}`}>
+                {collectionState}
+              </span>
               {activeTab === 'paths' && (
                 <Btn
                   onClick={() => setShowAddPathModal(true)}
@@ -471,7 +489,7 @@ export default function CollectionDetailPage() {
                 }`}
               >
                 <FaFolder className="mr-2 h-4 w-4 inline" />
-                Basic Info
+                Collection Information
               </button>
               <button
                 onClick={() => setActiveTab('paths')}
@@ -490,6 +508,29 @@ export default function CollectionDetailPage() {
           <div className="p-6">
             {activeTab === 'info' && (
               <div className="space-y-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-medium text-gray-900">Collection Information</h3>
+                  <div className="flex items-center space-x-3">
+                    {isEditing ? (
+                      <>
+                        <Btn onClick={handleSave}>
+                          <FaSave className="mr-2 h-4 w-4" />
+                          Save
+                        </Btn>
+                        <Btn variant="outlined" onClick={handleCancelEdit}>
+                          <FaTimes className="mr-2 h-4 w-4" />
+                          Cancel
+                        </Btn>
+                      </>
+                    ) : (
+                      <Btn onClick={() => setIsEditing(true)}>
+                        <FaEdit className="mr-2 h-4 w-4" />
+                        Edit Collection
+                      </Btn>
+                    )}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -534,25 +575,9 @@ export default function CollectionDetailPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       State
                     </label>
-                    {isEditing ? (
-                      <select
-                        value={editForm.state}
-                        onChange={(e) => setEditForm({...editForm, state: e.target.value})}
-                        className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="draft">Draft</option>
-                        <option value="published">Published</option>
-                        <option value="archived">Archived</option>
-                      </select>
-                    ) : (
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        collection.state === 'published' ? 'bg-blue-100 text-blue-800' :
-                        collection.state === 'draft' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {collection.state}
-                      </span>
-                    )}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(collectionState)}`}>
+                      {collectionState}
+                    </span>
                   </div>
                 </div>
 
@@ -577,15 +602,10 @@ export default function CollectionDetailPage() {
                     Tags
                   </label>
                   {isEditing ? (
-                    <input
-                      type="text"
-                      value={editForm.tags.join(', ')}
-                      onChange={(e) => setEditForm({
-                        ...editForm, 
-                        tags: e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag)
-                      })}
-                      className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="tag1, tag2, tag3"
+                    <TagEditor
+                      tags={editForm.tags}
+                      onChange={(newTags) => setEditForm({...editForm, tags: newTags})}
+                      placeholder="Type and press Enter to add tags..."
                     />
                   ) : (
                     <div className="flex flex-wrap gap-2">

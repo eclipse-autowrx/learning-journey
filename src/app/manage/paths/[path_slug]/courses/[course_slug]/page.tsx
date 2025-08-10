@@ -23,7 +23,9 @@ import {
   FaArrowRight,
   FaEllipsisV,
   FaCog,
-  FaList
+  FaList,
+  FaSave,
+  FaTimes
 } from 'react-icons/fa';
 
 interface Course {
@@ -69,6 +71,28 @@ export default function CourseDetailPage() {
   const [activeTab, setActiveTab] = useState<'info' | 'lessons'>('info');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
+  // Edit mode states
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    description: '',
+    category: '',
+    duration: 0,
+    icon: '',
+    top_icon: '',
+    image: ''
+  });
+
+  // Add state for showLessonModal, lessonForm, and selectedLessons
+  const [showLessonModal, setShowLessonModal] = useState(false);
+  const [lessonForm, setLessonForm] = useState({
+    name: '',
+    description: '',
+    lesson_type: 'text-markdown',
+    state: 'draft'
+  });
+  const [selectedLessons, setSelectedLessons] = useState<string[]>([]);
+
   useEffect(() => {
     fetchCourseData();
   }, [courseSlug]);
@@ -98,6 +122,16 @@ export default function CourseDetailPage() {
 
       if (courseData.success) {
         setCourse(courseData.data);
+        // Set edit form with current data
+        setEditForm({
+          name: courseData.data.name || '',
+          description: courseData.data.description || '',
+          category: courseData.data.category || '',
+          duration: courseData.data.duration || 0,
+          icon: courseData.data.icon || '',
+          top_icon: courseData.data.top_icon || '',
+          image: courseData.data.image || ''
+        });
       }
       if (lessonsData.success) {
         setLessons(lessonsData.data);
@@ -279,6 +313,78 @@ export default function CourseDetailPage() {
     return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
   };
 
+  // Course edit handlers
+  const handleSave = async () => {
+    try {
+      const response = await fetch(`/api/courses/${courseSlug}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editForm),
+      });
+
+      if (response.ok) {
+        showToast.success('Course updated successfully');
+        setIsEditing(false);
+        fetchCourseData(); // Refresh data
+      } else {
+        const error = await response.json();
+        showToast.error(`Error: ${error.error || 'Failed to update course'}`);
+      }
+    } catch (error) {
+      console.error('Error updating course:', error);
+      showToast.error('Failed to update course');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    if (course) {
+      setEditForm({
+        name: course.name || '',
+        description: course.description || '',
+        category: course.category || '',
+        duration: course.duration || 0,
+        icon: course.icon || '',
+        top_icon: course.top_icon || '',
+        image: course.image || ''
+      });
+    }
+  };
+
+  // Add openCreateLesson and handleLessonSubmit
+  const openCreateLesson = () => {
+    setLessonForm({ name: '', description: '', lesson_type: 'text-markdown', state: 'draft' });
+    setShowLessonModal(true);
+  };
+
+  const handleLessonSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      // 1. Create lesson
+      const lessonRes = await fetch('/api/lessons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(lessonForm)
+      });
+      const lessonData = await lessonRes.json();
+      if (!lessonData.success) throw new Error(lessonData.error || 'Failed to create lesson');
+      const newLesson = lessonData.data;
+      // 2. Add lesson to course
+      await fetch(`/api/courses/${courseSlug}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ $push: { lessons: newLesson._id } })
+      });
+      showToast.success('Lesson created and added to course');
+      setShowLessonModal(false);
+      fetchCourseData();
+    } catch (err: any) {
+      showToast.error(err?.message || 'Failed to create lesson');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -329,19 +435,38 @@ export default function CourseDetailPage() {
               </Link>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{course.name}</h1>
-                <p className="mt-1 text-sm text-gray-500">
-                  {course.slug}
-                </p>
+                <p className="mt-1 text-sm text-gray-500">{course.slug}</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStateColor(course.state)}`}>
-                {course.state}
-              </span>
-              <Btn>
-                <FaEdit className="mr-2 h-4 w-4" />
-                Edit Course
-              </Btn>
+              <span className="text-sm text-gray-500">State:</span>
+              <select
+                value={course.state}
+                onChange={async (e) => {
+                  try {
+                    const res = await fetch(`/api/courses/${courseSlug}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ state: e.target.value })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                      setCourse(prev => prev ? { ...prev, state: e.target.value } : null);
+                      showToast.success('Course state updated successfully');
+                    } else {
+                      showToast.error(data.error || 'Failed to update course state');
+                    }
+                  } catch (error) {
+                    showToast.error('Failed to update course state');
+                  }
+                }}
+                className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="draft">draft</option>
+                <option value="published">published</option>
+                <option value="archived">archived</option>
+              </select>
+              <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStateColor(course.state)}`}>{course.state}</span>
             </div>
           </div>
         </div>
@@ -379,75 +504,147 @@ export default function CourseDetailPage() {
           <div className="p-6">
             {activeTab === 'info' && (
               <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
+                  <div className="flex items-center space-x-3">
+                    {isEditing ? (
+                      <>
+                        <Btn onClick={handleSave}>
+                          <FaSave className="mr-2 h-4 w-4" />
+                          Save
+                        </Btn>
+                        <Btn variant="outlined" onClick={handleCancelEdit}>
+                          <FaTimes className="mr-2 h-4 w-4" />
+                          Cancel
+                        </Btn>
+                      </>
+                    ) : (
+                      <Btn onClick={() => setIsEditing(true)}>
+                        <FaEdit className="mr-2 h-4 w-4" />
+                        Edit Course
+                      </Btn>
+                    )}
+                  </div>
+                </div>
                 <div className="flex gap-8">
                   {/* Basic Information */}
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
-                    <dl className="space-y-4">
-                      <div className="flex items-center">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">Name</dt>
-                        <dd className="text-sm text-gray-900 ml-3">{course.name}</dd>
+                    <dl className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <dt className="text-sm font-medium text-gray-700 mb-2">Name</dt>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editForm.name}
+                              onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          ) : (
+                            <dd className="text-sm text-gray-900">{course.name}</dd>
+                          )}
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-gray-700 mb-2">Slug</dt>
+                          <dd className="text-sm text-gray-500 font-mono">{course.slug}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-gray-700 mb-2">Category</dt>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editForm.category}
+                              onChange={(e) => setEditForm({...editForm, category: e.target.value})}
+                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          ) : (
+                            <dd className="text-sm text-gray-900">{course.category || '-'}</dd>
+                          )}
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-gray-700 mb-2">Duration</dt>
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              value={editForm.duration}
+                              onChange={(e) => setEditForm({...editForm, duration: Number(e.target.value)})}
+                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Duration in minutes"
+                            />
+                          ) : (
+                            <dd className="text-sm text-gray-900">{course.duration ? formatDuration(course.duration) : '-'}</dd>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">Slug</dt>
-                        <dd className="text-sm text-gray-900 ml-3">{course.slug}</dd>
-                      </div>
-                      <div className="flex items-start">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">Description</dt>
-                        <dd className="text-sm text-gray-900 flex-1 ml-3">{course.description}</dd>
-                      </div>
-                      <div className="flex items-center">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">Category</dt>
-                        <dd className="text-sm text-gray-900 ml-3">{course.category || '-'}</dd>
-                      </div>
-                      <div className="flex items-center">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">State</dt>
-                        <dd className="ml-3">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(course.state)}`}>
-                            {course.state}
-                          </span>
-                        </dd>
-                      </div>
-                      <div className="flex items-center">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">Total Lessons</dt>
-                        <dd className="text-sm text-gray-900 ml-3">{course.total_lessons || 0}</dd>
-                      </div>
-                      <div className="flex items-center">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">Duration</dt>
-                        <dd className="text-sm text-gray-900 ml-3">{course.duration ? formatDuration(course.duration) : '-'}</dd>
-                      </div>
-                      <div className="flex items-center">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">Created</dt>
-                        <dd className="text-sm text-gray-900 ml-3">{new Date(course.created_at).toLocaleDateString()}</dd>
+                      <div>
+                        <dt className="text-sm font-medium text-gray-700 mb-2">Description</dt>
+                        {isEditing ? (
+                          <textarea
+                            value={editForm.description}
+                            onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                            rows={4}
+                            className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        ) : (
+                          <dd className="text-sm text-gray-900">{course.description}</dd>
+                        )}
                       </div>
                     </dl>
                   </div>
-
                   {/* Course Image */}
                   <div className="w-[300px] flex-shrink-0">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-medium text-gray-900">Image</h3>
-                      <Btn variant="link">
-                        <FaEdit className="mr-1.5 h-3.5 w-3.5" />
-                        {course.image ? 'Change Image' : 'Upload Image'}
-                      </Btn>
+                      {!isEditing && (
+                        <Btn variant="link">
+                          <FaEdit className="mr-1.5 h-3.5 w-3.5" />
+                          {course.image ? 'Change Image' : 'Upload Image'}
+                        </Btn>
+                      )}
                     </div>
                     <div className="space-y-4">
-                      {course.image ? (
+                      {isEditing ? (
                         <div>
-                          <img
-                            src={course.image}
-                            alt={course.name}
-                            className="w-[300px] h-[300px] object-cover rounded-lg border border-gray-200"
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
+                          <input
+                            type="url"
+                            value={editForm.image}
+                            onChange={(e) => setEditForm({...editForm, image: e.target.value})}
+                            className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="https://example.com/image.jpg"
                           />
+                          {editForm.image && (
+                            <div className="mt-3">
+                              <img
+                                src={editForm.image}
+                                alt="Preview"
+                                className="w-[300px] h-[200px] object-cover rounded-lg border border-gray-200"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
                         </div>
                       ) : (
-                        <div className="w-[300px] h-[300px] border-2 border-dashed border-gray-300 rounded-lg text-center flex items-center justify-center">
-                          <div>
-                            <FaBook className="mx-auto h-12 w-12 text-gray-400" />
-                            <p className="mt-2 text-sm text-gray-500">No image uploaded</p>
-                          </div>
-                        </div>
+                        <>
+                          {course.image ? (
+                            <div>
+                              <img
+                                src={course.image}
+                                alt={course.name}
+                                className="w-[300px] h-[300px] object-cover rounded-lg border border-gray-200"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-[300px] h-[300px] border-2 border-dashed border-gray-300 rounded-lg text-center flex items-center justify-center">
+                              <div>
+                                <FaBook className="mx-auto h-12 w-12 text-gray-400" />
+                                <p className="mt-2 text-sm text-gray-500">No image uploaded</p>
+                              </div>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -459,7 +656,7 @@ export default function CourseDetailPage() {
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg leading-6 font-medium text-gray-900">Lessons</h3>
-                  <Btn>
+                  <Btn onClick={openCreateLesson}>
                     <FaPlus className="mr-2 h-4 w-4" />
                     Add Lesson
                   </Btn>
@@ -580,7 +777,7 @@ export default function CourseDetailPage() {
                                     case 'text-markdown':
                                       return <TextMarkdownLesson lesson={adapted as any} onSumbitLesson={() => { }} onCloseRequest={() => { }} />
                                     case 'quiz':
-                                      return <QuizLesson lesson={adapted as any} onComplete={() => { }} />
+                                      return <QuizLesson lesson={adapted as any} onSumbitLesson={() => { }} onCloseRequest={() => { }} />
                                     case 'interactive':
                                       return <InteractiveLesson lesson={adapted as any} onSumbitLesson={() => { }} onCloseRequest={() => { }} />
                                     default:
@@ -621,6 +818,80 @@ export default function CourseDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Add modal UI for lesson creation */}
+      {showLessonModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Create Lesson</h3>
+              <form onSubmit={handleLessonSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Name *</label>
+                  <input type="text" required value={lessonForm.name} onChange={e => setLessonForm(f => ({ ...f, name: e.target.value }))} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <textarea value={lessonForm.description} onChange={e => setLessonForm(f => ({ ...f, description: e.target.value }))} rows={3} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Lesson Type *</label>
+                  <select value={lessonForm.lesson_type} onChange={e => setLessonForm(f => ({ ...f, lesson_type: e.target.value }))} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <option value="text-markdown">Text Markdown</option>
+                    <option value="video">Video</option>
+                    <option value="quiz">Quiz</option>
+                    <option value="interactive">Interactive</option>
+                  </select>
+                </div>
+                <div className="flex justify-end space-x-3 pt-4">
+                  <Btn variant="outlined" onClick={() => setShowLessonModal(false)} type="button">Cancel</Btn>
+                  <Btn type="submit">Create Lesson</Btn>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Checkboxes and Delete Selected button */}
+      {lessons.length > 0 && (
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Bulk Actions</h3>
+            {selectedLessons.length > 0 && (
+              <Btn variant="danger" onClick={async () => {
+                try {
+                  await fetch('/api/lessons/bulk', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: selectedLessons })
+                  });
+                  showToast.success('Lessons deleted');
+                  setSelectedLessons([]);
+                  fetchCourseData();
+                } catch (err) {
+                  showToast.error('Failed to delete lessons');
+                }
+              }}>Delete Selected ({selectedLessons.length})</Btn>
+            )}
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <ul className="divide-y divide-gray-200">
+              {lessons.map((l: any) => (
+                <li key={l._id} className="p-4 flex items-center">
+                  <input type="checkbox" checked={selectedLessons.includes(l._id)} onChange={e => setSelectedLessons(prev => e.target.checked ? [...prev, l._id] : prev.filter(id => id !== l._id))} className="mr-2" />
+                  <div className="flex flex-col items-start space-y-1">
+                    <div className="text-sm font-medium text-gray-900">{l.name}</div>
+                    <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full ${getLessonTypeColor(l.lesson_type)}`}>
+                      {l.lesson_type}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

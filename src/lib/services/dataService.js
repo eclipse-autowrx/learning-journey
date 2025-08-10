@@ -1,6 +1,31 @@
 import connectToDatabase from '../mongodb.js';
 import { Path, Course, Lesson, CourseProgress, Collection } from '../models/index.js';
 
+// Utility function to generate a unique slug
+async function generateUniqueSlug(name, Model) {
+  if (!name) return '';
+  
+  // Convert name to slug format
+  let baseSlug = name
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+  
+  // Check if slug already exists
+  let slug = baseSlug;
+  let counter = 1;
+  
+  while (await Model.findOne({ slug })) {
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+  
+  return slug;
+}
+
 // Collection Service
 export const CollectionService = {
   async getAll(filter = {}) {
@@ -22,6 +47,12 @@ export const CollectionService = {
 
   async create(data) {
     await connectToDatabase();
+    
+    // Generate slug if not provided
+    if (!data.slug && data.name) {
+      data.slug = await generateUniqueSlug(data.name, Collection);
+    }
+    
     const collection = new Collection(data);
     return await collection.save();
   },
@@ -100,6 +131,13 @@ export const PathService = {
   },
 
   async create(data) {
+    await connectToDatabase();
+    
+    // Generate slug if not provided
+    if (!data.slug && data.name) {
+      data.slug = await generateUniqueSlug(data.name, Path);
+    }
+    
     const path = new Path(data);
     return await path.save();
   },
@@ -183,6 +221,13 @@ export const CourseService = {
   },
 
   async create(data) {
+    await connectToDatabase();
+    
+    // Generate slug if not provided
+    if (!data.slug && data.name) {
+      data.slug = await generateUniqueSlug(data.name, Course);
+    }
+    
     const course = new Course(data);
     return await course.save();
   },
@@ -191,8 +236,19 @@ export const CourseService = {
     return await Course.findByIdAndUpdate(id, data, { new: true });
   },
 
+  async updateCourse(slug, data) {
+    await connectToDatabase();
+    return await Course.findOneAndUpdate({ slug }, data, { new: true })
+      .populate('lessons', 'name slug description lesson_type state duration created_at markdown_content content quiz_questions passing_score max_attempts video_url video_duration video_provider interactive_config sequence');
+  },
+
   async delete(id) {
     return await Course.findByIdAndDelete(id);
+  },
+
+  async deleteCourse(slug) {
+    await connectToDatabase();
+    return await Course.findOneAndDelete({ slug });
   },
 
   async addLesson(courseId, lessonId) {
@@ -229,6 +285,19 @@ export const CourseService = {
 
   async getActive() {
     return await Course.getActive();
+  },
+
+  async bulkUpdateState(ids, state) {
+    await connectToDatabase();
+    return await Course.updateMany(
+      { _id: { $in: ids } },
+      { $set: { state } }
+    );
+  },
+
+  async bulkDelete(ids) {
+    await connectToDatabase();
+    return await Course.deleteMany({ _id: { $in: ids } });
   }
 };
 
@@ -262,6 +331,13 @@ export const LessonService = {
   },
 
   async create(data) {
+    await connectToDatabase();
+    
+    // Generate slug if not provided
+    if (!data.slug && data.name) {
+      data.slug = await generateUniqueSlug(data.name, Lesson);
+    }
+    
     const lesson = new Lesson(data);
     return await lesson.save();
   },
@@ -271,9 +347,19 @@ export const LessonService = {
     return await Lesson.findByIdAndUpdate(id, data, { new: true });
   },
 
+  async updateLesson(slug, data) {
+    await connectToDatabase();
+    return await Lesson.findOneAndUpdate({ slug }, data, { new: true });
+  },
+
   async delete(id) {
     await connectToDatabase();
     return await Lesson.findByIdAndDelete(id);
+  },
+
+  async deleteLesson(slug) {
+    await connectToDatabase();
+    return await Lesson.findOneAndDelete({ slug });
   },
 
   async getByType(lessonType) {

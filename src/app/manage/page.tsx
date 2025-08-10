@@ -17,6 +17,7 @@ import {
 } from 'react-icons/fa';
 import StateFilter from '@/app/components/atom/StateFilter';
 import Btn from '@/app/components/atom/Btn';
+import TagEditor from '@/app/components/atom/TagEditor';
 import { 
   showDeleteConfirm, 
   showBulkDeleteConfirm, 
@@ -55,6 +56,29 @@ interface Path {
   created_at: string;
 }
 
+interface Course {
+  _id: string;
+  name: string;
+  slug: string;
+  description: string;
+  category: string;
+  state: string;
+  total_lessons: number;
+  duration: number;
+  created_at: string;
+}
+
+interface Lesson {
+  _id: string;
+  name: string;
+  slug: string;
+  description: string;
+  lesson_type: string;
+  state: string;
+  duration: number;
+  created_at: string;
+}
+
 export default function ManagePage() {
   const router = useRouter();
   const [stats, setStats] = useState<Stats>({
@@ -83,6 +107,31 @@ export default function ManagePage() {
     description: '',
     category: '',
     tags: [] as string[],
+    state: 'draft'
+  });
+  
+  // Path modal states
+  const [showPathModal, setShowPathModal] = useState(false);
+  const [pathForm, setPathForm] = useState({
+    name: '',
+    description: '',
+    state: 'draft'
+  });
+  
+  // Course modal states
+  const [showCourseModal, setShowCourseModal] = useState(false);
+  const [courseForm, setCourseForm] = useState({
+    name: '',
+    description: '',
+    state: 'draft'
+  });
+  
+  // Lesson modal states
+  const [showLessonModal, setShowLessonModal] = useState(false);
+  const [lessonForm, setLessonForm] = useState({
+    name: '',
+    description: '',
+    lesson_type: 'text-markdown',
     state: 'draft'
   });
   
@@ -252,6 +301,139 @@ export default function ManagePage() {
     router.push(`/manage/collections/${collection.slug}`);
   };
 
+  // Path functions
+  const openCreatePath = () => {
+    setPathForm({
+      name: '',
+      description: '',
+      state: 'draft'
+    });
+    setShowPathModal(true);
+  };
+
+  const handlePathSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const response = await fetch('/api/paths', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(pathForm),
+      });
+
+      if (response.ok) {
+        showToast.success('Path created successfully');
+        setShowPathModal(false);
+        fetchData(); // Refresh data
+      } else {
+        const error = await response.json();
+        showToast.error(`Error: ${error.error || 'Failed to create path'}`);
+      }
+    } catch (error) {
+      console.error('Error creating path:', error);
+      showToast.error('Failed to create path');
+    }
+  };
+
+  // Course functions
+  const openCreateCourse = () => {
+    setCourseForm({
+      name: '',
+      description: '',
+      state: 'draft'
+    });
+    setShowCourseModal(true);
+  };
+
+  const handleCourseSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const response = await fetch('/api/courses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(courseForm),
+      });
+
+      if (response.ok) {
+        showToast.success('Course created successfully');
+        setShowCourseModal(false);
+        fetchData(); // Refresh data
+      } else {
+        const error = await response.json();
+        showToast.error(`Error: ${error.error || 'Failed to create course'}`);
+      }
+    } catch (error) {
+      console.error('Error creating course:', error);
+      showToast.error('Failed to create course');
+    }
+  };
+
+  const handleDeletePath = async (path: Path) => {
+    const result = await showDeleteConfirm(path.name);
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/paths/${path.slug}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        showToast.success(`Path "${path.name}" deleted successfully`);
+        fetchData(); // Refresh data
+      } else {
+        const error = await response.json();
+        showToast.error(`Error: ${error.error || 'Failed to delete path'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting path:', error);
+      showToast.error('Failed to delete path');
+    }
+  };
+
+  // Lesson functions
+  const openCreateLesson = () => {
+    setLessonForm({
+      name: '',
+      description: '',
+      lesson_type: 'text-markdown',
+      state: 'draft'
+    });
+    setShowLessonModal(true);
+  };
+
+  const handleLessonSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const response = await fetch('/api/lessons', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(lessonForm),
+      });
+
+      if (response.ok) {
+        showToast.success('Lesson created successfully');
+        setShowLessonModal(false);
+        fetchData(); // Refresh data
+      } else {
+        const error = await response.json();
+        showToast.error(`Error: ${error.error || 'Failed to create lesson'}`);
+      }
+    } catch (error) {
+      console.error('Error creating lesson:', error);
+      showToast.error('Failed to create lesson');
+    }
+  };
+
   const handleClickOutside = (event: MouseEvent) => {
     const target = event.target as Element;
     if (!target.closest('.dropdown-container')) {
@@ -409,6 +591,20 @@ export default function ManagePage() {
               </p>
             </div>
             <div className="flex items-center space-x-4">
+              <button 
+                onClick={openCreateLesson}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                <FaPlus className="mr-1.5 h-3.5 w-3.5" />
+                Lesson
+              </button>
+              <button 
+                onClick={openCreateCourse}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                <FaPlus className="mr-1.5 h-3.5 w-3.5" />
+                Course
+              </button>
               <Link 
                 href="/"
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
@@ -754,10 +950,13 @@ export default function ManagePage() {
                       selectedStates={selectedPathStates}
                       onStatesChange={setSelectedPathStates}
                     />
-                    <Btn>
+                    <button 
+                      onClick={openCreatePath}
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                    >
                       <FaPlus className="mr-2 h-4 w-4" />
                       Create Path
-                    </Btn>
+                    </button>
                   </div>
                 </div>
 
@@ -923,7 +1122,7 @@ export default function ManagePage() {
                                         </button>
                                         <button
                                           onClick={() => {
-                                            // TODO: Implement delete path functionality
+                                            handleDeletePath(path);
                                             setOpenDropdown(null);
                                           }}
                                           className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
@@ -1120,15 +1319,11 @@ export default function ManagePage() {
                   <label className="block text-sm font-medium text-gray-700">
                     Tags
                   </label>
-                  <input
-                    type="text"
-                    value={collectionForm.tags.join(', ')}
-                    onChange={(e) => setCollectionForm({
-                      ...collectionForm, 
-                      tags: e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag)
-                    })}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="tag1, tag2, tag3"
+                  <TagEditor
+                    tags={collectionForm.tags}
+                    onChange={(newTags) => setCollectionForm({...collectionForm, tags: newTags})}
+                    placeholder="Type and press Enter to add tags..."
+                    className="mt-1"
                   />
                 </div>
 
@@ -1158,6 +1353,190 @@ export default function ManagePage() {
                     type="submit"
                   >
                     {editingCollection ? 'Update' : 'Create'}
+                  </Btn>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Path Modal */}
+      {showPathModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Create Path
+              </h3>
+              
+              <form onSubmit={handlePathSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={pathForm.name}
+                    onChange={(e) => setPathForm({...pathForm, name: e.target.value})}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Path name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <textarea
+                    value={pathForm.description}
+                    onChange={(e) => setPathForm({...pathForm, description: e.target.value})}
+                    rows={3}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Path description"
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4">
+                  <Btn
+                    variant="outlined"
+                    onClick={() => setShowPathModal(false)}
+                  >
+                    Cancel
+                  </Btn>
+                  <Btn
+                    type="submit"
+                  >
+                    Create
+                  </Btn>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Course Modal */}
+      {showCourseModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Create Course
+              </h3>
+              
+              <form onSubmit={handleCourseSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={courseForm.name}
+                    onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Course name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <textarea
+                    value={courseForm.description}
+                    onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
+                    rows={3}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Course description"
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4">
+                  <Btn
+                    variant="outlined"
+                    onClick={() => setShowCourseModal(false)}
+                  >
+                    Cancel
+                  </Btn>
+                  <Btn
+                    type="submit"
+                  >
+                    Create
+                  </Btn>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Lesson Modal */}
+      {showLessonModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Create Lesson
+              </h3>
+              
+              <form onSubmit={handleLessonSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={lessonForm.name}
+                    onChange={(e) => setLessonForm({...lessonForm, name: e.target.value})}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Lesson name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <textarea
+                    value={lessonForm.description}
+                    onChange={(e) => setLessonForm({...lessonForm, description: e.target.value})}
+                    rows={3}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Lesson description"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Lesson Type
+                  </label>
+                  <select
+                    value={lessonForm.lesson_type}
+                    onChange={(e) => setLessonForm({...lessonForm, lesson_type: e.target.value})}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="text-markdown">Text/Markdown</option>
+                    <option value="video">Video</option>
+                    <option value="quiz">Quiz</option>
+                    <option value="interactive">Interactive</option>
+                  </select>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4">
+                  <Btn
+                    variant="outlined"
+                    onClick={() => setShowLessonModal(false)}
+                  >
+                    Cancel
+                  </Btn>
+                  <Btn
+                    type="submit"
+                  >
+                    Create
                   </Btn>
                 </div>
               </form>

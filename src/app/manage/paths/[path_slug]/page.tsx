@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { showToast, showDeleteConfirm, showBulkDeleteConfirm, showStateChangeConfirm, showBulkOperationResult } from '@/lib/utils/notifications';
 import StateFilter from '@/app/components/atom/StateFilter';
 import Btn from '@/app/components/atom/Btn';
+import TagEditor from '@/app/components/atom/TagEditor';
 import { 
   FaRoute, 
   FaGraduationCap, 
@@ -27,6 +28,7 @@ interface Path {
   slug: string;
   description: string;
   category: string;
+  tags: string[];
   state: string;
   path_type: string;
   background_img: string;
@@ -70,8 +72,12 @@ export default function PathDetailPage() {
     name: '',
     description: '',
     category: '',
+    tags: [] as string[],
     valid_from: '',
     valid_to: '',
+    image: '',
+    background_img: '',
+    thumb: '',
     configs: {
       display_type: 'canvas'
     }
@@ -84,6 +90,14 @@ export default function PathDetailPage() {
   const [showBulkActionModal, setShowBulkActionModal] = useState(false);
   const [bulkActionType, setBulkActionType] = useState<'state' | 'delete' | null>(null);
   const [bulkNewState, setBulkNewState] = useState<string>('draft');
+
+  // Course creation modal states
+  const [showCourseModal, setShowCourseModal] = useState(false);
+  const [courseForm, setCourseForm] = useState({
+    name: '',
+    description: '',
+    state: 'draft'
+  });
 
   useEffect(() => {
     fetchPathData();
@@ -114,8 +128,12 @@ export default function PathDetailPage() {
           name: pathData.data.name || '',
           description: pathData.data.description || '',
           category: pathData.data.category || '',
+          tags: pathData.data.tags || [],
           valid_from: pathData.data.valid_from ? pathData.data.valid_from.split('T')[0] : '',
           valid_to: pathData.data.valid_to ? pathData.data.valid_to.split('T')[0] : '',
+          image: pathData.data.image || '',
+          background_img: pathData.data.background_img || '',
+          thumb: pathData.data.thumb || '',
           configs: {
             display_type: pathData.data.configs?.display_type || 'canvas'
           }
@@ -285,8 +303,12 @@ export default function PathDetailPage() {
         name: path.name || '',
         description: path.description || '',
         category: path.category || '',
+        tags: path.tags || [],
         valid_from: path.valid_from ? path.valid_from.split('T')[0] : '',
         valid_to: path.valid_to ? path.valid_to.split('T')[0] : '',
+        image: path.image || '',
+        background_img: path.background_img || '',
+        thumb: path.thumb || '',
         configs: {
           display_type: path.configs?.display_type || 'canvas'
         }
@@ -317,6 +339,120 @@ export default function PathDetailPage() {
     } catch (error) {
       console.error('Error updating path state:', error);
       showToast.error('Failed to update path state');
+    }
+  };
+
+  // Course creation handlers
+  const openCreateCourse = () => {
+    setCourseForm({
+      name: '',
+      description: '',
+      state: 'draft'
+    });
+    setShowCourseModal(true);
+  };
+
+  const handleCourseSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      // Step 1: Create the course
+      const courseResponse = await fetch('/api/courses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(courseForm),
+      });
+
+      if (!courseResponse.ok) {
+        const error = await courseResponse.json();
+        showToast.error(`Error: ${error.error || 'Failed to create course'}`);
+        return;
+      }
+
+      const courseResult = await courseResponse.json();
+      const newCourse = courseResult.data;
+
+      // Step 2: Add the course to the path's courses array
+      const currentCourseIds = path?.courses?.map(c => typeof c === 'string' ? c : c._id) || [];
+      const updatedCourseIds = [...currentCourseIds, newCourse._id];
+
+      const pathUpdateResponse = await fetch(`/api/paths/${pathSlug}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          courses: updatedCourseIds
+        }),
+      });
+
+      if (!pathUpdateResponse.ok) {
+        const error = await pathUpdateResponse.json();
+        console.error('Error updating path with new course:', error);
+        showToast.warning('Course created but failed to add to path. Please refresh the page.');
+        return;
+      }
+
+      showToast.success('Course created and added to path successfully');
+      setShowCourseModal(false);
+      setCourseForm({
+        name: '',
+        description: '',
+        state: 'draft'
+      });
+      fetchPathData(); // Refresh data to show new course
+    } catch (error) {
+      console.error('Error creating course:', error);
+      showToast.error('Failed to create course');
+    }
+  };
+
+  const handleDeleteCourse = async (course: Course) => {
+    const result = await showDeleteConfirm(course.name);
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      // Step 1: Delete the course
+      const courseResponse = await fetch(`/api/courses/${course.slug}`, {
+        method: 'DELETE',
+      });
+
+      if (!courseResponse.ok) {
+        const error = await courseResponse.json();
+        showToast.error(`Error: ${error.error || 'Failed to delete course'}`);
+        return;
+      }
+
+      // Step 2: Remove the course from the path's courses array
+      const currentCourseIds = path?.courses?.map(c => typeof c === 'string' ? c : c._id) || [];
+      const updatedCourseIds = currentCourseIds.filter(id => id !== course._id);
+
+      const pathUpdateResponse = await fetch(`/api/paths/${pathSlug}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          courses: updatedCourseIds
+        }),
+      });
+
+      if (!pathUpdateResponse.ok) {
+        const error = await pathUpdateResponse.json();
+        console.error('Error updating path after course deletion:', error);
+        showToast.warning('Course deleted but failed to update path. Please refresh the page.');
+        return;
+      }
+
+      showToast.success(`Course "${course.name}" deleted successfully`);
+      fetchPathData(); // Refresh data
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      showToast.error('Failed to delete course');
     }
   };
 
@@ -605,6 +741,29 @@ export default function PathDetailPage() {
                         )}
                       </div>
 
+                      <div>
+                        <dt className="text-sm font-medium text-gray-700 mb-2">Tags</dt>
+                        {isEditing ? (
+                          <TagEditor
+                            tags={editForm.tags}
+                            onChange={(newTags) => setEditForm({...editForm, tags: newTags})}
+                            placeholder="Type and press Enter to add tags..."
+                          />
+                        ) : (
+                          <dd className="flex flex-wrap gap-2">
+                            {path.tags && path.tags.length > 0 ? (
+                              path.tags.map((tag, index) => (
+                                <span key={index} className="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                                  {tag}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-sm text-gray-500">No tags</span>
+                            )}
+                          </dd>
+                        )}
+                      </div>
+
                       
                       {/* Configuration Details */}
                       {path.configs && Object.keys(path.configs).filter(key => key !== 'display_type').length > 0 && (
@@ -663,27 +822,56 @@ export default function PathDetailPage() {
                   <div className="w-[300px] flex-shrink-0">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-medium text-gray-900">Image</h3>
-                      <Btn variant="link">
-                        <FaEdit className="mr-1.5 h-3.5 w-3.5" />
-                        {path.image ? 'Change Image' : 'Upload Image'}
-                      </Btn>
+                      {!isEditing && (
+                        <Btn variant="link">
+                          <FaEdit className="mr-1.5 h-3.5 w-3.5" />
+                          {path.image ? 'Change Image' : 'Upload Image'}
+                        </Btn>
+                      )}
                     </div>
                     <div className="space-y-4">
-                      {path.image ? (
+                      {isEditing ? (
                         <div>
-                          <img 
-                            src={path.image} 
-                            alt={path.name}
-                            className="w-[300px] h-[300px] object-cover rounded-lg border border-gray-200"
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
+                          <input
+                            type="url"
+                            value={editForm.image}
+                            onChange={(e) => setEditForm({...editForm, image: e.target.value})}
+                            className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="https://example.com/image.jpg"
                           />
+                          {editForm.image && (
+                            <div className="mt-3">
+                              <img
+                                src={editForm.image}
+                                alt="Preview"
+                                className="w-[300px] h-[200px] object-cover rounded-lg border border-gray-200"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
                         </div>
                       ) : (
-                        <div className="w-[300px] h-[300px] border-2 border-dashed border-gray-300 rounded-lg text-center flex items-center justify-center">
-                          <div>
-                            <FaRoute className="mx-auto h-12 w-12 text-gray-400" />
-                            <p className="mt-2 text-sm text-gray-500">No image uploaded</p>
-                          </div>
-                        </div>
+                        <>
+                          {path.image ? (
+                            <div>
+                              <img 
+                                src={path.image} 
+                                alt={path.name}
+                                className="w-[300px] h-[300px] object-cover rounded-lg border border-gray-200"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-[300px] h-[300px] border-2 border-dashed border-gray-300 rounded-lg text-center flex items-center justify-center">
+                              <div>
+                                <FaRoute className="mx-auto h-12 w-12 text-gray-400" />
+                                <p className="mt-2 text-sm text-gray-500">No image uploaded</p>
+                              </div>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -697,9 +885,54 @@ export default function PathDetailPage() {
 
             {activeTab === 'background' && (
               <div>
-                <div className="bg-white p-6 rounded-lg border border-gray-200">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Background Image</h3>
-                  <div className="space-y-4">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-medium text-gray-900">Background Image</h3>
+                  <div className="flex items-center space-x-3">
+                    {isEditing ? (
+                      <>
+                        <Btn onClick={handleSave}>
+                          <FaSave className="mr-2 h-4 w-4" />
+                          Save
+                        </Btn>
+                        <Btn variant="outlined" onClick={handleCancelEdit}>
+                          <FaTimes className="mr-2 h-4 w-4" />
+                          Cancel
+                        </Btn>
+                      </>
+                    ) : (
+                      <Btn onClick={() => setIsEditing(true)}>
+                        <FaEdit className="mr-2 h-4 w-4" />
+                        Edit Background Image
+                      </Btn>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="space-y-6">
+                  {isEditing ? (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Background Image URL</label>
+                      <input
+                        type="url"
+                        value={editForm.background_img}
+                        onChange={(e) => setEditForm({...editForm, background_img: e.target.value})}
+                        className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="https://example.com/background.jpg"
+                      />
+                      {editForm.background_img && (
+                        <div className="mt-4">
+                          <img
+                            src={editForm.background_img}
+                            alt="Background Preview"
+                            className="w-full h-96 object-cover rounded-lg border border-gray-200"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
                     <div>
                       <dt className="text-sm font-medium text-gray-500 mb-2">Current Background Image</dt>
                       {path.background_img ? (
@@ -717,11 +950,7 @@ export default function PathDetailPage() {
                         </div>
                       )}
                     </div>
-                    <Btn variant="link">
-                      <FaEdit className="mr-2 h-4 w-4" />
-                      Edit Background Image
-                    </Btn>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
@@ -738,7 +967,10 @@ export default function PathDetailPage() {
                       selectedStates={selectedCourseStates}
                       onStatesChange={setSelectedCourseStates}
                     />
-                    <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                    <button 
+                      onClick={openCreateCourse}
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                    >
                       <FaPlus className="mr-2 h-4 w-4" />
                       Add Course
                     </button>
@@ -753,7 +985,10 @@ export default function PathDetailPage() {
                       This path doesn't have any courses yet.
                     </p>
                     <div className="mt-6">
-                      <button className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                      <button 
+                        onClick={openCreateCourse}
+                        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                      >
                         <FaPlus className="mr-2 h-4 w-4" />
                         Add Course
                       </button>
@@ -915,7 +1150,7 @@ export default function PathDetailPage() {
                                           </button>
                                           <button
                                             onClick={() => {
-                                              // TODO: Implement delete course functionality
+                                              handleDeleteCourse(course);
                                               setOpenDropdown(null);
                                             }}
                                             className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
@@ -1050,6 +1285,62 @@ export default function PathDetailPage() {
                   Change State
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Course Creation Modal */}
+      {showCourseModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Add Course to Path
+              </h3>
+              
+              <form onSubmit={handleCourseSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={courseForm.name}
+                    onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Course name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <textarea
+                    value={courseForm.description}
+                    onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
+                    rows={3}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Course description"
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4">
+                  <Btn
+                    variant="outlined"
+                    onClick={() => setShowCourseModal(false)}
+                  >
+                    Cancel
+                  </Btn>
+                  <Btn
+                    type="submit"
+                  >
+                    Create Course
+                  </Btn>
+                </div>
+              </form>
             </div>
           </div>
         </div>

@@ -64,27 +64,87 @@ export default async function handler(req, res) {
       try {
         const collectionData = req.body;
         
-        // Validate required fields
-        if (!collectionData.name) {
-          return res.status(400).json({
-            success: false,
-            error: 'Name is required'
-          });
+        // Build update object with only provided fields
+        const updateData = {};
+        
+        // Only validate required fields if they are being updated
+        if (collectionData.hasOwnProperty('name')) {
+          if (!collectionData.name || collectionData.name.trim() === '') {
+            return res.status(400).json({
+              success: false,
+              error: 'Name cannot be empty'
+            });
+          }
+          updateData.name = collectionData.name;
         }
 
-        // Generate slug if not provided
-        if (!collectionData.slug) {
-          collectionData.slug = collectionData.name
-            .toLowerCase()
-            .replace(/[^a-z0-9\s-]/g, '')
-            .replace(/\s+/g, '-')
-            .replace(/-+/g, '-')
-            .trim('-');
+        // Handle slug logic only if name is being updated or slug is explicitly provided
+        if (collectionData.hasOwnProperty('slug')) {
+          updateData.slug = collectionData.slug;
+        } else if (collectionData.hasOwnProperty('name')) {
+          // Generate slug only if name is being updated and slug is not provided
+          const existingCollection = await Collection.findOne({ slug });
+          if (existingCollection && !collectionData.slug) {
+            // For updates without explicit slug, preserve the existing slug
+            updateData.slug = existingCollection.slug;
+          } else if (!existingCollection) {
+            // For new collections, generate slug from name
+            updateData.slug = collectionData.name
+              .toLowerCase()
+              .replace(/[^a-z0-9\s-]/g, '')
+              .replace(/\s+/g, '-')
+              .replace(/-+/g, '-')
+              .trim('-');
+          }
+        }
+
+        // Add other fields if they are provided
+        if (collectionData.hasOwnProperty('description')) {
+          updateData.description = collectionData.description;
+        }
+        if (collectionData.hasOwnProperty('category')) {
+          updateData.category = collectionData.category;
+        }
+        if (collectionData.hasOwnProperty('tags')) {
+          updateData.tags = collectionData.tags;
+        }
+        if (collectionData.hasOwnProperty('state')) {
+          updateData.state = collectionData.state;
+        }
+        if (collectionData.hasOwnProperty('paths')) {
+          updateData.paths = collectionData.paths;
+        }
+        if (collectionData.hasOwnProperty('path_order')) {
+          updateData.path_order = collectionData.path_order;
+        }
+        if (collectionData.hasOwnProperty('valid_from')) {
+          updateData.valid_from = collectionData.valid_from;
+        }
+        if (collectionData.hasOwnProperty('valid_to')) {
+          updateData.valid_to = collectionData.valid_to;
+        }
+        if (collectionData.hasOwnProperty('configs')) {
+          updateData.configs = collectionData.configs;
+        }
+        if (collectionData.hasOwnProperty('extends')) {
+          updateData.extends = collectionData.extends;
+        }
+        if (collectionData.hasOwnProperty('hiddenContent')) {
+          updateData.hiddenContent = collectionData.hiddenContent;
+        }
+        if (collectionData.hasOwnProperty('meta_title')) {
+          updateData.meta_title = collectionData.meta_title;
+        }
+        if (collectionData.hasOwnProperty('meta_description')) {
+          updateData.meta_description = collectionData.meta_description;
+        }
+        if (collectionData.hasOwnProperty('accessibility_notes')) {
+          updateData.accessibility_notes = collectionData.accessibility_notes;
         }
 
         const updatedCollection = await Collection.findOneAndUpdate(
           { slug },
-          collectionData,
+          updateData,
           { new: true, runValidators: true }
         );
 
