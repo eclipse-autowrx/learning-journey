@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { showToast, showDeleteConfirm, showBulkDeleteConfirm, showStateChangeConfirm, showBulkOperationResult } from '@/lib/utils/notifications';
+import StateFilter from '@/app/components/atom/StateFilter';
+import Btn from '@/app/components/atom/Btn';
 import { 
   FaArrowLeft, 
   FaEdit, 
@@ -70,6 +73,13 @@ export default function CollectionDetailPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredPaths, setFilteredPaths] = useState<Path[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  
+  // Bulk selection and filter states
+  const [selectedPaths, setSelectedPaths] = useState<string[]>([]);
+  const [selectedPathStates, setSelectedPathStates] = useState<string[]>(['published', 'draft', 'archived', 'locked']);
+  const [showBulkActionModal, setShowBulkActionModal] = useState(false);
+  const [bulkActionType, setBulkActionType] = useState<'state' | 'delete' | null>(null);
+  const [bulkNewState, setBulkNewState] = useState<string>('draft');
 
   useEffect(() => {
     if (slug) {
@@ -158,15 +168,16 @@ export default function CollectionDetailPage() {
       });
 
       if (response.ok) {
+        showToast.success('Collection updated successfully');
         setIsEditing(false);
         fetchCollectionData(); // Refresh data
       } else {
         const error = await response.json();
-        alert(`Error: ${error.error || 'Failed to update collection'}`);
+        showToast.error(`Error: ${error.error || 'Failed to update collection'}`);
       }
     } catch (error) {
       console.error('Error updating collection:', error);
-      alert('Failed to update collection');
+      showToast.error('Failed to update collection');
     }
   };
 
@@ -202,22 +213,24 @@ export default function CollectionDetailPage() {
       });
 
       if (response.ok) {
+        showToast.success('Path added to collection successfully');
         setShowAddPathModal(false);
         fetchCollectionData(); // Refresh data
       } else {
         const error = await response.json();
-        alert(`Error: ${error.error || 'Failed to add path'}`);
+        showToast.error(`Error: ${error.error || 'Failed to add path'}`);
       }
     } catch (error) {
       console.error('Error adding path:', error);
-      alert('Failed to add path');
+      showToast.error('Failed to add path');
     }
   };
 
   const handleRemovePath = async (pathId: string) => {
     if (!collection) return;
     
-    if (!confirm('Are you sure you want to remove this path from the collection?')) {
+    const result = await showDeleteConfirm('path from collection');
+    if (!result.isConfirmed) {
       return;
     }
     
@@ -235,14 +248,123 @@ export default function CollectionDetailPage() {
       });
 
       if (response.ok) {
+        showToast.success('Path removed from collection successfully');
         fetchCollectionData(); // Refresh data
       } else {
         const error = await response.json();
-        alert(`Error: ${error.error || 'Failed to remove path'}`);
+        showToast.error(`Error: ${error.error || 'Failed to remove path'}`);
       }
     } catch (error) {
       console.error('Error removing path:', error);
-      alert('Failed to remove path');
+      showToast.error('Failed to remove path');
+    }
+  };
+
+  // Bulk selection handlers
+  const handleSelectAllPaths = (checked: boolean) => {
+    if (checked) {
+      const visiblePaths = paths
+        .filter(p => selectedPathStates.includes(p.state))
+        .map(p => p._id);
+      setSelectedPaths(visiblePaths);
+    } else {
+      setSelectedPaths([]);
+    }
+  };
+
+  const handleTogglePath = (id: string) => {
+    setSelectedPaths(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  // Bulk action handlers
+  const handleBulkStateChange = async () => {
+    // Show confirmation dialog
+    const result = await showStateChangeConfirm('paths', selectedPaths.length, bulkNewState);
+    if (!result.isConfirmed) {
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/paths/bulk', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ids: selectedPaths,
+          state: bulkNewState
+        }),
+      });
+
+      const result = await response.json();
+      
+      // Show result using toast notifications
+      showBulkOperationResult(result);
+      
+      if (result.success) {
+        // Refresh data after operation
+        await fetchCollectionData();
+        
+        // Clear selections
+        setSelectedPaths([]);
+        setShowBulkActionModal(false);
+      }
+    } catch (error) {
+      console.error('Error performing bulk state change:', error);
+      showToast.error('Failed to update items');
+    }
+  };
+
+  const handleBulkRemove = async () => {
+    if (!collection) return;
+    
+    // Show confirmation dialog
+    const result = await showBulkDeleteConfirm('paths', selectedPaths.length);
+    if (!result.isConfirmed) {
+      return;
+    }
+    
+    try {
+      const updatedPaths = collection.paths.filter(p => !selectedPaths.includes(p._id));
+      const response = await fetch(`/api/collections/${slug}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...editForm,
+          paths: updatedPaths.map(p => p._id)
+        }),
+      });
+
+      if (response.ok) {
+        showToast.success(`${selectedPaths.length} paths removed from collection successfully`);
+        setSelectedPaths([]);
+        fetchCollectionData(); // Refresh data
+      } else {
+        const error = await response.json();
+        showToast.error(`Error: ${error.error || 'Failed to remove paths'}`);
+      }
+    } catch (error) {
+      console.error('Error removing paths:', error);
+      showToast.error('Failed to remove paths');
+    }
+  };
+
+  const getStateColor = (state: string) => {
+    switch (state) {
+      case 'published':
+        return 'bg-green-100 text-green-800';
+      case 'draft':
+        return 'bg-blue-100 text-blue-800';
+      case 'archived':
+        return 'bg-gray-100 text-gray-800';
+      case 'locked':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -296,40 +418,38 @@ export default function CollectionDetailPage() {
                 <>
                   {isEditing ? (
                     <>
-                      <button
+                      <Btn
                         onClick={handleSave}
-                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
                       >
                         <FaSave className="mr-2 h-4 w-4" />
                         Save
-                      </button>
-                      <button
+                      </Btn>
+                      <Btn
+                        variant="outlined"
                         onClick={handleCancelEdit}
-                        className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                       >
                         <FaTimes className="mr-2 h-4 w-4" />
                         Cancel
-                      </button>
+                      </Btn>
                     </>
                   ) : (
-                    <button
+                    <Btn
                       onClick={() => setIsEditing(true)}
-                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
                     >
                       <FaEdit className="mr-2 h-4 w-4" />
+                      <FaEdit className="mr-2 h-4 w-4" />
                       Edit
-                    </button>
+                    </Btn>
                   )}
                 </>
               )}
               {activeTab === 'paths' && (
-                <button
+                <Btn
                   onClick={() => setShowAddPathModal(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
                 >
                   <FaPlus className="mr-2 h-4 w-4" />
                   Add Path
-                </button>
+                </Btn>
               )}
             </div>
           </div>
@@ -505,6 +625,26 @@ export default function CollectionDetailPage() {
 
             {activeTab === 'paths' && (
               <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Paths ({paths.length})
+                  </h3>
+                  <div className="flex items-center space-x-3">
+                    <StateFilter
+                      states={['published', 'draft', 'archived', 'locked']}
+                      selectedStates={selectedPathStates}
+                      onStatesChange={setSelectedPathStates}
+                    />
+                    <button
+                      onClick={() => setShowAddPathModal(true)}
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                    >
+                      <FaPlus className="mr-2 h-4 w-4" />
+                      Add Path
+                    </button>
+                  </div>
+                </div>
+
                 {paths.length === 0 ? (
                   <div className="text-center py-12">
                     <FaRoute className="mx-auto h-12 w-12 text-gray-400" />
@@ -521,60 +661,170 @@ export default function CollectionDetailPage() {
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {paths.map((path) => (
-                      <div key={path._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-lg bg-purple-500 flex items-center justify-center">
-                              <FaRoute className="h-6 w-6 text-white" />
-                            </div>
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900">{path.name}</h4>
-                            <p className="text-sm text-gray-500">{path.slug}</p>
-                            <p className="text-sm text-gray-600">{path.description}</p>
-                            <div className="flex items-center space-x-4 mt-1">
-                              <span className="text-xs text-gray-500">Difficulty: {path.difficulty}</span>
-                              <span className="text-xs text-gray-500">Duration: {path.estimated_duration}h</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Link
-                            href={`/manage/paths/${path.slug}`}
-                            className="text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-50"
-                            title="View path details"
-                          >
-                            <FaArrowRight className="h-4 w-4" />
-                          </Link>
-                          <div className="relative dropdown-container">
+                  <div>
+                    {/* Bulk Actions Bar */}
+                    {selectedPaths.length > 0 && (
+                      <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 mb-4 rounded-t-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-blue-700">
+                            {selectedPaths.length} item{selectedPaths.length > 1 ? 's' : ''} selected
+                          </span>
+                          <div className="flex items-center space-x-3">
                             <button
-                              onClick={() => setOpenDropdown(openDropdown === path._id ? null : path._id)}
-                              className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
-                              title="More options"
+                              onClick={() => setSelectedPaths([])}
+                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                             >
-                              <FaEllipsisV className="h-4 w-4" />
+                              Clear Selection
                             </button>
-                            
-                            {openDropdown === path._id && (
-                              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
-                                <button
-                                  onClick={() => {
-                                    handleRemovePath(path._id);
-                                    setOpenDropdown(null);
-                                  }}
-                                  className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                                >
-                                  <FaTrash className="mr-3 h-4 w-4" />
-                                  Remove from collection
-                                </button>
-                              </div>
-                            )}
+                            <button
+                              onClick={() => {
+                                setBulkActionType('state');
+                                setShowBulkActionModal(true);
+                              }}
+                              className="inline-flex items-center px-3 py-1.5 border border-blue-300 rounded-md text-sm font-medium text-blue-700 bg-white hover:bg-blue-50"
+                            >
+                              Change State
+                            </button>
+                            <button
+                              onClick={() => {
+                                setBulkActionType('delete');
+                                handleBulkRemove();
+                              }}
+                              className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700"
+                            >
+                              <FaTrash className="mr-2 h-3.5 w-3.5" />
+                              Remove from Collection
+                            </button>
                           </div>
                         </div>
                       </div>
-                    ))}
+                    )}
+                    
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 w-12">
+                              <input
+                                type="checkbox"
+                                checked={selectedPaths.length > 0 && 
+                                  paths
+                                    .filter(p => selectedPathStates.includes(p.state))
+                                    .every(p => selectedPaths.includes(p._id))}
+                                onChange={(e) => handleSelectAllPaths(e.target.checked)}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              />
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Path
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Category
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Difficulty
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Duration
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              State
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {paths
+                            .filter(path => selectedPathStates.includes(path.state))
+                            .map((path, index, filteredArray) => (
+                            <tr key={path._id} className={`hover:bg-gray-50 ${selectedPaths.includes(path._id) ? 'bg-blue-50' : ''}`}>
+                              <td className="px-6 py-3">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedPaths.includes(path._id)}
+                                  onChange={() => handleTogglePath(path._id)}
+                                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-10 w-10">
+                                    <div className="h-10 w-10 rounded-lg bg-purple-500 flex items-center justify-center">
+                                      <FaRoute className="h-6 w-6 text-white" />
+                                    </div>
+                                  </div>
+                                  <div className="ml-4">
+                                    <Link 
+                                      href={`/manage/paths/${path.slug}`}
+                                      className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                                    >
+                                      {path.name}
+                                    </Link>
+                                    <div className="text-sm text-gray-500">
+                                      {path.slug}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {path.category || '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {path.difficulty || '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {path.estimated_duration ? `${path.estimated_duration}h` : '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(path.state)}`}>
+                                  {path.state}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div className="flex justify-end space-x-2">
+                                  <Link 
+                                    href={`/manage/paths/${path.slug}`}
+                                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200"
+                                    title="View Path"
+                                  >
+                                    <FaArrowRight className="h-4 w-4" />
+                                  </Link>
+                                  <div className="relative dropdown-container">
+                                    <button 
+                                      onClick={() => setOpenDropdown(openDropdown === path._id ? null : path._id)}
+                                      className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
+                                      title="More options"
+                                    >
+                                      <FaEllipsisV className="h-4 w-4" />
+                                    </button>
+                                    {openDropdown === path._id && (
+                                      <div className={`absolute right-0 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200 ${
+                                        index === filteredArray.length - 1 ? 'bottom-full mb-2' : 'mt-2'
+                                      }`}>
+                                        <div className="py-1">
+                                          <button
+                                            onClick={() => {
+                                              handleRemovePath(path._id);
+                                              setOpenDropdown(null);
+                                            }}
+                                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                                          >
+                                            <FaTrash className="h-4 w-4 mr-2 text-red-600" />
+                                            Remove from Collection
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
               </div>
@@ -633,6 +883,103 @@ export default function CollectionDetailPage() {
                   className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
                 >
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Action Modal */}
+      {showBulkActionModal && bulkActionType === 'state' && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Change State
+              </h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Select the new state for {selectedPaths.length} selected paths.
+              </p>
+              
+              <div className="space-y-2">
+                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="newState"
+                    value="published"
+                    checked={bulkNewState === 'published'}
+                    onChange={(e) => setBulkNewState(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-sm">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('published')}`}>
+                      Published
+                    </span>
+                  </span>
+                </label>
+                
+                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="newState"
+                    value="draft"
+                    checked={bulkNewState === 'draft'}
+                    onChange={(e) => setBulkNewState(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-sm">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('draft')}`}>
+                      Draft
+                    </span>
+                  </span>
+                </label>
+                
+                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="newState"
+                    value="archived"
+                    checked={bulkNewState === 'archived'}
+                    onChange={(e) => setBulkNewState(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-sm">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('archived')}`}>
+                      Archived
+                    </span>
+                  </span>
+                </label>
+                
+                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="newState"
+                    value="locked"
+                    checked={bulkNewState === 'locked'}
+                    onChange={(e) => setBulkNewState(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-sm">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('locked')}`}>
+                      Locked
+                    </span>
+                  </span>
+                </label>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowBulkActionModal(false)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBulkStateChange}
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+                >
+                  Change State
                 </button>
               </div>
             </div>

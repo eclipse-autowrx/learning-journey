@@ -3,37 +3,41 @@ import { Path, Course, Lesson, CourseProgress, Collection } from '../models/inde
 
 // Collection Service
 export const CollectionService = {
-  async getAll() {
+  async getAll(filter = {}) {
     await connectToDatabase();
-    return await Collection.find({})
-      .populate('paths', 'name slug description')
+    return await Collection.find(filter)
+      .populate('paths', 'name slug description image thumb tags level path_type state created_at')
       .sort({ created_at: -1 });
   },
 
   async getById(id) {
     await connectToDatabase();
-    return await Collection.findById(id).populate('paths', 'name slug description');
+    return await Collection.findById(id).populate('paths', 'name slug description image thumb tags level path_type state created_at');
   },
 
   async getBySlug(slug) {
     await connectToDatabase();
-    return await Collection.findOne({ slug }).populate('paths', 'name slug description');
+    return await Collection.findOne({ slug }).populate('paths', 'name slug description image thumb tags level path_type state created_at');
   },
 
   async create(data) {
+    await connectToDatabase();
     const collection = new Collection(data);
     return await collection.save();
   },
 
   async update(id, data) {
+    await connectToDatabase();
     return await Collection.findByIdAndUpdate(id, data, { new: true });
   },
 
   async delete(id) {
+    await connectToDatabase();
     return await Collection.findByIdAndDelete(id);
   },
 
   async addPath(collectionId, pathId) {
+    await connectToDatabase();
     const collection = await Collection.findById(collectionId);
     if (collection) {
       return await collection.addPath(pathId);
@@ -42,6 +46,7 @@ export const CollectionService = {
   },
 
   async removePath(collectionId, pathId) {
+    await connectToDatabase();
     const collection = await Collection.findById(collectionId);
     if (collection) {
       return await collection.removePath(pathId);
@@ -50,6 +55,7 @@ export const CollectionService = {
   },
 
   async reorderPaths(collectionId, newOrder) {
+    await connectToDatabase();
     const collection = await Collection.findById(collectionId);
     if (collection) {
       return await collection.reorderPaths(newOrder);
@@ -102,8 +108,20 @@ export const PathService = {
     return await Path.findByIdAndUpdate(id, data, { new: true });
   },
 
+  async updatePath(slug, data) {
+    await connectToDatabase();
+    return await Path.findOneAndUpdate({ slug }, data, { new: true })
+      .populate('courses', 'name slug description category state total_lessons duration created_at')
+      .lean();
+  },
+
   async delete(id) {
     return await Path.findByIdAndDelete(id);
+  },
+
+  async deletePath(slug) {
+    await connectToDatabase();
+    return await Path.findOneAndDelete({ slug });
   },
 
   async addCourse(pathId, courseId) {

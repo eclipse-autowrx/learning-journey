@@ -13,16 +13,27 @@ const getProgressForCourse = async (user_id, course) => {
 }
 
 export default async function handler(req, res) {
-  const { method } = req;
+  const { method, query } = req;
   const { user_id, token } = check_auth(req, res);
+
+  // Disable caching during development to avoid 304/ETag revalidation
+  if (process.env.NODE_ENV !== 'production') {
+    res.setHeader('Cache-Control', 'no-store');
+  }
 
   // DB connection is handled in the service
 
   switch (method) {
     case "GET":
       try {
+        // Check if we should filter by state
+        const filter = {};
+        if (query.state) {
+          filter.state = query.state;
+        }
+        
         // Get collections from database with populated paths and courses
-        const dbCollections = await CollectionService.getAll();
+        const dbCollections = await CollectionService.getAll(filter);
 
         // If user is authenticated, add progress data to courses
         if (user_id) {
@@ -49,7 +60,9 @@ export default async function handler(req, res) {
           // If paths were not populated (or are empty) but we have an order list, fetch by IDs and preserve order
           if ((!effectivePaths || effectivePaths.length === 0) && Array.isArray(collection.path_order) && collection.path_order.length > 0) {
             const ids = collection.path_order;
-            const docs = await Path.find({ _id: { $in: ids } }).select('name slug description').lean();
+            const docs = await Path.find({ _id: { $in: ids } })
+              .select('name slug description image thumb tags level path_type state created_at time_to_complete background_img category updated_at')
+              .lean();
             const byId = new Map(docs.map(d => [d._id.toString(), d]));
             effectivePaths = ids.map(id => byId.get(id.toString())).filter(Boolean);
           }
@@ -66,6 +79,17 @@ export default async function handler(req, res) {
               slug: p.slug,
               name: p.name,
               description: p.description,
+              image: p.image,
+              thumb: p.thumb,
+              tags: p.tags,
+              level: p.level,
+              path_type: p.path_type,
+              state: p.state,
+              time_to_complete: p.time_to_complete,
+              background_img: p.background_img,
+              category: p.category,
+              created_at: p.created_at,
+              updated_at: p.updated_at,
             })),
             path_order: collection.path_order || [],
             total_paths: effectivePaths ? effectivePaths.length : 0,
@@ -112,13 +136,8 @@ export default async function handler(req, res) {
             .trim('-');
         }
 
-        const collection = new Collection(collectionData);
-        await collection.save();
-
-        res.status(201).json({
-          success: true,
-          data: collection
-        });
+        const created = await CollectionService.create(collectionData);
+        res.status(201).json({ success: true, data: created });
       } catch (error) {
         console.error('Error creating collection:', error);
         

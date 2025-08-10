@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Shantell_Sans, Quicksand } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 
 // Configure Shantell Sans
@@ -52,6 +53,7 @@ export default function RootLayout({
         {/* ${shantell_sans.variable} */}
         {/* <div className="w-full h-20 bg-slate-500 text-white flex items-center justify-center">I am header </div> */}
         {children}
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );

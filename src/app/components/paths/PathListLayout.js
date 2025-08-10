@@ -14,6 +14,7 @@ import { IoClose } from "react-icons/io5";
 
 import { saveStateCourseStarted, saveStateCourseCompleted } from "@/lib/frontend/course"
 import Popup from "../atom/Popup";
+import { showToast, showConfirmDialog } from "@/lib/utils/notifications";
 
 const LaunchCourseBtn = ({path, course}) => {
     const router = useRouter();
@@ -50,6 +51,7 @@ const LaunchCourseBtn = ({path, course}) => {
                     <BtnFullRounded onClick={async () => {
                         if(!course?.context?.state || course?.context?.state == 'not_started') {
                             await saveStateCourseStarted(course)
+                            showToast.info(`Started course: ${course.name}`)
                         }
                         launchCourse()
                         setPopupExternalLaunch(false)
@@ -66,6 +68,7 @@ const LaunchCourseBtn = ({path, course}) => {
                     return
                 }
                 await saveStateCourseStarted(course)
+                showToast.info(`Started course: ${course.name}`)
                 launchCourse()
             }}
             >Start</BtnFullRounded>}
@@ -84,8 +87,20 @@ const LaunchCourseBtn = ({path, course}) => {
             {
                 course.extends?.external_link && <BtnFullRounded
                 onClick={async () => { 
-                    await saveStateCourseCompleted(course)
-                    window.location.reload()
+                    const result = await showConfirmDialog({
+                        title: 'Mark as Completed',
+                        text: `Are you sure you want to mark "${course.name}" as completed?`,
+                        icon: 'question',
+                        confirmButtonText: 'Yes, Mark Complete',
+                        cancelButtonText: 'Cancel',
+                        showCancelButton: true,
+                    })
+                    
+                    if (result.isConfirmed) {
+                        await saveStateCourseCompleted(course)
+                        showToast.success(`Course "${course.name}" marked as completed!`)
+                        if (onRequestUpdateProgress) onRequestUpdateProgress()
+                    }
                 }}
                 >Confirm completed</BtnFullRounded>
             }

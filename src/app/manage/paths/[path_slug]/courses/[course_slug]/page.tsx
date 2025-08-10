@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { showToast } from '@/lib/utils/notifications';
+import Btn from '@/app/components/atom/Btn';
 import VideoLesson from '@/app/components/lessons/VideoLesson';
 import TextMarkdownLesson from '@/app/components/lessons/TextMarkdownLesson';
 import TextMarkdownEditor from '@/app/components/lessons/TextMarkdownEditor';
@@ -336,10 +338,10 @@ export default function CourseDetailPage() {
               <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStateColor(course.state)}`}>
                 {course.state}
               </span>
-              <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+              <Btn>
                 <FaEdit className="mr-2 h-4 w-4" />
                 Edit Course
-              </button>
+              </Btn>
             </div>
           </div>
         </div>
@@ -425,10 +427,10 @@ export default function CourseDetailPage() {
                   <div className="w-[300px] flex-shrink-0">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-medium text-gray-900">Image</h3>
-                      <button className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                      <Btn variant="link">
                         <FaEdit className="mr-1.5 h-3.5 w-3.5" />
                         {course.image ? 'Change Image' : 'Upload Image'}
-                      </button>
+                      </Btn>
                     </div>
                     <div className="space-y-4">
                       {course.image ? (
@@ -457,10 +459,10 @@ export default function CourseDetailPage() {
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg leading-6 font-medium text-gray-900">Lessons</h3>
-                  <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                  <Btn>
                     <FaPlus className="mr-2 h-4 w-4" />
                     Add Lesson
-                  </button>
+                  </Btn>
                 </div>
 
                 {lessons.length === 0 ? (
@@ -524,9 +526,9 @@ export default function CourseDetailPage() {
                                       setLessons(prev => prev.map(l => l.slug === originalSlug ? { ...l, ...editableLesson } as any : l));
                                       setSelectedLessonSlug(editableLesson.slug || originalSlug);
                                     } else {
-                                      alert(data.error || 'Failed to save lesson');
+                                      showToast.error(data.error || 'Failed to save lesson');
                                     }
-                                  } catch (err: any) { alert(err?.message || 'Failed to save lesson'); }
+                                  } catch (err: any) { showToast.error(err?.message || 'Failed to save lesson'); }
                                 }}
                               >
                                 Save Changes

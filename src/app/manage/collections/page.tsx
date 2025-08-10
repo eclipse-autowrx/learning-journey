@@ -285,7 +285,7 @@ export default function CollectionsPage() {
                               <FaEdit className="h-4 w-4" />
                             </button>
                             <button className="text-red-600 hover:text-red-900">
-                              <FaTrash className="h-4 w-4" />
+                              <FaTrash className="h-4 w-4 text-red-600" />
                             </button>
                           </div>
                         </td>

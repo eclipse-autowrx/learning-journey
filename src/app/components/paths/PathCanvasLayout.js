@@ -8,6 +8,7 @@ import { IoClose } from "react-icons/io5";
 import BtnFullRounded from "../atom/BtnFullRounded";
 
 import { saveStateCourseStarted, saveStateCourseCompleted } from "@/lib/frontend/course"
+import { showToast } from "@/lib/utils/notifications";
 
 const CourseNode = ({ path, item, onRequestUpdateProgress }) => {
   const router = useRouter();
@@ -42,6 +43,7 @@ const CourseNode = ({ path, item, onRequestUpdateProgress }) => {
 
           if (item.course?.state != 'completed') {
             await saveStateCourseCompleted(item.course)
+            showToast.success(`Course "${item.course?.name}" marked as completed!`)
           }
         }}>
           Launch
@@ -75,6 +77,12 @@ const CourseNode = ({ path, item, onRequestUpdateProgress }) => {
         if (item.course?.extends?.external_link) {
           setPopupExternalLaunch(true)
           return;
+        }
+
+        // Start the course if not already started
+        if (!item.course?.context?.state || item.course?.context?.state === 'not_started') {
+          await saveStateCourseStarted(item.course)
+          showToast.info(`Started course: ${item.course?.name}`)
         }
 
         router.push(

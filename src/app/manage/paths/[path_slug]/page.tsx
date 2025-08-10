@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { showToast, showDeleteConfirm, showBulkDeleteConfirm, showStateChangeConfirm, showBulkOperationResult } from '@/lib/utils/notifications';
+import StateFilter from '@/app/components/atom/StateFilter';
+import Btn from '@/app/components/atom/Btn';
 import { 
   FaRoute, 
   FaGraduationCap, 
@@ -13,7 +16,9 @@ import {
   FaArrowRight,
   FaEllipsisV,
   FaCog,
-  FaList
+  FaList,
+  FaSave,
+  FaTimes
 } from 'react-icons/fa';
 
 interface Path {
@@ -58,6 +63,27 @@ export default function PathDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'info' | 'background' | 'courses'>('info');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  
+  // Edit mode states
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    description: '',
+    category: '',
+    valid_from: '',
+    valid_to: '',
+    configs: {
+      display_type: 'canvas'
+    }
+  });
+  const [pathState, setPathState] = useState('draft');
+  
+  // Bulk selection and filter states
+  const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
+  const [selectedCourseStates, setSelectedCourseStates] = useState<string[]>(['published', 'draft', 'archived', 'locked', 'released']);
+  const [showBulkActionModal, setShowBulkActionModal] = useState(false);
+  const [bulkActionType, setBulkActionType] = useState<'state' | 'delete' | null>(null);
+  const [bulkNewState, setBulkNewState] = useState<string>('draft');
 
   useEffect(() => {
     fetchPathData();
@@ -83,6 +109,18 @@ export default function PathDetailPage() {
 
       if (pathData.success) {
         setPath(pathData.data);
+        // Set edit form with current data
+        setEditForm({
+          name: pathData.data.name || '',
+          description: pathData.data.description || '',
+          category: pathData.data.category || '',
+          valid_from: pathData.data.valid_from ? pathData.data.valid_from.split('T')[0] : '',
+          valid_to: pathData.data.valid_to ? pathData.data.valid_to.split('T')[0] : '',
+          configs: {
+            display_type: pathData.data.configs?.display_type || 'canvas'
+          }
+        });
+        setPathState(pathData.data.state || 'draft');
         // Set courses from the path data if available
         if (pathData.data.courses && Array.isArray(pathData.data.courses)) {
           setCourses(pathData.data.courses);
@@ -101,6 +139,8 @@ export default function PathDetailPage() {
     switch (state) {
       case 'published':
         return 'bg-blue-100 text-blue-800';
+      case 'released':
+        return 'bg-green-100 text-green-800';
       case 'draft':
         return 'bg-blue-100 text-blue-800';
       case 'archived':
@@ -117,6 +157,167 @@ export default function PathDetailPage() {
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
     return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+  };
+
+  // Bulk selection handlers
+  const handleSelectAllCourses = (checked: boolean) => {
+    if (checked) {
+      const visibleCourses = courses
+        .filter(c => selectedCourseStates.includes(c.state))
+        .map(c => c._id);
+      setSelectedCourses(visibleCourses);
+    } else {
+      setSelectedCourses([]);
+    }
+  };
+
+  const handleToggleCourse = (id: string) => {
+    setSelectedCourses(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  // Bulk action handlers
+  const handleBulkStateChange = async () => {
+    // Show confirmation dialog
+    const result = await showStateChangeConfirm('courses', selectedCourses.length, bulkNewState);
+    if (!result.isConfirmed) {
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/courses/bulk', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ids: selectedCourses,
+          state: bulkNewState
+        }),
+      });
+
+      const result = await response.json();
+      
+      // Show result using toast notifications
+      showBulkOperationResult(result);
+      
+      if (result.success) {
+        // Refresh data after operation
+        await fetchPathData();
+        
+        // Clear selections
+        setSelectedCourses([]);
+        setShowBulkActionModal(false);
+      }
+    } catch (error) {
+      console.error('Error performing bulk state change:', error);
+      showToast.error('Failed to update items');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    // Show confirmation dialog
+    const result = await showBulkDeleteConfirm('courses', selectedCourses.length);
+    if (!result.isConfirmed) {
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/courses/bulk', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ids: selectedCourses
+        }),
+      });
+
+      const result = await response.json();
+      
+      // Show result using toast notifications
+      showBulkOperationResult(result);
+      
+      if (result.success) {
+        // Refresh data after operation
+        await fetchPathData();
+        
+        // Clear selections
+        setSelectedCourses([]);
+        setShowBulkActionModal(false);
+      }
+    } catch (error) {
+      console.error('Error performing bulk delete:', error);
+      showToast.error('Failed to delete items');
+    }
+  };
+
+  // Path edit handlers
+  const handleSave = async () => {
+    try {
+      const response = await fetch(`/api/paths/${pathSlug}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editForm),
+      });
+
+      if (response.ok) {
+        showToast.success('Path updated successfully');
+        setIsEditing(false);
+        fetchPathData(); // Refresh data
+      } else {
+        const error = await response.json();
+        showToast.error(`Error: ${error.error || 'Failed to update path'}`);
+      }
+    } catch (error) {
+      console.error('Error updating path:', error);
+      showToast.error('Failed to update path');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    if (path) {
+      setEditForm({
+        name: path.name || '',
+        description: path.description || '',
+        category: path.category || '',
+        valid_from: path.valid_from ? path.valid_from.split('T')[0] : '',
+        valid_to: path.valid_to ? path.valid_to.split('T')[0] : '',
+        configs: {
+          display_type: path.configs?.display_type || 'canvas'
+        }
+      });
+      setPathState(path.state || 'draft');
+    }
+  };
+
+  // State change handler
+  const handleStateChange = async (newState: string) => {
+    try {
+      const response = await fetch(`/api/paths/${pathSlug}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ state: newState }),
+      });
+
+      if (response.ok) {
+        showToast.success('Path state updated successfully');
+        setPathState(newState);
+        fetchPathData(); // Refresh data
+      } else {
+        const error = await response.json();
+        showToast.error(`Error: ${error.error || 'Failed to update path state'}`);
+      }
+    } catch (error) {
+      console.error('Error updating path state:', error);
+      showToast.error('Failed to update path state');
+    }
   };
 
   if (loading) {
@@ -175,13 +376,23 @@ export default function PathDetailPage() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStateColor(path.state)}`}>
-                {path.state}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500">State:</span>
+                <select
+                  value={pathState}
+                  onChange={(e) => handleStateChange(e.target.value)}
+                  className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                  <option value="released">Released</option>
+                  <option value="archived">Archived</option>
+                  <option value="locked">Locked</option>
+                </select>
+              </div>
+              <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStateColor(pathState)}`}>
+                {pathState}
               </span>
-              <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-                <FaEdit className="mr-2 h-4 w-4" />
-                Edit Path
-              </button>
             </div>
           </div>
         </div>
@@ -232,70 +443,182 @@ export default function PathDetailPage() {
           <div className="p-6">
             {activeTab === 'info' && (
               <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
+                  <div className="flex items-center space-x-3">
+                    {isEditing ? (
+                      <>
+                        <Btn onClick={handleSave}>
+                          <FaSave className="mr-2 h-4 w-4" />
+                          Save
+                        </Btn>
+                        <Btn variant="outlined" onClick={handleCancelEdit}>
+                          <FaTimes className="mr-2 h-4 w-4" />
+                          Cancel
+                        </Btn>
+                      </>
+                    ) : (
+                      <Btn onClick={() => setIsEditing(true)}>
+                        <FaEdit className="mr-2 h-4 w-4" />
+                        Edit Path
+                      </Btn>
+                    )}
+                  </div>
+                </div>
+                
                 <div className="flex gap-8">
                   {/* Basic Information */}
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
-                    <dl className="space-y-4">
-                      <div className="flex items-center">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">Name</dt>
-                        <dd className="text-sm text-gray-900 ml-3">{path.name}</dd>
+                    <dl className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <dt className="text-sm font-medium text-gray-700 mb-2">Name</dt>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editForm.name}
+                              onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          ) : (
+                            <dd className="text-sm text-gray-900">{path.name}</dd>
+                          )}
+                        </div>
+
+                        <div>
+                          <dt className="text-sm font-medium text-gray-700 mb-2">Slug</dt>
+                          <dd className="text-sm text-gray-500 font-mono">{path.slug}</dd>
+                        </div>
+
+                        <div>
+                          <dt className="text-sm font-medium text-gray-700 mb-2">Category</dt>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editForm.category}
+                              onChange={(e) => setEditForm({...editForm, category: e.target.value})}
+                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          ) : (
+                            <dd className="text-sm text-gray-900">{path.category || '-'}</dd>
+                          )}
+                        </div>
+
+                        <div>
+                          <dt className="text-sm font-medium text-gray-700 mb-2">Display Type</dt>
+                          {isEditing ? (
+                            <div className="flex items-center space-x-4">
+                              <button
+                                type="button"
+                                onClick={() => setEditForm({...editForm, configs: {...editForm.configs, display_type: 'list'}})}
+                                className={`flex items-center space-x-2 px-4 py-2 rounded-md border transition-colors ${
+                                  editForm.configs?.display_type === 'list'
+                                    ? 'bg-blue-50 border-blue-300 text-blue-700'
+                                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                                }`}
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                                </svg>
+                                <span className="text-sm font-medium">List</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditForm({...editForm, configs: {...editForm.configs, display_type: 'canvas'}})}
+                                className={`flex items-center space-x-2 px-4 py-2 rounded-md border transition-colors ${
+                                  editForm.configs?.display_type === 'canvas'
+                                    ? 'bg-blue-50 border-blue-300 text-blue-700'
+                                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                                }`}
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                                </svg>
+                                <span className="text-sm font-medium">Canvas</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <dd className="flex items-center space-x-2 text-sm text-gray-900">
+                              {path.configs?.display_type === 'canvas' ? (
+                                <>
+                                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                                  </svg>
+                                  <span>Canvas</span>
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                                  </svg>
+                                  <span>List</span>
+                                </>
+                              )}
+                            </dd>
+                          )}
+                        </div>
+
+                        <div>
+                          <dt className="text-sm font-medium text-gray-700 mb-2">Valid From</dt>
+                          {isEditing ? (
+                            <input
+                              type="date"
+                              value={editForm.valid_from}
+                              onChange={(e) => setEditForm({...editForm, valid_from: e.target.value})}
+                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          ) : (
+                            <dd className="text-sm text-gray-900">
+                              {path.valid_from ? new Date(path.valid_from).toLocaleDateString() : '-'}
+                            </dd>
+                          )}
+                        </div>
+
+                        <div>
+                          <dt className="text-sm font-medium text-gray-700 mb-2">Valid To</dt>
+                          {isEditing ? (
+                            <input
+                              type="date"
+                              value={editForm.valid_to}
+                              onChange={(e) => setEditForm({...editForm, valid_to: e.target.value})}
+                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          ) : (
+                            <dd className="text-sm text-gray-900">
+                              {path.valid_to ? new Date(path.valid_to).toLocaleDateString() : '-'}
+                            </dd>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">Slug</dt>
-                        <dd className="text-sm text-gray-900 ml-3">{path.slug}</dd>
-                      </div>
-                      <div className="flex items-start">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">Description</dt>
-                        <dd className="text-sm text-gray-900 flex-1 ml-3">{path.description}</dd>
-                      </div>
-                      <div className="flex items-center">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">Category</dt>
-                        <dd className="text-sm text-gray-900 ml-3">{path.category || '-'}</dd>
-                      </div>
-                      <div className="flex items-center">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">Path Type</dt>
-                        <dd className="text-sm text-gray-900 ml-3">{path.path_type}</dd>
-                      </div>
-                      <div className="flex items-center">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">State</dt>
-                        <dd className="ml-3">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(path.state)}`}>
-                            {path.state}
-                          </span>
-                        </dd>
-                      </div>
-                      <div className="flex items-center">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">Valid From</dt>
-                        <dd className="text-sm text-gray-900 ml-3">
-                          {path.valid_from ? new Date(path.valid_from).toLocaleDateString() : '-'}
-                        </dd>
-                      </div>
-                      <div className="flex items-center">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">Valid To</dt>
-                        <dd className="text-sm text-gray-900 ml-3">
-                          {path.valid_to ? new Date(path.valid_to).toLocaleDateString() : '-'}
-                        </dd>
-                      </div>
-                      <div className="flex items-center">
-                        <dt className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">Created</dt>
-                        <dd className="text-sm text-gray-900 ml-3">
-                          {new Date(path.created_at).toLocaleDateString()}
-                        </dd>
+
+                      <div>
+                        <dt className="text-sm font-medium text-gray-700 mb-2">Description</dt>
+                        {isEditing ? (
+                          <textarea
+                            value={editForm.description}
+                            onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                            rows={4}
+                            className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        ) : (
+                          <dd className="text-sm text-gray-900">{path.description}</dd>
+                        )}
                       </div>
 
                       
                       {/* Configuration Details */}
-                      {path.configs && Object.keys(path.configs).length > 0 && (
+                      {path.configs && Object.keys(path.configs).filter(key => key !== 'display_type').length > 0 && (
                         <>
                           <div className="pt-4 border-t border-gray-200">
                             <dt className="text-sm font-medium text-gray-500 mb-2">Configs</dt>
                             <dd className="mt-1 space-y-2">
-                              {Object.entries(path.configs).map(([key, value]) => (
-                                <div key={key} className="flex items-center">
-                                  <span className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">{key}:</span>
-                                  <span className="text-sm text-gray-900 ml-3">{String(value)}</span>
-                                </div>
+                              {Object.entries(path.configs)
+                                .filter(([key]) => key !== 'display_type')
+                                .map(([key, value]) => (
+                                  <div key={key} className="flex items-center">
+                                    <span className="text-sm font-semibold text-gray-700 w-32 flex-shrink-0 border-r border-gray-200 pr-3">{key}:</span>
+                                    <span className="text-sm text-gray-900 ml-3">{String(value)}</span>
+                                  </div>
                               ))}
                             </dd>
                           </div>
@@ -340,10 +663,10 @@ export default function PathDetailPage() {
                   <div className="w-[300px] flex-shrink-0">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-medium text-gray-900">Image</h3>
-                      <button className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                      <Btn variant="link">
                         <FaEdit className="mr-1.5 h-3.5 w-3.5" />
                         {path.image ? 'Change Image' : 'Upload Image'}
-                      </button>
+                      </Btn>
                     </div>
                     <div className="space-y-4">
                       {path.image ? (
@@ -394,10 +717,10 @@ export default function PathDetailPage() {
                         </div>
                       )}
                     </div>
-                    <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                    <Btn variant="link">
                       <FaEdit className="mr-2 h-4 w-4" />
                       Edit Background Image
-                    </button>
+                    </Btn>
                   </div>
                 </div>
               </div>
@@ -407,12 +730,19 @@ export default function PathDetailPage() {
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    Courses in this Path
+                    Courses in this Path ({courses.length})
                   </h3>
-                  <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-                    <FaPlus className="mr-2 h-4 w-4" />
-                    Add Course
-                  </button>
+                  <div className="flex items-center space-x-3">
+                    <StateFilter
+                      states={['published', 'draft', 'archived', 'locked', 'released']}
+                      selectedStates={selectedCourseStates}
+                      onStatesChange={setSelectedCourseStates}
+                    />
+                    <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                      <FaPlus className="mr-2 h-4 w-4" />
+                      Add Course
+                    </button>
+                  </div>
                 </div>
 
                 {courses.length === 0 ? (
@@ -430,117 +760,180 @@ export default function PathDetailPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Course
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Category
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Lessons
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Duration
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            State
-                          </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {courses.map((course) => (
-                          <tr key={course._id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0 h-10 w-10">
-                                  <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center">
-                                    <FaGraduationCap className="h-6 w-6 text-white" />
+                  <div>
+                    {/* Bulk Actions Bar */}
+                    {selectedCourses.length > 0 && (
+                      <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 mb-4 rounded-t-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-blue-700">
+                            {selectedCourses.length} item{selectedCourses.length > 1 ? 's' : ''} selected
+                          </span>
+                          <div className="flex items-center space-x-3">
+                            <button
+                              onClick={() => setSelectedCourses([])}
+                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                            >
+                              Clear Selection
+                            </button>
+                            <button
+                              onClick={() => {
+                                setBulkActionType('state');
+                                setShowBulkActionModal(true);
+                              }}
+                              className="inline-flex items-center px-3 py-1.5 border border-blue-300 rounded-md text-sm font-medium text-blue-700 bg-white hover:bg-blue-50"
+                            >
+                              Change State
+                            </button>
+                            <button
+                              onClick={() => {
+                                setBulkActionType('delete');
+                                handleBulkDelete();
+                              }}
+                              className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700"
+                            >
+                              <FaTrash className="mr-2 h-3.5 w-3.5" />
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 w-12">
+                              <input
+                                type="checkbox"
+                                checked={selectedCourses.length > 0 && 
+                                  courses
+                                    .filter(c => selectedCourseStates.includes(c.state))
+                                    .every(c => selectedCourses.includes(c._id))}
+                                onChange={(e) => handleSelectAllCourses(e.target.checked)}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              />
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Course
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Category
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Lessons
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Duration
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              State
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {courses
+                            .filter(course => selectedCourseStates.includes(course.state))
+                            .map((course, index, filteredArray) => (
+                            <tr key={course._id} className={`hover:bg-gray-50 ${selectedCourses.includes(course._id) ? 'bg-blue-50' : ''}`}>
+                              <td className="px-6 py-3">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedCourses.includes(course._id)}
+                                  onChange={() => handleToggleCourse(course._id)}
+                                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-10 w-10">
+                                    <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center">
+                                      <FaGraduationCap className="h-6 w-6 text-white" />
+                                    </div>
+                                  </div>
+                                  <div className="ml-4">
+                                    <Link 
+                                      href={`/manage/paths/${pathSlug}/courses/${course.slug}`}
+                                      className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                                    >
+                                      {course.name}
+                                    </Link>
+                                    <div className="text-sm text-gray-500">
+                                      {course.slug}
+                                    </div>
                                   </div>
                                 </div>
-                                <div className="ml-4">
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {course.category || '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {course.total_lessons || 0}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {course.duration ? formatDuration(course.duration) : '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(course.state)}`}>
+                                  {course.state}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div className="flex justify-end space-x-2">
                                   <Link 
                                     href={`/manage/paths/${pathSlug}/courses/${course.slug}`}
-                                    className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200"
+                                    title="View Course"
                                   >
-                                    {course.name}
+                                    <FaArrowRight className="h-4 w-4" />
                                   </Link>
-                                  <div className="text-sm text-gray-500">
-                                    {course.slug}
+                                  <div className="relative dropdown-container">
+                                    <button 
+                                      onClick={() => setOpenDropdown(openDropdown === course._id ? null : course._id)}
+                                      className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
+                                      title="More options"
+                                    >
+                                      <FaEllipsisV className="h-4 w-4" />
+                                    </button>
+                                    {openDropdown === course._id && (
+                                      <div className={`absolute right-0 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200 ${
+                                        index === filteredArray.length - 1 ? 'bottom-full mb-2' : 'mt-2'
+                                      }`}>
+                                        <div className="py-1">
+                                          <button
+                                            onClick={() => {
+                                              // TODO: Implement edit course functionality
+                                              setOpenDropdown(null);
+                                            }}
+                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                          >
+                                            <FaEdit className="h-4 w-4 mr-2" />
+                                            Edit Course
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              // TODO: Implement delete course functionality
+                                              setOpenDropdown(null);
+                                            }}
+                                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                                          >
+                                            <FaTrash className="h-4 w-4 mr-2 text-red-600" />
+                                            Delete Course
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {course.category || '-'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {course.total_lessons || 0}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {course.duration ? formatDuration(course.duration) : '-'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(course.state)}`}>
-                                {course.state}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              <div className="flex justify-end space-x-2">
-                                <Link 
-                                  href={`/manage/paths/${pathSlug}/courses/${course.slug}`}
-                                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200"
-                                  title="View Course"
-                                >
-                                  <FaArrowRight className="h-4 w-4" />
-                                </Link>
-                                <div className="relative dropdown-container">
-                                  <button 
-                                    onClick={() => setOpenDropdown(openDropdown === course._id ? null : course._id)}
-                                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
-                                    title="More options"
-                                  >
-                                    <FaEllipsisV className="h-4 w-4" />
-                                  </button>
-                                  {openDropdown === course._id && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                                      <div className="py-1">
-                                        <button
-                                          onClick={() => {
-                                            // TODO: Implement edit course functionality
-                                            setOpenDropdown(null);
-                                          }}
-                                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                                        >
-                                          <FaEdit className="h-4 w-4 mr-2" />
-                                          Edit Course
-                                        </button>
-                                        <button
-                                          onClick={() => {
-                                            // TODO: Implement delete course functionality
-                                            setOpenDropdown(null);
-                                          }}
-                                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
-                                        >
-                                          <FaTrash className="h-4 w-4 mr-2" />
-                                          Delete Course
-                                        </button>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
               </div>
@@ -548,6 +941,119 @@ export default function PathDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Bulk Action Modal */}
+      {showBulkActionModal && bulkActionType === 'state' && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Change State
+              </h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Select the new state for {selectedCourses.length} selected courses.
+              </p>
+              
+              <div className="space-y-2">
+                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="newState"
+                    value="published"
+                    checked={bulkNewState === 'published'}
+                    onChange={(e) => setBulkNewState(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-sm">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('published')}`}>
+                      Published
+                    </span>
+                  </span>
+                </label>
+                
+                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="newState"
+                    value="released"
+                    checked={bulkNewState === 'released'}
+                    onChange={(e) => setBulkNewState(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-sm">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('released')}`}>
+                      Released
+                    </span>
+                  </span>
+                </label>
+                
+                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="newState"
+                    value="draft"
+                    checked={bulkNewState === 'draft'}
+                    onChange={(e) => setBulkNewState(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-sm">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('draft')}`}>
+                      Draft
+                    </span>
+                  </span>
+                </label>
+                
+                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="newState"
+                    value="archived"
+                    checked={bulkNewState === 'archived'}
+                    onChange={(e) => setBulkNewState(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-sm">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('archived')}`}>
+                      Archived
+                    </span>
+                  </span>
+                </label>
+                
+                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="newState"
+                    value="locked"
+                    checked={bulkNewState === 'locked'}
+                    onChange={(e) => setBulkNewState(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-sm">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('locked')}`}>
+                      Locked
+                    </span>
+                  </span>
+                </label>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowBulkActionModal(false)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBulkStateChange}
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+                >
+                  Change State
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

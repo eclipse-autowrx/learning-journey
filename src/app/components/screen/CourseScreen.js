@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 
 import { genQueryParamsForRequest } from '@/lib/frontend/utils';
 import InteractiveLesson from '../lessons/InteractiveLesson';
+import { showToast } from "@/lib/utils/notifications";
 
 const saveStateLessonFinish = async (course, lesson_slug, data) => {
     if (!course || !course._id || !lesson_slug) return null
@@ -200,6 +201,9 @@ const CourseScreen = ({ course, path_slug }) => {
                             }}
                             onSumbitLesson={async (data) => {
                                 const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
+                                if (res && res.success) {
+                                    showToast.success(`Lesson "${activeLesson.name}" completed!`)
+                                }
                                 let newCourseProgress = res.data
                                 applyNewProgressToCourse(newCourseProgress)
                             }} />}
@@ -210,6 +214,9 @@ const CourseScreen = ({ course, path_slug }) => {
                             }}
                             onSumbitLesson={async (data) => {
                                 const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
+                                if (res && res.success) {
+                                    showToast.success(`Lesson "${activeLesson.name}" completed!`)
+                                }
                                 let newCourseProgress = res.data
                                 applyNewProgressToCourse(newCourseProgress)
                             }}
@@ -225,6 +232,9 @@ const CourseScreen = ({ course, path_slug }) => {
                                 if (lessonInTable && lessonInTable.context?.state != 'completed') {
                                     try {
                                         const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
+                                        if (res && res.success) {
+                                            showToast.success(`Lesson "${activeLesson.name}" completed!`)
+                                        }
                                         let newCourseProgress = res.data
                                         applyNewProgressToCourse(newCourseProgress)
                                     } catch (e) { }
@@ -241,6 +251,9 @@ const CourseScreen = ({ course, path_slug }) => {
                                 let lessonInTable = lessonsTable.find(l => l.slug == activeLesson.slug)
                                 if (lessonInTable && lessonInTable.context?.state != 'completed') {
                                     const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
+                                    if (res && res.success) {
+                                        showToast.success(`Lesson "${activeLesson.name}" completed!`)
+                                    }
                                     let newCourseProgress = res.data
                                     applyNewProgressToCourse(newCourseProgress) 
                                 }

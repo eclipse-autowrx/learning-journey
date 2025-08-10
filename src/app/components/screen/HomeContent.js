@@ -94,7 +94,7 @@ const HomeContent = ({ }) => {
 
     const fetchPaths = async () => {
         try {
-            const response = await fetch("/api/collections")
+            const response = await fetch("/api/collections?state=published")
             const data = await response.json();
             if (data && data.success) {
                 let collections = data.data
