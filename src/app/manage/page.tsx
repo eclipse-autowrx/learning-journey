@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { 
   FaFolder, 
   FaRoute, 
@@ -13,11 +14,12 @@ import {
   FaEllipsisV,
   FaEdit,
   FaTrash,
-  FaChartBar
+  FaArrowLeft
 } from 'react-icons/fa';
 import StateFilter from '@/app/components/atom/StateFilter';
 import Btn from '@/app/components/atom/Btn';
 import TagEditor from '@/app/components/atom/TagEditor';
+import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
 import { 
   showDeleteConfirm, 
   showBulkDeleteConfirm, 
@@ -25,13 +27,7 @@ import {
   showBulkOperationResult,
   showToast
 } from '@/lib/utils/notifications';
-
-interface Stats {
-  collections: number;
-  paths: number;
-  courses: number;
-  lessons: number;
-}
+import { COLLECTION_STATES, PATH_STATES } from '@/lib/const';
 
 interface Collection {
   _id: string;
@@ -81,19 +77,17 @@ interface Lesson {
 
 export default function ManagePage() {
   const router = useRouter();
-  const [stats, setStats] = useState<Stats>({
-    collections: 0,
-    paths: 0,
-    courses: 0,
-    lessons: 0
-  });
+  const searchParams = useSearchParams();
+  
   const [collections, setCollections] = useState<Collection[]>([]);
   const [paths, setPaths] = useState<Path[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'collections' | 'paths'>('collections');
-  const [selectedCollectionStates, setSelectedCollectionStates] = useState<string[]>(['published', 'draft', 'archived']);
-  const [selectedPathStates, setSelectedPathStates] = useState<string[]>(['published', 'draft', 'archived', 'locked', 'released']);
-  
+  const [activeTab, setActiveTab] = useState<'collections' | 'paths'>(searchParams?.get('tab') === 'paths' ? 'paths' : 'collections');
+
+  // Filter states
+  const [selectedCollectionStates, setSelectedCollectionStates] = useState<string[]>(COLLECTION_STATES.map(s => s.value));
+  const [selectedPathStates, setSelectedPathStates] = useState<string[]>(PATH_STATES.map(s => s.value));
+
   // Bulk selection states
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedPaths, setSelectedPaths] = useState<string[]>([]);
@@ -176,19 +170,8 @@ export default function ManagePage() {
       const lessonsData = await lessonsRes.json();
       console.log('Lessons data:', lessonsData);
 
-      setStats({
-        collections: collectionsData.success ? collectionsData.data.length : 0,
-        paths: pathsData.success ? pathsData.data.length : 0,
-        courses: coursesData.success ? coursesData.data.length : 0,
-        lessons: lessonsData.success ? lessonsData.data.length : 0
-      });
-
-      if (collectionsData.success) {
-        setCollections(collectionsData.data);
-      }
-      if (pathsData.success) {
-        setPaths(pathsData.data);
-      }
+      setCollections(collectionsData.success ? collectionsData.data : []);
+      setPaths(pathsData.success ? pathsData.data : []);
       
       console.log('Data fetching completed successfully');
     } catch (error) {
@@ -580,37 +563,16 @@ export default function ManagePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ManageBreadCrumb items={[]} />
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Content Management</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Management Dashboard</h1>
               <p className="mt-1 text-sm text-gray-500">
-                Manage collections, paths, courses, and lessons
+                Overview of all content in the platform.
               </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={openCreateLesson}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                <FaPlus className="mr-1.5 h-3.5 w-3.5" />
-                Lesson
-              </button>
-              <button 
-                onClick={openCreateCourse}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                <FaPlus className="mr-1.5 h-3.5 w-3.5" />
-                Course
-              </button>
-              <Link 
-                href="/"
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                ← Back to Home
-              </Link>
             </div>
           </div>
         </div>
@@ -618,89 +580,7 @@ export default function ManagePage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <FaFolder className="h-6 w-6 text-blue-500" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Collections
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {stats.collections}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <FaRoute className="h-6 w-6 text-blue-500" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Paths
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {stats.paths}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <FaGraduationCap className="h-6 w-6 text-blue-500" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Courses
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {stats.courses}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <FaBook className="h-6 w-6 text-blue-500" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Lessons
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {stats.lessons}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        
         {/* Tabs */}
         <div className="bg-white shadow rounded-lg">
           <div className="border-b border-gray-200">
@@ -737,7 +617,7 @@ export default function ManagePage() {
                   </h3>
                   <div className="flex items-center space-x-3">
                     <StateFilter
-                      states={['published', 'draft', 'archived']}
+                      states={COLLECTION_STATES}
                       selectedStates={selectedCollectionStates}
                       onStatesChange={setSelectedCollectionStates}
                     />
@@ -760,180 +640,189 @@ export default function ManagePage() {
                     </p>
                   </div>
                 ) : (
-                  <div>
-                    {/* Bulk Actions Bar */}
-                    {selectedCollections.length > 0 && (
-                      <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 mb-4 rounded-t-lg">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-blue-700">
-                            {selectedCollections.length} item{selectedCollections.length > 1 ? 's' : ''} selected
-                          </span>
-                          <div className="flex items-center space-x-3">
-                            <Btn
-                              variant="outlined"
-                              onClick={() => setSelectedCollections([])}
-                            >
-                              Clear Selection
-                            </Btn>
-                            <Btn
-                              variant="outlined"
-                              onClick={() => {
-                                setBulkActionType('state');
-                                setShowBulkActionModal(true);
-                              }}
-                            >
-                              Change State
-                            </Btn>
-                            <Btn
-                              onClick={() => {
-                                setBulkActionType('delete');
-                                handleBulkDelete();
-                              }}
-                            >
-                              <FaTrash className="mr-2 h-3.5 w-3.5" />
-                              Delete
-                            </Btn>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 w-12">
-                              <input
-                                type="checkbox"
-                                checked={selectedCollections.length > 0 && 
-                                  collections
-                                    .filter(c => selectedCollectionStates.includes(c.state))
-                                    .every(c => selectedCollections.includes(c._id))}
-                                onChange={(e) => handleSelectAllCollections(e.target.checked)}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                              />
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Collection
-                            </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Category
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Paths
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            State
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Created
-                          </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {collections
-                          .filter(collection => selectedCollectionStates.includes(collection.state))
-                          .map((collection, index, filteredArray) => (
-                          <tr key={collection._id} className={`hover:bg-gray-50 ${selectedCollections.includes(collection._id) ? 'bg-blue-50' : ''}`}>
-                            <td className="px-6 py-3">
-                              <input
-                                type="checkbox"
-                                checked={selectedCollections.includes(collection._id)}
-                                onChange={() => handleToggleCollection(collection._id)}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                              />
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0 h-10 w-10">
-                                  <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center">
-                                    <FaFolder className="h-6 w-6 text-white" />
-                                  </div>
-                                </div>
-                                <div className="ml-4">
-                                  <Link 
-                                    href={`/manage/collections/${collection.slug}`}
-                                    className="text-sm font-medium text-gray-900 hover:text-blue-600"
-                                  >
-                                    {collection.name}
-                                  </Link>
-                                  <div className="text-sm text-gray-500">
-                                    {collection.slug}
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {collection.category || '-'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {collection.total_paths || 0}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(collection.state)}`}>
-                                {collection.state}
+                  (() => {
+                    const filteredCollections = collections.filter(collection => selectedCollectionStates.includes(collection.state));
+                    return (
+                      <div>
+                        {/* Bulk Actions Bar */}
+                        {selectedCollections.length > 0 && (
+                          <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 mb-4 rounded-t-lg">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-blue-700">
+                                {selectedCollections.length} item{selectedCollections.length > 1 ? 's' : ''} selected
                               </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {new Date(collection.created_at).toLocaleDateString()}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              <div className="flex justify-end space-x-2">
-                                <button 
-                                  onClick={() => handleViewCollection(collection)}
-                                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
-                                  title="View Collection"
+                              <div className="flex items-center space-x-3">
+                                <Btn
+                                  variant="outlined"
+                                  onClick={() => setSelectedCollections([])}
                                 >
-                                  <FaArrowRight className="h-4 w-4" />
-                                </button>
-                                <div className="relative dropdown-container">
-                                  <button 
-                                    onClick={() => setOpenDropdown(openDropdown === collection._id ? null : collection._id)}
-                                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
-                                    title="More options"
-                                  >
-                                    <FaEllipsisV className="h-4 w-4" />
-                                  </button>
-                                  {openDropdown === collection._id && (
-                                    <div className={`absolute right-0 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200 ${
-                                      index === filteredArray.length - 1 ? 'bottom-0 mb-2' : 'top-0 mt-2'
-                                    }`}>
-                                      <div className="py-1">
-                                        <button
-                                          onClick={() => {
-                                            openEditCollection(collection);
-                                            setOpenDropdown(null);
-                                          }}
-                                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                  Clear Selection
+                                </Btn>
+                                <Btn
+                                  variant="outlined"
+                                  onClick={() => {
+                                    setBulkActionType('state');
+                                    setShowBulkActionModal(true);
+                                  }}
+                                >
+                                  Change State
+                                </Btn>
+                                <Btn
+                                  onClick={() => {
+                                    setBulkActionType('delete');
+                                    handleBulkDelete();
+                                  }}
+                                >
+                                  <FaTrash className="mr-2 h-3.5 w-3.5" />
+                                  Delete
+                                </Btn>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-6 py-3 w-12">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedCollections.length > 0 && 
+                                      filteredCollections.every(c => selectedCollections.includes(c._id))}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setSelectedCollections(filteredCollections.map(c => c._id));
+                                      } else {
+                                        setSelectedCollections([]);
+                                      }
+                                    }}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                  />
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Collection
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Category
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Paths
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  State
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Created
+                                </th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Actions
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {filteredCollections.map((collection) => (
+                                <tr key={collection._id} className={`hover:bg-gray-50 ${selectedCollections.includes(collection._id) ? 'bg-blue-50' : ''}`}>
+                                  <td className="px-6 py-3">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedCollections.includes(collection._id)}
+                                      onChange={() => {
+                                        setSelectedCollections(prev => 
+                                          prev.includes(collection._id) ? prev.filter(id => id !== collection._id) : [...prev, collection._id]
+                                        );
+                                      }}
+                                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex items-center">
+                                      <div className="flex-shrink-0 h-10 w-10">
+                                        <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center">
+                                          <FaFolder className="h-6 w-6 text-white" />
+                                        </div>
+                                      </div>
+                                      <div className="ml-4">
+                                        <Link 
+                                          href={`/manage/collections/${collection.slug}`}
+                                          className="text-sm font-medium text-gray-900 hover:text-blue-600"
                                         >
-                                          <FaEdit className="h-4 w-4 mr-2" />
-                                          Edit Collection
-                                        </button>
-                                        <button
-                                          onClick={() => {
-                                            handleDeleteCollection(collection);
-                                            setOpenDropdown(null);
-                                          }}
-                                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
-                                        >
-                                            <FaTrash className="h-4 w-4 mr-2 text-red-600" />
-                                          Delete Collection
-                                        </button>
+                                          {collection.name}
+                                        </Link>
+                                        <div className="text-sm text-gray-500">
+                                          {collection.slug}
+                                        </div>
                                       </div>
                                     </div>
-                                  )}
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    </div>
-                  </div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {collection.category || '-'}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {collection.total_paths || 0}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(collection.state)}`}>
+                                      {COLLECTION_STATES.find(s => s.value === collection.state)?.label || collection.state}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {new Date(collection.created_at).toLocaleDateString()}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div className="flex items-center justify-end space-x-2">
+                                      <Link 
+                                        href={`/manage/collections/${collection.slug}`}
+                                        className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200"
+                                        title="View Collection"
+                                      >
+                                        <FaArrowRight className="h-4 w-4" />
+                                      </Link>
+                                      <div className="relative dropdown-container">
+                                        <button 
+                                          onClick={() => setOpenDropdown(openDropdown === collection._id ? null : collection._id)}
+                                          className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
+                                          title="More options"
+                                        >
+                                          <FaEllipsisV className="h-4 w-4" />
+                                        </button>
+                                        {openDropdown === collection._id && (
+                                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                            <div className="py-1">
+                                              <button
+                                                onClick={() => {
+                                                  openEditCollection(collection);
+                                                  setOpenDropdown(null);
+                                                }}
+                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                              >
+                                                <FaEdit className="h-4 w-4 mr-2" />
+                                                Edit Collection
+                                              </button>
+                                              <button
+                                                onClick={() => {
+                                                  handleDeleteCollection(collection);
+                                                  setOpenDropdown(null);
+                                                }}
+                                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                                              >
+                                                  <FaTrash className="h-4 w-4 mr-2 text-red-600" />
+                                                Delete Collection
+                                              </button>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )
+                  })()
                 )}
               </div>
             )}
@@ -946,7 +835,7 @@ export default function ManagePage() {
                   </h3>
                   <div className="flex items-center space-x-3">
                     <StateFilter
-                      states={['published', 'draft', 'archived', 'locked', 'released']}
+                      states={PATH_STATES}
                       selectedStates={selectedPathStates}
                       onStatesChange={setSelectedPathStates}
                     />
@@ -969,179 +858,189 @@ export default function ManagePage() {
                     </p>
                   </div>
                 ) : (
-                  <div>
-                    {/* Bulk Actions Bar */}
-                    {selectedPaths.length > 0 && (
-                      <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 mb-4 rounded-t-lg">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-blue-700">
-                            {selectedPaths.length} item{selectedPaths.length > 1 ? 's' : ''} selected
-                          </span>
-                          <div className="flex items-center space-x-3">
-                            <Btn
-                              variant="outlined"
-                              onClick={() => setSelectedPaths([])}
-                            >
-                              Clear Selection
-                            </Btn>
-                            <Btn
-                              variant="outlined"
-                              onClick={() => {
-                                setBulkActionType('state');
-                                setShowBulkActionModal(true);
-                              }}
-                            >
-                              Change State
-                            </Btn>
-                            <Btn
-                              onClick={() => {
-                                setBulkActionType('delete');
-                                handleBulkDelete();
-                              }}
-                            >
-                              <FaTrash className="mr-2 h-3.5 w-3.5" />
-                              Delete
-                            </Btn>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 w-12">
-                              <input
-                                type="checkbox"
-                                checked={selectedPaths.length > 0 && 
-                                  paths
-                                    .filter(p => selectedPathStates.includes(p.state))
-                                    .every(p => selectedPaths.includes(p._id))}
-                                onChange={(e) => handleSelectAllPaths(e.target.checked)}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                              />
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Path
-                            </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Category
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Courses
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            State
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Created
-                          </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {paths
-                          .filter(path => selectedPathStates.includes(path.state))
-                          .map((path, index, filteredArray) => (
-                          <tr key={path._id} className={`hover:bg-gray-50 ${selectedPaths.includes(path._id) ? 'bg-blue-50' : ''}`}>
-                            <td className="px-6 py-3">
-                              <input
-                                type="checkbox"
-                                checked={selectedPaths.includes(path._id)}
-                                onChange={() => handleTogglePath(path._id)}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                              />
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0 h-10 w-10">
-                                  <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center">
-                                    <FaRoute className="h-6 w-6 text-white" />
-                                  </div>
-                                </div>
-                                <div className="ml-4">
-                                  <Link 
-                                    href={`/manage/paths/${path.slug}`}
-                                    className="text-sm font-medium text-gray-900 hover:text-blue-600"
-                                  >
-                                    {path.name}
-                                  </Link>
-                                  <div className="text-sm text-gray-500">
-                                    {path.slug}
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {path.category || '-'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {path.total_courses || 0}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(path.state)}`}>
-                                {path.state}
+                  (() => {
+                    const filteredPaths = paths.filter(path => selectedPathStates.includes(path.state));
+                    return (
+                      <div>
+                        {/* Bulk Actions Bar */}
+                        {selectedPaths.length > 0 && (
+                          <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 mb-4 rounded-t-lg">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-blue-700">
+                                {selectedPaths.length} item{selectedPaths.length > 1 ? 's' : ''} selected
                               </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {new Date(path.created_at).toLocaleDateString()}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              <div className="flex justify-end space-x-2">
-                                <Link 
-                                  href={`/manage/paths/${path.slug}`}
-                                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200"
+                              <div className="flex items-center space-x-3">
+                                <Btn
+                                  variant="outlined"
+                                  onClick={() => setSelectedPaths([])}
                                 >
-                                  <FaArrowRight className="h-4 w-4" />
-                                </Link>
-                                <div className="relative dropdown-container">
-                                  <button 
-                                    onClick={() => setOpenDropdown(openDropdown === path._id ? null : path._id)}
-                                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
-                                    title="More options"
-                                  >
-                                    <FaEllipsisV className="h-4 w-4" />
-                                  </button>
-                                  {openDropdown === path._id && (
-                                    <div className={`absolute right-0 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200 ${
-                                      index === filteredArray.length - 1 ? 'bottom-0 mb-2' : 'top-0 mt-2'
-                                    }`}>
-                                      <div className="py-1">
-                                        <button
-                                          onClick={() => {
-                                            // TODO: Implement edit path functionality
-                                            setOpenDropdown(null);
-                                          }}
-                                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                  Clear Selection
+                                </Btn>
+                                <Btn
+                                  variant="outlined"
+                                  onClick={() => {
+                                    setBulkActionType('state');
+                                    setShowBulkActionModal(true);
+                                  }}
+                                >
+                                  Change State
+                                </Btn>
+                                <Btn
+                                  onClick={() => {
+                                    setBulkActionType('delete');
+                                    handleBulkDelete();
+                                  }}
+                                >
+                                  <FaTrash className="mr-2 h-3.5 w-3.5" />
+                                  Delete
+                                </Btn>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-6 py-3 w-12">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedPaths.length > 0 && 
+                                      filteredPaths.every(p => selectedPaths.includes(p._id))}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setSelectedPaths(filteredPaths.map(p => p._id));
+                                      } else {
+                                        setSelectedPaths([]);
+                                      }
+                                    }}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                  />
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Path
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Category
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Courses
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  State
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Created
+                                </th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Actions
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {filteredPaths.map((path) => (
+                                <tr key={path._id} className={`hover:bg-gray-50 ${selectedPaths.includes(path._id) ? 'bg-blue-50' : ''}`}>
+                                  <td className="px-6 py-3">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedPaths.includes(path._id)}
+                                      onChange={() => {
+                                        setSelectedPaths(prev => 
+                                          prev.includes(path._id) ? prev.filter(id => id !== path._id) : [...prev, path._id]
+                                        );
+                                      }}
+                                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex items-center">
+                                      <div className="flex-shrink-0 h-10 w-10">
+                                        <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center">
+                                          <FaRoute className="h-6 w-6 text-white" />
+                                        </div>
+                                      </div>
+                                      <div className="ml-4">
+                                        <Link 
+                                          href={`/manage/paths/${path.slug}`}
+                                          className="text-sm font-medium text-gray-900 hover:text-blue-600"
                                         >
-                                          <FaEdit className="h-4 w-4 mr-2" />
-                                          Edit Path
-                                        </button>
-                                        <button
-                                          onClick={() => {
-                                            handleDeletePath(path);
-                                            setOpenDropdown(null);
-                                          }}
-                                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
-                                        >
-                                          <FaTrash className="h-4 w-4 mr-2 text-red-600" />
-                                          Delete Path
-                                        </button>
+                                          {path.name}
+                                        </Link>
+                                        <div className="text-sm text-gray-500">
+                                          {path.slug}
+                                        </div>
                                       </div>
                                     </div>
-                                  )}
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    </div>
-                  </div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {path.category || '-'}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {path.total_courses || 0}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(path.state)}`}>
+                                      {PATH_STATES.find(s => s.value === path.state)?.label || path.state}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {new Date(path.created_at).toLocaleDateString()}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div className="flex items-center justify-end space-x-2">
+                                      <Link 
+                                        href={`/manage/paths/${path.slug}`}
+                                        className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200"
+                                        title="View Path"
+                                      >
+                                        <FaArrowRight className="h-4 w-4" />
+                                      </Link>
+                                      <div className="relative dropdown-container">
+                                        <button 
+                                          onClick={() => setOpenDropdown(openDropdown === path._id ? null : path._id)}
+                                          className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
+                                          title="More options"
+                                        >
+                                          <FaEllipsisV className="h-4 w-4" />
+                                        </button>
+                                        {openDropdown === path._id && (
+                                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                            <div className="py-1">
+                                              <button
+                                                onClick={() => {
+                                                  // TODO: Implement edit path functionality
+                                                  setOpenDropdown(null);
+                                                }}
+                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                              >
+                                                <FaEdit className="h-4 w-4 mr-2" />
+                                                Edit Path
+                                              </button>
+                                              <button
+                                                onClick={() => {
+                                                  handleDeletePath(path);
+                                                  setOpenDropdown(null);
+                                                }}
+                                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                                              >
+                                                  <FaTrash className="h-4 w-4 mr-2 text-red-600" />
+                                                Delete Path
+                                              </button>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )
+                  })()
                 )}
               </div>
             )}
@@ -1155,96 +1054,27 @@ export default function ManagePage() {
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Change State
+                Change State for {selectedCollections.length > 0 ? `${selectedCollections.length} collections` : `${selectedPaths.length} paths`}
               </h3>
-              <p className="text-sm text-gray-500 mb-4">
-                Select the new state for {activeTab === 'collections' ? selectedCollections.length : selectedPaths.length} selected {activeTab}.
-              </p>
               
               <div className="space-y-2">
-                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="newState"
-                    value="published"
-                    checked={bulkNewState === 'published'}
-                    onChange={(e) => setBulkNewState(e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-3 text-sm">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('published')}`}>
-                      Published
-                    </span>
-                  </span>
-                </label>
-                
-                {activeTab === 'paths' && (
-                  <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                {(activeTab === 'collections' ? COLLECTION_STATES : PATH_STATES).map((state) => (
+                  <label key={state.value} className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
                     <input
                       type="radio"
                       name="newState"
-                      value="released"
-                      checked={bulkNewState === 'released'}
+                      value={state.value}
+                      checked={bulkNewState === state.value}
                       onChange={(e) => setBulkNewState(e.target.value)}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500"
                     />
                     <span className="ml-3 text-sm">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('released')}`}>
-                        Released
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(state.value)}`}>
+                        {state.label}
                       </span>
                     </span>
                   </label>
-                )}
-                
-                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="newState"
-                    value="draft"
-                    checked={bulkNewState === 'draft'}
-                    onChange={(e) => setBulkNewState(e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-3 text-sm">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('draft')}`}>
-                      Draft
-                    </span>
-                  </span>
-                </label>
-                
-                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="newState"
-                    value="archived"
-                    checked={bulkNewState === 'archived'}
-                    onChange={(e) => setBulkNewState(e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-3 text-sm">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('archived')}`}>
-                      Archived
-                    </span>
-                  </span>
-                </label>
-                
-                {activeTab === 'paths' && (
-                  <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="newState"
-                      value="locked"
-                      checked={bulkNewState === 'locked'}
-                      onChange={(e) => setBulkNewState(e.target.value)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="ml-3 text-sm">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('locked')}`}>
-                        Locked
-                      </span>
-                    </span>
-                  </label>
-                )}
+                ))}
               </div>
               
               <div className="flex justify-end space-x-3 mt-6">

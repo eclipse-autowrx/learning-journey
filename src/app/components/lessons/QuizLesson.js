@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { FaCheckCircle } from "react-icons/fa";
 import BtnFullRounded from "../atom/BtnFullRounded";
 import { STATE_COMPLETED } from "@/lib/const";
+import { showToast } from "@/lib/utils/notifications";
 
 const QuizQuestion = ({ question, index, onGotAnswer }) => {
 
@@ -55,6 +56,8 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
   const [questions, setQuestions] = useState([])
   const [gotAllAnswer, setGotAllAnswer] = useState(false)
   const [testResult, setTextResult] = useState('')
+  const [quizResult, setQuizResult] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // console.log(`Lesson changed`, lesson)
@@ -73,6 +76,7 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
       setTextResult("Your already finish this quiz.")
     } else {
       setTextResult("")
+      setQuizResult(null);
     }
   }, [lesson])
 
@@ -102,6 +106,7 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
     tmpQuestions.forEach(q => { q.answerIndex = -1 })
     setQuestions(tmpQuestions)
     setTextResult("")
+    setQuizResult(null);
   }
 
   const setAnswerForThisQuestion = (answerIndex) => {
@@ -138,85 +143,134 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
       </div>
 
       <div className="mt-2 px-1 py-2 flex items-center space-x-2">
-        <BtnFullRounded disable={!gotAllAnswer}
-          onClick={() => {
+        <BtnFullRounded disable={!gotAllAnswer || isSubmitting}
+          onClick={async () => {
             if (onSumbitLesson) {
               let data = questions.map(q => { return { answerIndex: q.answerIndex } })
               onSumbitLesson(data)
             }
-            const correctAnswers = Math.floor(Math.random() * 3) + (numQuestions - 3);
-            setTextResult(`You answered ${correctAnswers} out of ${numQuestions} questions correctly.`)
-            // call service to check result
+            
+            setIsSubmitting(true);
+            try {
+              const answers = questions.map((q, index) => ({
+                question_index: index,
+                answer_index: q.answerIndex,
+              }));
+
+              const res = await fetch(`/api/lessons/${lesson.slug}/check`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ answers }),
+              });
+
+              const resultData = await res.json();
+              if (resultData.success) {
+                setQuizResult(resultData);
+                setTextResult(`You answered ${resultData.score} out of ${resultData.total} questions correctly.`);
+              } else {
+                showToast.error(resultData.error || 'Failed to submit quiz.');
+              }
+            } catch (error) {
+              showToast.error('An unexpected error occurred.');
+              console.error(error);
+            } finally {
+              setIsSubmitting(false);
+            }
           }}>
-          Submit
+          {isSubmitting ? 'Submitting...' : 'Submit'}
         </BtnFullRounded>
       </div>
     </div>
 
     <img className="w-full h-[6px] opacity-30" src="/imgs/bare/horizontal_line.svg" />
 
-    {testResult && <div className="w-full flex flex-col items-center justify-center px-4 py-4">
-      <div className="min-h-[200px] max-h-[400px] overflow-auto">{testResult}</div>
+    {testResult ? (
+      <div className="w-full flex flex-col items-center justify-center px-4 py-4">
+        <div className="min-h-[200px] max-h-[60vh] overflow-auto w-full md:w-3/4 lg:w-2/3">
+          <h2 className="text-2xl font-bold mb-4 text-center">{testResult}</h2>
+          {quizResult && quizResult.results && (
+            <div className="space-y-4">
+              {quizResult.results.map((res, index) => {
+                const question = questions[res.question_index];
+                if (!question) return null;
 
-      <div className="w-full mt-4 px-8 flex items-center space-x-4">
-        <div className="grow">
+                const userAnswerLabel = question.answers[res.user_answer]?.label || 'Not answered';
+                const correctAnswerLabel = question.answers[res.correct_answer]?.label;
+
+                return (
+                  <div key={index} className={`p-4 rounded-lg border ${res.is_correct ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'}`}>
+                    <p className="font-bold text-gray-800">{index + 1}. {question.question}</p>
+                    <p className={`mt-2 ${res.is_correct ? 'text-green-700' : 'text-red-700'}`}>
+                      Your answer: <span className="font-semibold">{userAnswerLabel}</span> {res.is_correct ? '✅' : '❌'}
+                    </p>
+                    {!res.is_correct && (
+                      <p className="mt-1 text-green-700">
+                        Correct answer: <span className="font-semibold">{correctAnswerLabel}</span>
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
 
-        <BtnFullRounded onClick={resetTest}>
-          Start again
-        </BtnFullRounded>
+        <div className="w-full mt-4 px-8 flex items-center space-x-4">
+          <div className="grow">
+          </div>
 
-        <BtnFullRounded onClick={() => {
-          if (onCloseRequest) {
-            onCloseRequest()
-          }
-        }}>
-          Next Lesson
-        </BtnFullRounded>
-      </div>
-    </div>
-
-    }
-
-
-
-    {!testResult && <>
-      <div className="bg-white">
-
-        <div className="mt-0 px-2 py-2 lg:px-8 h-[64vh] overflow-auto ">
-          {/* Question Area */}
-          {activeQuestion && <QuizQuestion question={activeQuestion} index={curQuestionIndex + 1}
-            onGotAnswer={setAnswerForThisQuestion}
-          />}
-        </div>
-
-        <div className="mt-2 px-2 pt-2 pb-2 flex items-center space-x-2 h-[12vh]">
-          <div className="grow"></div>
-          <BtnFullRounded disable={curQuestionIndex <= 0}
-            onClick={() => {
-              gotoPrevQuestion()
-            }}>
-            Prev
+          <BtnFullRounded onClick={resetTest}>
+            Start again
           </BtnFullRounded>
 
-          <div className="w-10"></div>
-          <div>{curQuestionIndex + 1}</div>
-          <div>/</div>
-          <div>{numQuestions}</div>
-          <div className="w-10"></div>
-
-          <BtnFullRounded disable={!(gotAnswer >= 0 && curQuestionIndex < (numQuestions - 1))}
-            onClick={() => {
-              gotoNextQuestion()
-            }}>
-            Next
+          <BtnFullRounded onClick={() => {
+            if (onCloseRequest) {
+              onCloseRequest()
+            }
+          }}>
+            Next Lesson
           </BtnFullRounded>
-          <div className="grow"></div>
+        </div>
+      </div>
+    ) : (
+      <>
+        <div className="bg-white">
+
+          <div className="mt-0 px-2 py-2 lg:px-8 h-[64vh] overflow-auto ">
+            {/* Question Area */}
+            {activeQuestion && <QuizQuestion question={activeQuestion} index={curQuestionIndex + 1}
+              onGotAnswer={setAnswerForThisQuestion}
+            />}
+          </div>
+
+          <div className="mt-2 px-2 pt-2 pb-2 flex items-center space-x-2 h-[12vh]">
+            <div className="grow"></div>
+            <BtnFullRounded disable={curQuestionIndex <= 0}
+              onClick={() => {
+                gotoPrevQuestion()
+              }}>
+              Prev
+            </BtnFullRounded>
+
+            <div className="w-10"></div>
+            <div>{curQuestionIndex + 1}</div>
+            <div>/</div>
+            <div>{numQuestions}</div>
+            <div className="w-10"></div>
+
+            <BtnFullRounded disable={!(gotAnswer >= 0 && curQuestionIndex < (numQuestions - 1))}
+              onClick={() => {
+                gotoNextQuestion()
+              }}>
+              Next
+            </BtnFullRounded>
+            <div className="grow"></div>
+
+          </div>
 
         </div>
-
-      </div>
-    </>}
+      </>
+    )}
 
 
   </div>

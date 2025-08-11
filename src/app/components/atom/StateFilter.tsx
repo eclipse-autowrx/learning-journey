@@ -3,8 +3,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { FaFilter, FaCheck, FaTimes } from 'react-icons/fa';
 
+interface State {
+  value: string;
+  label: string;
+}
+
 interface StateFilterProps {
-  states: string[];
+  states: State[];
   selectedStates: string[];
   onStatesChange: (states: string[]) => void;
   className?: string;
@@ -12,6 +17,7 @@ interface StateFilterProps {
 
 export default function StateFilter({ states, selectedStates, onStatesChange, className = '' }: StateFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [filterText, setFilterText] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -25,34 +31,23 @@ export default function StateFilter({ states, selectedStates, onStatesChange, cl
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const filteredStates = states.filter(state => 
+    state.label.toLowerCase().includes(filterText.toLowerCase())
+  );
+
   const handleSelectAll = () => {
     if (selectedStates.length === states.length) {
       onStatesChange([]);
     } else {
-      onStatesChange(states);
+      onStatesChange(states.map(s => s.value));
     }
   };
 
-  const handleToggleState = (state: string) => {
-    if (selectedStates.includes(state)) {
-      onStatesChange(selectedStates.filter(s => s !== state));
+  const handleToggleState = (stateValue: string) => {
+    if (selectedStates.includes(stateValue)) {
+      onStatesChange(selectedStates.filter(s => s !== stateValue));
     } else {
-      onStatesChange([...selectedStates, state]);
-    }
-  };
-
-  const getStateColor = (state: string) => {
-    switch (state.toLowerCase()) {
-      case 'published':
-        return 'text-green-600';
-      case 'draft':
-        return 'text-blue-600';
-      case 'archived':
-        return 'text-gray-600';
-      case 'locked':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
+      onStatesChange([...selectedStates, stateValue]);
     }
   };
 
@@ -66,7 +61,7 @@ export default function StateFilter({ states, selectedStates, onStatesChange, cl
       >
         <FaFilter className="mr-2 h-4 w-4" />
         State Filter
-        {activeFiltersCount > 0 && activeFiltersCount < states.length && (
+        {activeFiltersCount > 0 && (
           <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
             {activeFiltersCount}
           </span>
@@ -79,23 +74,27 @@ export default function StateFilter({ states, selectedStates, onStatesChange, cl
             {/* Selected states pills */}
             {selectedStates.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2">
-                {selectedStates.map(state => (
-                  <span
-                    key={state}
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                  >
-                    {state}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggleState(state);
-                      }}
-                      className="ml-1 hover:text-blue-600"
+                {selectedStates.map(stateValue => {
+                  const state = states.find(s => s.value === stateValue);
+                  if (!state) return null;
+                  return (
+                    <span
+                      key={state.value}
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                     >
-                      <FaTimes className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
+                      {state.label}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleState(state.value);
+                        }}
+                        className="ml-1 hover:text-blue-600"
+                      >
+                        <FaTimes className="h-3 w-3" />
+                      </button>
+                    </span>
+                  );
+                })}
               </div>
             )}
 
@@ -104,10 +103,9 @@ export default function StateFilter({ states, selectedStates, onStatesChange, cl
               <input
                 type="text"
                 placeholder="Filter states..."
+                value={filterText}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                onChange={(e) => {
-                  // Implement filter logic if needed
-                }}
+                onChange={(e) => setFilterText(e.target.value)}
               />
             </div>
 
@@ -126,21 +124,21 @@ export default function StateFilter({ states, selectedStates, onStatesChange, cl
 
             <div className="border-t border-gray-200 pt-2">
               {/* State checkboxes */}
-              {states.map(state => (
+              {filteredStates.map(state => (
                 <label
-                  key={state}
+                  key={state.value}
                   className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded"
                 >
                   <input
                     type="checkbox"
-                    checked={selectedStates.includes(state)}
-                    onChange={() => handleToggleState(state)}
+                    checked={selectedStates.includes(state.value)}
+                    onChange={() => handleToggleState(state.value)}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
-                  <span className={`ml-2 text-sm ${getStateColor(state)}`}>
-                    {state.charAt(0).toUpperCase() + state.slice(1)}
+                  <span className={`ml-2 text-sm text-gray-700`}>
+                    {state.label}
                   </span>
-                  {selectedStates.includes(state) && (
+                  {selectedStates.includes(state.value) && (
                     <FaCheck className="ml-auto h-3 w-3 text-blue-600" />
                   )}
                 </label>

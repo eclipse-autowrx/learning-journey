@@ -8,7 +8,7 @@
 
 import Link from "next/link";
 
-const BreadCrumb = async ({ items }) => {
+const BreadCrumb = ({ items }) => {
 
     let config = {
         "HOME_LABEL": "Home"

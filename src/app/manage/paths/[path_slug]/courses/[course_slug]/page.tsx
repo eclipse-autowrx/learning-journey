@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { showToast } from '@/lib/utils/notifications';
+import { showToast, showDeleteConfirm } from '@/lib/utils/notifications';
 import Btn from '@/app/components/atom/Btn';
 import VideoLesson from '@/app/components/lessons/VideoLesson';
 import TextMarkdownLesson from '@/app/components/lessons/TextMarkdownLesson';
@@ -13,6 +13,9 @@ import InteractiveLesson from '@/app/components/lessons/InteractiveLesson';
 import UnknownLessonViewer from '@/app/components/lessons/UnknownLessonViewer';
 import UnknownLessonEditor from '@/app/components/lessons/UnknownLessonEditor';
 import VideoLessonEditor from '@/app/components/lessons/VideoLessonEditor';
+import { FaInfoCircle, FaEye } from "react-icons/fa";
+import QuizLessonEditor from '@/app/components/lessons/QuizLessonEditor';
+
 import {
   FaGraduationCap,
   FaBook,
@@ -25,8 +28,53 @@ import {
   FaCog,
   FaList,
   FaSave,
-  FaTimes
+  FaTimes,
+  FaArrowUp,
+  FaArrowDown,
+  FaGripVertical
 } from 'react-icons/fa';
+import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
+import { COURSE_STATES } from '@/lib/const';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+
+function validateQuizLesson(lesson: any) {
+  if (lesson.lesson_type !== 'quiz') {
+    return true; // Not a quiz, no validation needed
+  }
+
+  const questions = lesson.quiz_questions || [];
+  if (questions.length === 0) {
+    showToast.error('A quiz must have at least one question.');
+    return false;
+  }
+
+  for (const q of questions) {
+    if (!q.question?.trim()) {
+      showToast.error('All questions must have text.');
+      return false;
+    }
+    if (!q.answers || q.answers.length === 0) {
+      showToast.error(`Question "${q.question}" must have at least one answer.`);
+      return false;
+    }
+    let hasCorrect = false;
+    for (const a of q.answers) {
+      if (!a.label?.trim()) {
+        showToast.error(`All answers for question "${q.question}" must have text.`);
+        return false;
+      }
+      if (a.is_correct) {
+        hasCorrect = true;
+      }
+    }
+    if (!hasCorrect) {
+      showToast.error(`Question "${q.question}" must have one correct answer.`);
+      return false;
+    }
+  }
+
+  return true;
+}
 
 interface Course {
   _id: string;
@@ -70,6 +118,8 @@ export default function CourseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'info' | 'lessons'>('info');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [path, setPath] = useState<{ name: string, slug: string } | null>(null);
+  const [isLessonDirty, setIsLessonDirty] = useState(false);
 
   // Edit mode states
   const [isEditing, setIsEditing] = useState(false);
@@ -112,13 +162,15 @@ export default function CourseDetailPage() {
 
   const fetchCourseData = async () => {
     try {
-      const [courseRes, lessonsRes] = await Promise.all([
+      const [courseRes, lessonsRes, pathRes] = await Promise.all([
         fetch(`/api/courses/${courseSlug}`),
-        fetch(`/api/courses/${courseSlug}/lessons`)
+        fetch(`/api/courses/${courseSlug}/lessons`),
+        fetch(`/api/paths/${pathSlug}`)
       ]);
 
       const courseData = await courseRes.json();
       const lessonsData = await lessonsRes.json();
+      const pathData = await pathRes.json();
 
       if (courseData.success) {
         setCourse(courseData.data);
@@ -140,6 +192,9 @@ export default function CourseDetailPage() {
           setEditableLesson(lessonsData.data[0]);
         }
       }
+      if (pathData.success) {
+        setPath(pathData.data);
+      }
     } catch (error) {
       console.error('Error fetching course data:', error);
     } finally {
@@ -158,29 +213,10 @@ export default function CourseDetailPage() {
     }
   }, [selectedLessonSlug]);
 
-  const hasLessonChanges = useMemo(() => {
-    if (!selectedLesson || !editableLesson) return false;
-    const base: any = selectedLesson;
-    const edited: any = editableLesson;
-    const pick = (obj: any) => ({
-      name: obj.name,
-      slug: obj.slug,
-      lesson_type: obj.lesson_type,
-      duration: obj.duration,
-      description: obj.description,
-      markdown_content: obj.markdown_content,
-      video_url: obj.video_url,
-      video_provider: obj.video_provider,
-      video_duration: obj.video_duration,
-      quiz_questions: obj.quiz_questions,
-      sequence: obj.sequence,
-    });
-    try {
-      return JSON.stringify(pick(base)) !== JSON.stringify(pick(edited));
-    } catch {
-      return true;
-    }
-  }, [selectedLesson, editableLesson]);
+  const handleLessonContentChange = (newValue: any) => {
+    setEditableLesson((prev: any) => ({ ...prev, ...newValue }));
+    setIsLessonDirty(true);
+  };
 
   const mapLessonForRender = (lesson: Lesson) => {
     // Adapt minimal lesson shape to renderer expectations
@@ -221,46 +257,6 @@ export default function CourseDetailPage() {
         return common;
     }
   };
-
-  function VideoLessonEditor({ value, onChange }: { value: any, onChange: (v: any) => void }) {
-    return (
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Video URL</label>
-          <input className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-            value={value.video_url || ''}
-            onChange={e => onChange({ ...value, video_url: e.target.value })} />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Provider</label>
-          <input className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-            value={value.video_provider || ''}
-            onChange={e => onChange({ ...value, video_provider: e.target.value })} />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Duration (minutes)</label>
-          <input type="number" className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-            value={Math.max(0, Math.floor((value.video_duration || 0) / 60))}
-            onChange={e => onChange({ ...value, video_duration: Number(e.target.value) * 60 })} />
-        </div>
-      </div>
-    );
-  }
-
-
-  function QuizLessonEditor({ value, onChange }: { value: any, onChange: (v: any) => void }) {
-    return (
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">Quiz JSON</label>
-        <textarea rows={16}
-          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-mono"
-          value={JSON.stringify(value.quiz_questions || [], null, 2)}
-          onChange={e => {
-            try { const arr = JSON.parse(e.target.value); onChange({ ...value, quiz_questions: arr }); } catch { }
-          }} />
-      </div>
-    );
-  }
 
   function InteractiveLessonEditor({ value, onChange }: { value: any, onChange: (v: any) => void }) {
     return (
@@ -361,27 +357,162 @@ export default function CourseDetailPage() {
 
   const handleLessonSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    let submissionData: any = { ...lessonForm };
+    if (lessonForm.lesson_type === 'text-markdown') {
+      submissionData.markdown_content = `# Welcome to Your New Lesson!
+
+This is a sample lesson created in **Text-Markdown** format. You can use this to get started with your content creation.
+
+## Getting Started
+
+You can use standard Markdown syntax to format your text. Here are a few examples:
+
+- **Bold text:** \`**Bold text**\`
+- *Italic text:* \`*Italic text*\`
+- \`Code snippets:\` \`\` \`Code snippets\` \`\`
+
+### Lists
+
+You can create ordered or unordered lists.
+
+1.  First item
+2.  Second item
+3.  Third item
+
+- Unordered item
+- Another unordered item
+
+### Links and Images
+
+You can also add [links](https://www.example.com) and images:
+
+![Placeholder Image](https://via.placeholder.com/150)
+
+> This is a blockquote. You can use it to highlight important information.
+
+Now, you can go ahead and edit this content to create your amazing lesson!`;
+    } else if (lessonForm.lesson_type === 'quiz') {
+      submissionData.quiz_questions = [
+        {
+          "question": "Sample Question: What is the capital of France?",
+          "answers": [
+            { "label": "Paris", "is_correct": true },
+            { "label": "London" },
+            { "label": "Berlin" },
+            { "label": "Madrid" }
+          ]
+        }
+      ];
+    }
+
     try {
       // 1. Create lesson
       const lessonRes = await fetch('/api/lessons', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(lessonForm)
+        body: JSON.stringify(submissionData)
       });
       const lessonData = await lessonRes.json();
       if (!lessonData.success) throw new Error(lessonData.error || 'Failed to create lesson');
       const newLesson = lessonData.data;
       // 2. Add lesson to course
+      const updatedLessons = [...lessons.map(l => l._id), newLesson._id];
       await fetch(`/api/courses/${courseSlug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ $push: { lessons: newLesson._id } })
+        body: JSON.stringify({ lessons: updatedLessons })
       });
       showToast.success('Lesson created and added to course');
       setShowLessonModal(false);
       fetchCourseData();
     } catch (err: any) {
       showToast.error(err?.message || 'Failed to create lesson');
+    }
+  };
+
+  const handleDeleteLesson = async (lessonId: string) => {
+    const lessonToDelete = lessons.find(l => l._id === lessonId);
+    if (!lessonToDelete) return;
+
+    const result = await showDeleteConfirm(`lesson "${lessonToDelete.name}"`);
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      const updatedLessons = lessons.filter(l => l._id !== lessonId).map(l => l._id);
+      await fetch(`/api/courses/${courseSlug}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lessons: updatedLessons })
+      });
+      // Optionally, you might want to delete the lesson document itself if it's not referenced anywhere else
+      // await fetch(`/api/lessons/${lessonId}`, { method: 'DELETE' });
+      showToast.success('Lesson removed from course');
+      fetchCourseData();
+    } catch (err: any) {
+      showToast.error(err?.message || 'Failed to remove lesson');
+    }
+  };
+
+  const handleMoveLesson = async (lessonId: string, direction: 'up' | 'down') => {
+    const index = lessons.findIndex(l => l._id === lessonId);
+    if (index === -1) return;
+
+    const newLessons = [...lessons];
+    const [lesson] = newLessons.splice(index, 1);
+
+    if (direction === 'up' && index > 0) {
+      newLessons.splice(index - 1, 0, lesson);
+    } else if (direction === 'down' && index < newLessons.length) {
+      newLessons.splice(index + 1, 0, lesson);
+    } else {
+      return; // Cannot move further
+    }
+
+    try {
+      await fetch(`/api/courses/${courseSlug}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lessons: newLessons.map(l => l._id) })
+      });
+      showToast.success('Lesson moved');
+      setLessons(newLessons); // Optimistic update
+    } catch (err: any) {
+      showToast.error(err?.message || 'Failed to move lesson');
+      fetchCourseData(); // Re-fetch to correct state
+    }
+  };
+
+  const onDragEnd = (result: any) => {
+    if (!result.destination) {
+      return;
+    }
+
+    const items = Array.from(lessons);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setLessons(items); // Optimistic update
+
+    const lessonIds = items.map(item => item._id);
+
+    // Call API to update the order
+    updateLessonOrder(lessonIds);
+  };
+
+  const updateLessonOrder = async (lessonIds: string[]) => {
+    try {
+      await fetch(`/api/courses/${courseSlug}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lessons: lessonIds })
+      });
+      showToast.success('Lesson order updated');
+    } catch (err: any) {
+      showToast.error(err?.message || 'Failed to update lesson order');
+      fetchCourseData(); // Re-fetch to correct state in case of failure
     }
   };
 
@@ -396,7 +527,7 @@ export default function CourseDetailPage() {
     );
   }
 
-  if (!course) {
+  if (!course || !path) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -421,18 +552,17 @@ export default function CourseDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ManageBreadCrumb items={[
+        { label: 'Paths', link: '/manage?tab=paths' },
+        { label: path.name, link: `/manage/paths/${path.slug}` },
+        { label: 'Courses', link: `/manage/paths/${path.slug}` },
+        { label: course.name }
+      ]} />
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
-              <Link
-                href={`/manage/paths/${pathSlug}`}
-                className="mr-4 inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                <FaArrowLeft className="mr-2 h-4 w-4" />
-                Back to Path
-              </Link>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{course.name}</h1>
                 <p className="mt-1 text-sm text-gray-500">{course.slug}</p>
@@ -462,11 +592,12 @@ export default function CourseDetailPage() {
                 }}
                 className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="draft">draft</option>
-                <option value="published">published</option>
-                <option value="archived">archived</option>
+                {COURSE_STATES.map((state) => (
+                  <option key={state.value} value={state.value}>
+                    {state.label}
+                  </option>
+                ))}
               </select>
-              <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStateColor(course.state)}`}>{course.state}</span>
             </div>
           </div>
         </div>
@@ -559,20 +690,6 @@ export default function CourseDetailPage() {
                             />
                           ) : (
                             <dd className="text-sm text-gray-900">{course.category || '-'}</dd>
-                          )}
-                        </div>
-                        <div>
-                          <dt className="text-sm font-medium text-gray-700 mb-2">Duration</dt>
-                          {isEditing ? (
-                            <input
-                              type="number"
-                              value={editForm.duration}
-                              onChange={(e) => setEditForm({...editForm, duration: Number(e.target.value)})}
-                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="Duration in minutes"
-                            />
-                          ) : (
-                            <dd className="text-sm text-gray-900">{course.duration ? formatDuration(course.duration) : '-'}</dd>
                           )}
                         </div>
                       </div>
@@ -672,24 +789,52 @@ export default function CourseDetailPage() {
                   <div className="flex gap-6">
                     {/* Left: lesson list */}
                     <div className="w-[320px] min-w-[320px]">
-                      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                        <ul className="divide-y divide-gray-200">
-                          {lessons.map((l: any, index: number) => (
-                            <li
-                              key={l._id}
-                              className={`p-4 cursor-pointer ${selectedLessonSlug === l.slug ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
-                              onClick={() => setSelectedLessonSlug(l.slug)}
+                      <DragDropContext onDragEnd={onDragEnd}>
+                        <Droppable droppableId="lessons">
+                          {(provided) => (
+                            <div
+                              {...provided.droppableProps}
+                              ref={provided.innerRef}
+                              className="bg-white border border-gray-200 rounded-lg overflow-hidden"
                             >
-                              <div className="flex flex-col items-start space-y-1">
-                                <div className="text-sm font-medium text-gray-900">{index + 1}. {l.name}</div>
-                                <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full ${getLessonTypeColor(l.lesson_type)}`}>
-                                  {l.lesson_type}
-                                </span>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                              <ul className="divide-y divide-gray-200">
+                                {lessons.map((l: any, index: number) => (
+                                  <Draggable key={l._id} draggableId={l._id} index={index}>
+                                    {(provided) => (
+                                      <li
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        className={`p-4 cursor-pointer group ${selectedLessonSlug === l.slug ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+                                        onClick={() => setSelectedLessonSlug(l.slug)}
+                                      >
+                                        <div className="flex justify-between items-center">
+                                          <div className="flex items-center">
+                                            <div {...provided.dragHandleProps} className="p-1">
+                                              <FaGripVertical className="h-4 w-4 text-gray-400" />
+                                            </div>
+                                            <div className="flex flex-col items-start space-y-1 ml-2">
+                                              <div className="text-sm font-medium text-gray-900">{index + 1}. {l.name}</div>
+                                              <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full ${getLessonTypeColor(l.lesson_type)}`}>
+                                                {l.lesson_type}
+                                              </span>
+                                            </div>
+                                          </div>
+                                          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={(e) => { e.stopPropagation(); handleDeleteLesson(l._id); }} className="p-1 rounded-full hover:bg-red-100 text-red-500">
+                                              <FaTrash className="h-3 w-3" />
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </li>
+                                    )}
+                                  </Draggable>
+                                ))}
+                                {provided.placeholder}
+                              </ul>
+                            </div>
+                          )}
+                        </Droppable>
+                      </DragDropContext>
                     </div>
 
                     {/* Right: view/edit tabs with render and editor side-by-side */}
@@ -700,28 +845,45 @@ export default function CourseDetailPage() {
                         <div className="bg-white border border-gray-200 rounded-lg">
                           <div className="border-b border-gray-200 flex items-center justify-between">
                             <div className="flex">
+                              
                               <button onClick={() => setLessonDetailTab('info')} 
                                 className={`px-4 py-2 text-sm font-medium ${lessonDetailTab === 'info' ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600'}`}>
-                                  Lesson Info</button>
-                              <button onClick={() => setLessonDetailTab('view')} 
-                                className={`px-4 py-2 text-sm font-medium ${lessonDetailTab === 'view' ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600'}`}>
-                                  Content</button>
+                                <FaInfoCircle className="inline mr-2 h-4 w-4" />
+                                Lesson Info
+                              </button>
                               <button onClick={() => setLessonDetailTab('edit')} 
                                 className={`px-4 py-2 text-sm font-medium ${lessonDetailTab === 'edit' ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600'}`}>
-                                  Edit Content</button>
+                                <FaEdit className="inline mr-2 h-4 w-4" />
+                                Edit Content
+                              </button>
+                              <button onClick={() => setLessonDetailTab('view')} 
+                                className={`px-4 py-2 text-sm font-medium ${lessonDetailTab === 'view' ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600'}`}>
+                                <FaEye className="inline mr-2 h-4 w-4" />
+                                Preview
+                              </button>
+                              
                             </div>
                             <div className="px-4 py-2">
                               <button
-                                disabled={!hasLessonChanges}
-                                className={`inline-flex items-center px-4 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${hasLessonChanges ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'}`}
+                                disabled={!isLessonDirty}
+                                className={`inline-flex items-center px-4 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isLessonDirty ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'}`}
                                 onClick={async () => {
+                                  if (editableLesson.lesson_type === 'quiz' && !validateQuizLesson(editableLesson)) {
+                                    return; // Stop if validation fails
+                                  }
                                   try {
                                     const originalSlug = selectedLesson?.slug;
                                     const res = await fetch(`/api/lessons/${originalSlug}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editableLesson) });
                                     const data = await res.json();
                                     if (data.success) {
+                                      // Manually update the lesson in the list to avoid re-fetch
                                       setLessons(prev => prev.map(l => l.slug === originalSlug ? { ...l, ...editableLesson } as any : l));
-                                      setSelectedLessonSlug(editableLesson.slug || originalSlug);
+                                      // Update selected lesson slug if it changed
+                                      if (editableLesson.slug && editableLesson.slug !== originalSlug) {
+                                        setSelectedLessonSlug(editableLesson.slug);
+                                      }
+                                      setIsLessonDirty(false); // Reset dirty state
+                                      showToast.success('Lesson saved successfully');
                                     } else {
                                       showToast.error(data.error || 'Failed to save lesson');
                                     }
@@ -791,7 +953,7 @@ export default function CourseDetailPage() {
                               <div>
                                 {(() => {
                                   const adapted = mapLessonForRender(editableLesson as Lesson);
-                                  const onChange = (v: any) => setEditableLesson((prev: any) => ({ ...prev, ...v }));
+                                  const onChange = handleLessonContentChange;
                                   switch (editableLesson?.lesson_type) {
                                     case 'video':
                                       return <VideoLessonEditor value={adapted} onChange={onChange} />
@@ -853,45 +1015,6 @@ export default function CourseDetailPage() {
         </div>
       )}
 
-      {/* Checkboxes and Delete Selected button */}
-      {lessons.length > 0 && (
-        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Bulk Actions</h3>
-            {selectedLessons.length > 0 && (
-              <Btn variant="danger" onClick={async () => {
-                try {
-                  await fetch('/api/lessons/bulk', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ids: selectedLessons })
-                  });
-                  showToast.success('Lessons deleted');
-                  setSelectedLessons([]);
-                  fetchCourseData();
-                } catch (err) {
-                  showToast.error('Failed to delete lessons');
-                }
-              }}>Delete Selected ({selectedLessons.length})</Btn>
-            )}
-          </div>
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-            <ul className="divide-y divide-gray-200">
-              {lessons.map((l: any) => (
-                <li key={l._id} className="p-4 flex items-center">
-                  <input type="checkbox" checked={selectedLessons.includes(l._id)} onChange={e => setSelectedLessons(prev => e.target.checked ? [...prev, l._id] : prev.filter(id => id !== l._id))} className="mr-2" />
-                  <div className="flex flex-col items-start space-y-1">
-                    <div className="text-sm font-medium text-gray-900">{l.name}</div>
-                    <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full ${getLessonTypeColor(l.lesson_type)}`}>
-                      {l.lesson_type}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -21,6 +21,8 @@ import {
   FaSave,
   FaTimes
 } from 'react-icons/fa';
+import { COURSE_STATES, PATH_STATES } from '@/lib/const';
+import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
 
 interface Path {
   _id: string;
@@ -86,7 +88,7 @@ export default function PathDetailPage() {
   
   // Bulk selection and filter states
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
-  const [selectedCourseStates, setSelectedCourseStates] = useState<string[]>(['published', 'draft', 'archived', 'locked', 'released']);
+  const [selectedCourseStates, setSelectedCourseStates] = useState<string[]>(COURSE_STATES.map(s => s.value));
   const [showBulkActionModal, setShowBulkActionModal] = useState(false);
   const [bulkActionType, setBulkActionType] = useState<'state' | 'delete' | null>(null);
   const [bulkNewState, setBulkNewState] = useState<string>('draft');
@@ -492,18 +494,15 @@ export default function PathDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ManageBreadCrumb items={[
+        { label: 'Paths', link: '/manage?tab=paths' },
+        { label: path.name }
+      ]} />
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
-              <Link 
-                href="/manage"
-                className="mr-4 inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                <FaArrowLeft className="mr-2 h-4 w-4" />
-                Back
-              </Link>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{path.name}</h1>
                 <p className="mt-1 text-sm text-gray-500">
@@ -519,16 +518,13 @@ export default function PathDetailPage() {
                   onChange={(e) => handleStateChange(e.target.value)}
                   className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                  <option value="released">Released</option>
-                  <option value="archived">Archived</option>
-                  <option value="locked">Locked</option>
+                  {PATH_STATES.map((state) => (
+                    <option key={state.value} value={state.value}>
+                      {state.label}
+                    </option>
+                  ))}
                 </select>
               </div>
-              <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStateColor(pathState)}`}>
-                {pathState}
-              </span>
             </div>
           </div>
         </div>
@@ -637,60 +633,6 @@ export default function PathDetailPage() {
                             />
                           ) : (
                             <dd className="text-sm text-gray-900">{path.category || '-'}</dd>
-                          )}
-                        </div>
-
-                        <div>
-                          <dt className="text-sm font-medium text-gray-700 mb-2">Display Type</dt>
-                          {isEditing ? (
-                            <div className="flex items-center space-x-4">
-                              <button
-                                type="button"
-                                onClick={() => setEditForm({...editForm, configs: {...editForm.configs, display_type: 'list'}})}
-                                className={`flex items-center space-x-2 px-4 py-2 rounded-md border transition-colors ${
-                                  editForm.configs?.display_type === 'list'
-                                    ? 'bg-blue-50 border-blue-300 text-blue-700'
-                                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                                }`}
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                                </svg>
-                                <span className="text-sm font-medium">List</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setEditForm({...editForm, configs: {...editForm.configs, display_type: 'canvas'}})}
-                                className={`flex items-center space-x-2 px-4 py-2 rounded-md border transition-colors ${
-                                  editForm.configs?.display_type === 'canvas'
-                                    ? 'bg-blue-50 border-blue-300 text-blue-700'
-                                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                                }`}
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-                                </svg>
-                                <span className="text-sm font-medium">Canvas</span>
-                              </button>
-                            </div>
-                          ) : (
-                            <dd className="flex items-center space-x-2 text-sm text-gray-900">
-                              {path.configs?.display_type === 'canvas' ? (
-                                <>
-                                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-                                  </svg>
-                                  <span>Canvas</span>
-                                </>
-                              ) : (
-                                <>
-                                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                                  </svg>
-                                  <span>List</span>
-                                </>
-                              )}
-                            </dd>
                           )}
                         </div>
 
@@ -963,7 +905,7 @@ export default function PathDetailPage() {
                   </h3>
                   <div className="flex items-center space-x-3">
                     <StateFilter
-                      states={['published', 'draft', 'archived', 'locked', 'released']}
+                      states={COURSE_STATES}
                       selectedStates={selectedCourseStates}
                       onStatesChange={setSelectedCourseStates}
                     />
@@ -1113,7 +1055,7 @@ export default function PathDetailPage() {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(course.state)}`}>
-                                  {course.state}
+                                  {COURSE_STATES.find(s => s.value === course.state)?.label || course.state}
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -1138,7 +1080,7 @@ export default function PathDetailPage() {
                                         index === filteredArray.length - 1 ? 'bottom-full mb-2' : 'mt-2'
                                       }`}>
                                         <div className="py-1">
-                                          <button
+                                          {/* <button
                                             onClick={() => {
                                               // TODO: Implement edit course functionality
                                               setOpenDropdown(null);
@@ -1147,7 +1089,7 @@ export default function PathDetailPage() {
                                           >
                                             <FaEdit className="h-4 w-4 mr-2" />
                                             Edit Course
-                                          </button>
+                                          </button> */}
                                           <button
                                             onClick={() => {
                                               handleDeleteCourse(course);
@@ -1190,85 +1132,23 @@ export default function PathDetailPage() {
               </p>
               
               <div className="space-y-2">
-                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="newState"
-                    value="published"
-                    checked={bulkNewState === 'published'}
-                    onChange={(e) => setBulkNewState(e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-3 text-sm">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('published')}`}>
-                      Published
+                {COURSE_STATES.map((state) => (
+                  <label key={state.value} className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="newState"
+                      value={state.value}
+                      checked={bulkNewState === state.value}
+                      onChange={(e) => setBulkNewState(e.target.value)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="ml-3 text-sm">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(state.value)}`}>
+                        {state.label}
+                      </span>
                     </span>
-                  </span>
-                </label>
-                
-                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="newState"
-                    value="released"
-                    checked={bulkNewState === 'released'}
-                    onChange={(e) => setBulkNewState(e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-3 text-sm">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('released')}`}>
-                      Released
-                    </span>
-                  </span>
-                </label>
-                
-                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="newState"
-                    value="draft"
-                    checked={bulkNewState === 'draft'}
-                    onChange={(e) => setBulkNewState(e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-3 text-sm">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('draft')}`}>
-                      Draft
-                    </span>
-                  </span>
-                </label>
-                
-                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="newState"
-                    value="archived"
-                    checked={bulkNewState === 'archived'}
-                    onChange={(e) => setBulkNewState(e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-3 text-sm">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('archived')}`}>
-                      Archived
-                    </span>
-                  </span>
-                </label>
-                
-                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="newState"
-                    value="locked"
-                    checked={bulkNewState === 'locked'}
-                    onChange={(e) => setBulkNewState(e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-3 text-sm">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('locked')}`}>
-                      Locked
-                    </span>
-                  </span>
-                </label>
+                  </label>
+                ))}
               </div>
               
               <div className="flex justify-end space-x-3 mt-6">

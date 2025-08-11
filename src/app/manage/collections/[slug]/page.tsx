@@ -21,6 +21,8 @@ import {
   FaEllipsisV,
   FaArrowRight
 } from 'react-icons/fa';
+import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
+import { PATH_STATES, COLLECTION_STATES } from '@/lib/const';
 
 interface Collection {
   _id: string;
@@ -425,18 +427,15 @@ export default function CollectionDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ManageBreadCrumb items={[
+        { label: 'Collections', link: '/manage?tab=collections' },
+        { label: collection.name }
+      ]} />
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
-              <Link 
-                href="/manage"
-                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                <FaArrowLeft className="mr-2 h-4 w-4" />
-                Back to Management
-              </Link>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{collection.name}</h1>
                 <p className="mt-1 text-sm text-gray-500">
@@ -452,23 +451,21 @@ export default function CollectionDetailPage() {
                   onChange={(e) => handleStateChange(e.target.value)}
                   className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                  <option value="archived">Archived</option>
-                  <option value="locked">Locked</option>
+                  {COLLECTION_STATES.map((state) => (
+                    <option key={state.value} value={state.value}>
+                      {state.label}
+                    </option>
+                  ))}
                 </select>
               </div>
-              <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStateColor(collectionState)}`}>
-                {collectionState}
-              </span>
-              {activeTab === 'paths' && (
+              {/* {activeTab === 'paths' && (
                 <Btn
                   onClick={() => setShowAddPathModal(true)}
                 >
                   <FaPlus className="mr-2 h-4 w-4" />
                   Add Path
                 </Btn>
-              )}
+              )} */}
             </div>
           </div>
         </div>
@@ -570,15 +567,6 @@ export default function CollectionDetailPage() {
                       <p className="text-sm text-gray-900">{collection.category || '-'}</p>
                     )}
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      State
-                    </label>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(collectionState)}`}>
-                      {collectionState}
-                    </span>
-                  </div>
                 </div>
 
                 <div>
@@ -651,7 +639,7 @@ export default function CollectionDetailPage() {
                   </h3>
                   <div className="flex items-center space-x-3">
                     <StateFilter
-                      states={['published', 'draft', 'archived', 'locked']}
+                      states={PATH_STATES}
                       selectedStates={selectedPathStates}
                       onStatesChange={setSelectedPathStates}
                     />
