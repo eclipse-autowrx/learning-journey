@@ -23,6 +23,7 @@ import {
 } from 'react-icons/fa';
 import { COURSE_STATES, PATH_STATES } from '@/lib/const';
 import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
+import ImageEditor from '@/app/components/atom/ImageEditor';
 
 interface Path {
   _id: string;
@@ -72,14 +73,17 @@ export default function PathDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     name: '',
+    slug: '',
     description: '',
+    image: null as string | null,
+    background_img: null as string | null,
+    thumb: null as string | null,
     category: '',
+    state: '',
+    display_type: 'list',
     tags: [] as string[],
     valid_from: '',
     valid_to: '',
-    image: '',
-    background_img: '',
-    thumb: '',
     configs: {
       display_type: 'canvas'
     }
@@ -128,14 +132,17 @@ export default function PathDetailPage() {
         // Set edit form with current data
         setEditForm({
           name: pathData.data.name || '',
+          slug: pathData.data.slug || '',
           description: pathData.data.description || '',
+          image: pathData.data.image || null,
+          background_img: pathData.data.background_img || null,
+          thumb: pathData.data.thumb || null,
           category: pathData.data.category || '',
+          state: pathData.data.state || 'draft',
+          display_type: pathData.data.configs?.display_type || 'canvas',
           tags: pathData.data.tags || [],
           valid_from: pathData.data.valid_from ? pathData.data.valid_from.split('T')[0] : '',
           valid_to: pathData.data.valid_to ? pathData.data.valid_to.split('T')[0] : '',
-          image: pathData.data.image || '',
-          background_img: pathData.data.background_img || '',
-          thumb: pathData.data.thumb || '',
           configs: {
             display_type: pathData.data.configs?.display_type || 'canvas'
           }
@@ -303,14 +310,17 @@ export default function PathDetailPage() {
     if (path) {
       setEditForm({
         name: path.name || '',
+        slug: path.slug || '',
         description: path.description || '',
+        image: path.image || null,
+        background_img: path.background_img || null,
+        thumb: path.thumb || null,
         category: path.category || '',
+        state: path.state || 'draft',
+        display_type: path.configs?.display_type || 'canvas',
         tags: path.tags || [],
         valid_from: path.valid_from ? path.valid_from.split('T')[0] : '',
         valid_to: path.valid_to ? path.valid_to.split('T')[0] : '',
-        image: path.image || '',
-        background_img: path.background_img || '',
-        thumb: path.thumb || '',
         configs: {
           display_type: path.configs?.display_type || 'canvas'
         }
@@ -759,63 +769,14 @@ export default function PathDetailPage() {
                       )}
                     </dl>
                   </div>
-
-                  {/* Path Image */}
-                  <div className="w-[300px] flex-shrink-0">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-medium text-gray-900">Image</h3>
-                      {!isEditing && (
-                        <Btn variant="link">
-                          <FaEdit className="mr-1.5 h-3.5 w-3.5" />
-                          {path.image ? 'Change Image' : 'Upload Image'}
-                        </Btn>
-                      )}
-                    </div>
-                    <div className="space-y-4">
-                      {isEditing ? (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
-                          <input
-                            type="url"
-                            value={editForm.image}
-                            onChange={(e) => setEditForm({...editForm, image: e.target.value})}
-                            className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="https://example.com/image.jpg"
-                          />
-                          {editForm.image && (
-                            <div className="mt-3">
-                              <img
-                                src={editForm.image}
-                                alt="Preview"
-                                className="w-[300px] h-[200px] object-cover rounded-lg border border-gray-200"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                }}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <>
-                          {path.image ? (
-                            <div>
-                              <img 
-                                src={path.image} 
-                                alt={path.name}
-                                className="w-[300px] h-[300px] object-cover rounded-lg border border-gray-200"
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-[300px] h-[300px] border-2 border-dashed border-gray-300 rounded-lg text-center flex items-center justify-center">
-                              <div>
-                                <FaRoute className="mx-auto h-12 w-12 text-gray-400" />
-                                <p className="mt-2 text-sm text-gray-500">No image uploaded</p>
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
+                  <div className="w-[300px] flex-shrink-0 space-y-6">
+                    <ImageEditor 
+                      label="Image"
+                      imageUrl={editForm.image}
+                      onImageUrlChange={(url) => setEditForm({ ...editForm, image: url })}
+                      allowDelete={false}
+                      mode="avatar"
+                    />
                   </div>
                 </div>
 
@@ -856,8 +817,8 @@ export default function PathDetailPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Background Image URL</label>
                       <input
                         type="url"
-                        value={editForm.background_img}
-                        onChange={(e) => setEditForm({...editForm, background_img: e.target.value})}
+                        value={editForm.background_img || ''}
+                        onChange={(e) => setEditForm({...editForm, background_img: e.target.value || null})}
                         className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         placeholder="https://example.com/background.jpg"
                       />

@@ -1,30 +1,39 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
+import Editor from '@monaco-editor/react';
 
-export default function TextMarkdownEditor({ value, onChange }) {
-  const [markdown, setMarkdown] = useState('')
+const TextMarkdownEditor = ({ value, onChange }) => {
+  const [markdown, setMarkdown] = useState('');
 
   useEffect(() => {
-    setMarkdown(value?.markdown_content || '')
-  }, [value])
+    setMarkdown(value?.markdown_content || '');
+  }, [value]);
 
-  const update = (md) => {
-    setMarkdown(md)
-    onChange && onChange({ markdown_content: md })
-  }
+  const update = (newValue) => {
+    setMarkdown(newValue);
+    onChange({ markdown_content: newValue });
+  };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Markdown Content</label>
-        <textarea
-          rows={14}
-          className="mt-1 min-h-[400px] block w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-mono"
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700">Markdown Content</label>
+      <div className="border border-gray-300 rounded-md overflow-hidden">
+        <Editor
+          height="400px"
+          language="markdown"
           value={markdown}
-          onChange={(e) => update(e.target.value)}
+          onChange={(value) => update(value || '')}
+          options={{
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            fontSize: 14,
+            wordWrap: 'on',
+          }}
         />
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default TextMarkdownEditor;

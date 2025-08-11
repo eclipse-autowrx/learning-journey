@@ -15,6 +15,7 @@ import UnknownLessonEditor from '@/app/components/lessons/UnknownLessonEditor';
 import VideoLessonEditor from '@/app/components/lessons/VideoLessonEditor';
 import { FaInfoCircle, FaEye } from "react-icons/fa";
 import QuizLessonEditor from '@/app/components/lessons/QuizLessonEditor';
+import InteractiveLessonEditor from '@/app/components/lessons/InteractiveLessonEditor';
 
 import {
   FaGraduationCap,
@@ -36,6 +37,7 @@ import {
 import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
 import { COURSE_STATES } from '@/lib/const';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import ImageEditor from '@/app/components/atom/ImageEditor';
 
 function validateQuizLesson(lesson: any) {
   if (lesson.lesson_type !== 'quiz') {
@@ -130,7 +132,7 @@ export default function CourseDetailPage() {
     duration: 0,
     icon: '',
     top_icon: '',
-    image: ''
+    image: null as string | null,
   });
 
   // Add state for showLessonModal, lessonForm, and selectedLessons
@@ -182,7 +184,7 @@ export default function CourseDetailPage() {
           duration: courseData.data.duration || 0,
           icon: courseData.data.icon || '',
           top_icon: courseData.data.top_icon || '',
-          image: courseData.data.image || ''
+          image: courseData.data.image || null
         });
       }
       if (lessonsData.success) {
@@ -250,27 +252,17 @@ export default function CourseDetailPage() {
       case 'interactive':
         return {
           ...common,
-          sequence: (lesson as any).sequence || undefined,
-          context: (lesson as any).context || undefined,
+          name: (lesson as any).sequence?.name || lesson.name,
+          description: (lesson as any).sequence?.description || lesson.description,
+          auto_run_next: (lesson as any).sequence?.auto_run_next ?? true,
+          auto_start: (lesson as any).sequence?.auto_start ?? true,
+          trigger_source: (lesson as any).sequence?.trigger_source || 'learning',
+          actions: (lesson as any).sequence?.actions || [],
         };
       default:
         return common;
     }
   };
-
-  function InteractiveLessonEditor({ value, onChange }: { value: any, onChange: (v: any) => void }) {
-    return (
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">Sequence JSON</label>
-        <textarea rows={16}
-          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-mono"
-          value={JSON.stringify(value.sequence || {}, null, 2)}
-          onChange={e => {
-            try { const obj = JSON.parse(e.target.value); onChange({ ...value, sequence: obj }); } catch { }
-          }} />
-      </div>
-    );
-  }
 
   const getStateColor = (state: string) => {
     switch (state) {
@@ -344,7 +336,7 @@ export default function CourseDetailPage() {
         duration: course.duration || 0,
         icon: course.icon || '',
         top_icon: course.top_icon || '',
-        image: course.image || ''
+        image: course.image || null
       });
     }
   };
@@ -710,60 +702,13 @@ Now, you can go ahead and edit this content to create your amazing lesson!`;
                   </div>
                   {/* Course Image */}
                   <div className="w-[300px] flex-shrink-0">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-medium text-gray-900">Image</h3>
-                      {!isEditing && (
-                        <Btn variant="link">
-                          <FaEdit className="mr-1.5 h-3.5 w-3.5" />
-                          {course.image ? 'Change Image' : 'Upload Image'}
-                        </Btn>
-                      )}
-                    </div>
-                    <div className="space-y-4">
-                      {isEditing ? (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
-                          <input
-                            type="url"
-                            value={editForm.image}
-                            onChange={(e) => setEditForm({...editForm, image: e.target.value})}
-                            className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="https://example.com/image.jpg"
-                          />
-                          {editForm.image && (
-                            <div className="mt-3">
-                              <img
-                                src={editForm.image}
-                                alt="Preview"
-                                className="w-[300px] h-[200px] object-cover rounded-lg border border-gray-200"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                }}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <>
-                          {course.image ? (
-                            <div>
-                              <img
-                                src={course.image}
-                                alt={course.name}
-                                className="w-[300px] h-[300px] object-cover rounded-lg border border-gray-200"
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-[300px] h-[300px] border-2 border-dashed border-gray-300 rounded-lg text-center flex items-center justify-center">
-                              <div>
-                                <FaBook className="mx-auto h-12 w-12 text-gray-400" />
-                                <p className="mt-2 text-sm text-gray-500">No image uploaded</p>
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
+                    <ImageEditor
+                      label="Course Image"
+                      imageUrl={editForm.image}
+                      onImageUrlChange={(url) => setEditForm({ ...editForm, image: url })}
+                      allowDelete={false}
+                      mode="avatar"
+                    />
                   </div>
                 </div>
               </div>

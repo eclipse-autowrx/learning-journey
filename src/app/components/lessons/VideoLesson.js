@@ -97,8 +97,8 @@ export default function VideoLesson({ lesson, onComplete }) {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">{lesson.name}</h1>
           <p className="text-gray-600 mb-4">{lesson.description}</p>
           <div className="flex items-center space-x-4 text-sm text-gray-500">
-            <span>Duration: {formatTime(lesson.video_duration || 0)}</span>
-            <span>Provider: {lesson.video_provider}</span>
+            <span>Duration: <b>{formatTime(lesson.video_duration || 0)} minutes</b></span>
+            <span>Provider: <b>{lesson.video_provider}</b></span>
             {hasWatched && (
               <span className="text-green-600 font-medium">✓ Completed</span>
             )}
@@ -108,18 +108,29 @@ export default function VideoLesson({ lesson, onComplete }) {
         {/* Video Player */}
         <div className="relative bg-black">
           {lesson.video_url ? (
-            <video
-              id="lesson-video"
-              className="w-full h-96 object-contain"
-              onTimeUpdate={handleTimeUpdate}
-              onLoadedMetadata={handleLoadedMetadata}
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              controls
-            >
-              <source src={lesson.video_url} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
+            lesson.video_provider === 'youtube' ? (
+              <iframe
+                className="w-full h-96"
+                src={getVideoEmbedUrl(lesson.video_url, 'youtube')}
+                title={lesson.name}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            ) : (
+              <video
+                id="lesson-video"
+                className="w-full h-96 object-contain"
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={handleLoadedMetadata}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                controls
+              >
+                <source src={lesson.video_url} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            )
           ) : (
             <div className="w-full h-96 flex items-center justify-center bg-gray-900">
               <div className="text-center text-white">
@@ -129,33 +140,35 @@ export default function VideoLesson({ lesson, onComplete }) {
             </div>
           )}
 
-          {/* Custom Controls Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={togglePlayPause}
-                className="text-white hover:text-gray-300 transition-colors"
-              >
-                {isPlaying ? <FaPause size={20} /> : <FaPlay size={20} />}
-              </button>
-              
-              <div className="flex-1 mx-4">
-                <div className="w-full bg-gray-600 rounded-full h-2">
-                  <div
-                    className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${progress}%` }}
-                  />
+          {/* Custom Controls Overlay - Hide for YouTube */}
+          {lesson.video_provider !== 'youtube' && (
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={togglePlayPause}
+                  className="text-white hover:text-gray-300 transition-colors"
+                >
+                  {isPlaying ? <FaPause size={20} /> : <FaPlay size={20} />}
+                </button>
+                
+                <div className="flex-1 mx-4">
+                  <div className="w-full bg-gray-600 rounded-full h-2">
+                    <div
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
                 </div>
+                
+                <button
+                  onClick={toggleFullscreen}
+                  className="text-white hover:text-gray-300 transition-colors"
+                >
+                  {isFullscreen ? <FaCompress size={20} /> : <FaExpand size={20} />}
+                </button>
               </div>
-              
-              <button
-                onClick={toggleFullscreen}
-                className="text-white hover:text-gray-300 transition-colors"
-              >
-                {isFullscreen ? <FaCompress size={20} /> : <FaExpand size={20} />}
-              </button>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Progress Bar */}

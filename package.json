@@ -23,6 +23,7 @@
   "dependencies": {
     "@ckeditor/ckeditor5-react": "^9.5.0",
     "@hello-pangea/dnd": "^18.0.1",
+    "@monaco-editor/react": "^4.7.0",
     "dayjs": "^1.11.13",
     "dotenv": "^16.6.1",
     "formidable": "^3.5.4",

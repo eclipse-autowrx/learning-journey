@@ -43,3 +43,9 @@ yarn-error.log*
 next-env.d.ts
 
 # database backups
+
+# media files
+public/files/*
+public/images/*
+!public/files/.gitkeep
+!public/images/.gitkeep
