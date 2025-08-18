@@ -11,6 +11,8 @@
 import { useEffect, useState } from "react"
 import BtnFullRounded from "../atom/BtnFullRounded";
 import Markdown from 'react-markdown'
+import { FaPlay, FaPause, FaExpand, FaCompress } from 'react-icons/fa';
+
 
 const components = {
     // Headings
@@ -131,6 +133,10 @@ const components = {
 
 const VideoLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
 
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
     if (!lesson) return <></>
 
     useEffect(() => {
@@ -140,6 +146,57 @@ const VideoLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
             }
         }, [3000])
     }, [])
+
+    const handleTimeUpdate = (e) => {
+        const video = e.target;
+        setProgress((video.currentTime / video.duration) * 100);
+    };
+
+    const handleLoadedMetadata = (e) => {
+        // You might want to do something when video metadata is loaded
+    };
+
+    const togglePlayPause = () => {
+        const video = document.getElementById('lesson-video');
+        if (video) {
+            video.paused ? video.play() : video.pause();
+        }
+    };
+    
+    const toggleFullscreen = () => {
+        const video = document.getElementById('lesson-video');
+        if (!document.fullscreenElement) {
+            video.requestFullscreen().catch(err => {
+                alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    };
+
+    const getVideoEmbedUrl = (url, provider) => {
+        if (provider === 'youtube') {
+            let videoId;
+            try {
+                const urlObj = new URL(url);
+                if (urlObj.hostname === 'youtu.be') {
+                    videoId = urlObj.pathname.slice(1);
+                } else {
+                    videoId = urlObj.searchParams.get('v');
+                }
+            } catch (e) {
+                // Fallback for invalid URLs
+                const match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                videoId = match && match[1];
+            }
+
+            if (videoId) {
+                return `https://www.youtube.com/embed/${videoId}`;
+            }
+        }
+        return url;
+    };
+
 
     return <div className="w-full px-2">
         <div className="my-2 pb-2 border-b border-slate-600">
@@ -183,7 +240,7 @@ const VideoLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
           )}
 
           {/* Custom Controls Overlay - Hide for YouTube */}
-          {lesson.video_provider !== 'youtube' && (
+          {/* {lesson.video_provider !== 'youtube' && (
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
               <div className="flex items-center justify-between">
                 <button
@@ -210,7 +267,7 @@ const VideoLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
                 </button>
               </div>
             </div>
-          )}
+          )} */}
         </div>
 
         {/* Progress Bar */}
@@ -250,7 +307,6 @@ const VideoLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
             </div>
           )}
         </div>
-      </div>
     </div>
-  );
 }
+export default VideoLesson;
