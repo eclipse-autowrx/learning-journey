@@ -1,3 +1,11 @@
+// Copyright (c) 2025 Eclipse Foundation.
+// 
+// This program and the accompanying materials are made available under the
+// terms of the MIT License which is available at
+// https://opensource.org/licenses/MIT.
+//
+// SPDX-License-Identifier: MIT
+
 import { CollectionService } from '../../../lib/services/dataService.js';
 import { CourseProgress, Path } from '../../../lib/models/index.js';
 import { check_auth } from '../../../lib/backend/check_auth.js';

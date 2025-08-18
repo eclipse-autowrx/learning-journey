@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Eclipse Foundation.
+// 
+// This program and the accompanying materials are made available under the
+// terms of the MIT License which is available at
+// https://opensource.org/licenses/MIT.
+//
+// SPDX-License-Identifier: MIT
 import dbConnect from '@/lib/mongodb';
 import Path from '@/lib/models/Path';
 import Course from '@/lib/models/Course';

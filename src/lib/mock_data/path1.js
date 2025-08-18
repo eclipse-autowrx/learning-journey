@@ -1,3 +1,11 @@
+// Copyright (c) 2025 Eclipse Foundation.
+// 
+// This program and the accompanying materials are made available under the
+// terms of the MIT License which is available at
+// https://opensource.org/licenses/MIT.
+//
+// SPDX-License-Identifier: MIT
+
 export const PATH1 = {
     _id: "64b8f3e4c9d1f2a0b8e4f3e4",
     name: "[Coursera] SDV 101: Introduction to SDV",

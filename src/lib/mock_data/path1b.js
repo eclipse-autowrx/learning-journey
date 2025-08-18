@@ -1,3 +1,11 @@
+// Copyright (c) 2025 Eclipse Foundation.
+// 
+// This program and the accompanying materials are made available under the
+// terms of the MIT License which is available at
+// https://opensource.org/licenses/MIT.
+//
+// SPDX-License-Identifier: MIT
+
 export const PATH1B = {
   _id: "652f3c2e4f1a2b3c4d5e6f7d",
   name: "[sdv.guide] SDV102",
