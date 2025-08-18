@@ -131,14 +131,14 @@ if (!mongoReady) {
   process.exit(1);
 }
 
-console.log('\n📊 Running data migration...');
-try {
-  execSync('npm run migrate', { stdio: 'inherit' });
-  console.log('✅ Data migration completed');
-} catch (error) {
-  console.error('❌ Data migration failed:', error.message);
-  process.exit(1);
-}
+// console.log('\n📊 Running data migration...');
+// try {
+//   execSync('npm run migrate', { stdio: 'inherit' });
+//   console.log('✅ Data migration completed');
+// } catch (error) {
+//   console.error('❌ Data migration failed:', error.message);
+//   process.exit(1);
+// }
 
 // Wait for application to be ready
 console.log('\n⏳ Waiting for application to be ready...');

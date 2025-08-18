@@ -26,13 +26,20 @@ try {
   process.exit(1);
 }
 
-// Check if Docker Compose is installed
+// Resolve Docker Compose command (plugin or legacy)
+let composeCmd = 'docker compose';
 try {
-  execSync('docker-compose --version', { stdio: 'pipe' });
-  console.log('✅ Docker Compose is installed');
-} catch (error) {
-  console.error('❌ Docker Compose is not installed. Please install Docker Compose first.');
-  process.exit(1);
+  execSync('docker compose version', { stdio: 'pipe' });
+  console.log('✅ Docker Compose (plugin) is available');
+} catch (e) {
+  try {
+    execSync('docker-compose --version', { stdio: 'pipe' });
+    composeCmd = 'docker-compose';
+    console.log('✅ Docker Compose (legacy) is available');
+  } catch (err) {
+    console.error('❌ Docker Compose not found. Install Docker Desktop and enable WSL integration, or install docker-compose.');
+    process.exit(1);
+  }
 }
 
 // Check if .env.dev exists
@@ -66,7 +73,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 console.log('\n🔧 Starting MongoDB and MongoDB Express...');
 try {
-  execSync('docker-compose -f docker-compose.dev.yml up -d', { stdio: 'inherit' });
+  execSync(`${composeCmd} -f docker-compose.dev.yml up -d`, { stdio: 'inherit' });
   console.log('✅ Development services started');
 } catch (error) {
   console.error('❌ Failed to start development services:', error.message);
@@ -82,7 +89,7 @@ const maxAttempts = 30;
 
 const waitForMongo = async () => {
   try {
-    execSync('docker-compose -f docker-compose.dev.yml exec -T mongodb mongosh --eval "db.runCommand(\'ping\')"', { 
+    execSync(`${composeCmd} -f docker-compose.dev.yml exec -T mongodb mongosh --eval "db.runCommand('ping')"`, { 
       stdio: 'pipe',
       timeout: 5000 
     });
@@ -105,14 +112,14 @@ if (!mongoReady) {
   process.exit(1);
 }
 
-console.log('\n📊 Running data migration...');
-try {
-  execSync('npm run migrate', { stdio: 'inherit' });
-  console.log('✅ Data migration completed');
-} catch (error) {
-  console.error('❌ Data migration failed:', error.message);
-  process.exit(1);
-}
+// console.log('\n📊 Running data migration...');
+// try {
+//   execSync('npm run migrate', { stdio: 'inherit' });
+//   console.log('✅ Data migration completed');
+// } catch (error) {
+//   console.error('❌ Data migration failed:', error.message);
+//   process.exit(1);
+// }
 
 console.log('\n🎉 Development setup completed successfully!');
 console.log('\n📋 Next steps:');
