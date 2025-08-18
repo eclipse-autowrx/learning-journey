@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
+import { saveAs } from 'file-saver';
 import { 
   FaFolder, 
   FaRoute, 
@@ -14,12 +15,21 @@ import {
   FaEllipsisV,
   FaEdit,
   FaTrash,
-  FaArrowLeft
+  FaArrowLeft,
+  FaDownload,
+  FaUpload,
+  FaTree,
+  FaFileImport,
+  FaTimes,
+  FaSave
 } from 'react-icons/fa';
+import { VscJson } from 'react-icons/vsc';
 import StateFilter from '@/app/components/atom/StateFilter';
 import Btn from '@/app/components/atom/Btn';
 import TagEditor from '@/app/components/atom/TagEditor';
 import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
+import ImportTreeView from '@/app/components/atom/ImportTreeView';
+import ImportContentViewer from '@/app/components/atom/ImportContentViewer';
 import { 
   showDeleteConfirm, 
   showBulkDeleteConfirm, 
@@ -28,6 +38,7 @@ import {
   showToast
 } from '@/lib/utils/notifications';
 import { COLLECTION_STATES, PATH_STATES } from '@/lib/const';
+import React from 'react';
 
 interface Collection {
   _id: string;
@@ -82,7 +93,7 @@ export default function ManagePage() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [paths, setPaths] = useState<Path[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'collections' | 'paths'>(searchParams?.get('tab') === 'paths' ? 'paths' : 'collections');
+  const [activeTab, setActiveTab] = useState<'collections' | 'paths' | 'studio'>(searchParams?.get('tab') === 'paths' ? 'paths' : (searchParams?.get('tab') === 'studio' ? 'studio' : 'collections'));
 
   // Filter states
   const [selectedCollectionStates, setSelectedCollectionStates] = useState<string[]>(COLLECTION_STATES.map(s => s.value));
@@ -134,8 +145,18 @@ export default function ManagePage() {
   
   // Bulk action modal state
   const [showBulkActionModal, setShowBulkActionModal] = useState(false);
-  const [bulkActionType, setBulkActionType] = useState<'state' | 'delete' | null>(null);
+  const [bulkActionType, setBulkActionType] = useState<'state' | 'delete' | 'download' | null>(null);
   const [bulkNewState, setBulkNewState] = useState<string>('draft');
+
+  // Import Studio states
+  const [importedData, setImportedData] = useState<any | null>(null);
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+  const [imageBlobs, setImageBlobs] = useState<Record<string, Blob>>({});
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [selectedTreeItem, setSelectedTreeItem] = useState<any | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
 
   useEffect(() => {
     fetchData();
@@ -543,6 +564,198 @@ export default function ManagePage() {
     }
   };
 
+  const handleBulkDownload = async () => {
+    const itemType = 'paths';
+    const selectedItems = selectedPaths;
+
+    showToast.info(`Preparing download for ${selectedItems.length} path(s)...`);
+
+    try {
+      const response = await fetch(`/api/paths/export`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ids: selectedItems
+        }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        saveAs(blob, `learning-journey-paths-export-${new Date().toISOString()}.zip`);
+        showToast.success('Download started successfully!');
+        setSelectedPaths([]);
+      } else {
+        const error = await response.json();
+        showToast.error(`Error: ${error.error || 'Failed to download paths'}`);
+      }
+    } catch (error) {
+      console.error('Error downloading paths:', error);
+      showToast.error('Failed to download paths');
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    showToast.info('Reading zip file...');
+
+    try {
+      const JSZip = (await import('jszip')).default;
+      const zip = await JSZip.loadAsync(file);
+      
+      const dataFile = zip.file('data.json');
+      if (!dataFile) {
+        throw new Error('data.json not found in the zip file.');
+      }
+      const dataContent = await dataFile.async('string');
+      const jsonData = JSON.parse(dataContent);
+      setImportedData(jsonData);
+
+      const newImageUrls: Record<string, string> = {};
+      const newImageBlobs: Record<string, Blob> = {};
+      const imagePromises: Promise<void>[] = [];
+      zip.folder('images')?.forEach((relativePath, file) => {
+        if (!file.dir) {
+          const promise = file.async('blob').then(blob => {
+            const url = URL.createObjectURL(blob);
+            const originalPath = `/images/${relativePath}`;
+            newImageUrls[originalPath] = url;
+            newImageBlobs[originalPath] = blob;
+          });
+          imagePromises.push(promise);
+        }
+      });
+
+      await Promise.all(imagePromises);
+      setImageUrls(newImageUrls);
+      setImageBlobs(newImageBlobs);
+
+      showToast.success('File imported successfully. Ready for review.');
+    } catch (error: any) {
+      console.error('Error reading zip file:', error);
+      showToast.error(`Failed to read zip file: ${error.message}`);
+      setImportedData(null);
+      setImageUrls({});
+      setImageBlobs({});
+    } finally {
+      setIsImporting(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleTreeSelect = (item: any, type: string) => {
+    setSelectedTreeItem({ item, type });
+  };
+
+  const handleTreeDelete = (itemToDelete: any, type: string) => {
+    if (!importedData) return;
+
+    const deleteRecursive = (items: any[], id: string) => {
+      return items.filter(item => {
+        if (item._id === id) return false;
+        if (item.courses) {
+          item.courses = deleteRecursive(item.courses, id);
+        }
+        if (item.lessons) {
+          item.lessons = deleteRecursive(item.lessons, id);
+        }
+        return true;
+      });
+    };
+
+    const newPaths = deleteRecursive(importedData.paths, itemToDelete._id);
+    setImportedData({ ...importedData, paths: newPaths });
+    
+    // If the deleted item was selected, clear the viewer
+    if (selectedTreeItem?.item?._id === itemToDelete._id) {
+      setSelectedTreeItem(null);
+    }
+
+    showToast.success(`"${itemToDelete.name}" removed from import.`);
+  };
+
+  const handleImportedItemChange = (updatedItem: any) => {
+    if (!importedData) return;
+
+    const updateRecursive = (items: any[]): any[] => {
+      return items.map(item => {
+        if (item._id === updatedItem._id) {
+          return updatedItem;
+        }
+        if (item.courses) {
+          item.courses = updateRecursive(item.courses);
+        }
+        if (item.lessons) {
+          item.lessons = updateRecursive(item.lessons);
+        }
+        return item;
+      });
+    };
+
+    const newPaths = updateRecursive(importedData.paths);
+    setImportedData({ ...importedData, paths: newPaths });
+
+    // Also update the selected item to avoid stale data in the viewer
+    setSelectedTreeItem((prev: any) => (prev ? { ...prev, item: updatedItem } : null));
+  };
+
+
+  const handleSaveImport = async () => {
+    if (!importedData) {
+      showToast.error("No data to save.");
+      return;
+    }
+
+    setIsSaving(true);
+    showToast.info("Saving imported data to the database...");
+
+    try {
+      // We don't need to send images, as they are saved separately if needed,
+      // and the backend will handle creating new records.
+      const formData = new FormData();
+      formData.append('data', JSON.stringify(importedData));
+      
+      Object.entries(imageBlobs).forEach(([path, blob]) => {
+        // Use the original path as the key for the backend to map old to new
+        formData.append(path, blob);
+      });
+
+      const response = await fetch('/api/paths/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        showToast.success(result.message || "Data imported successfully!");
+        setImportedData(null);
+        setSelectedTreeItem(null);
+        setImageUrls({});
+        setImageBlobs({});
+        fetchData(); // Refresh the main data view
+      } else {
+        const error = await response.json();
+        showToast.error(`Failed to import data: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error saving imported data:', error);
+      showToast.error('An unexpected error occurred while saving.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
@@ -604,6 +817,16 @@ export default function ManagePage() {
                 }`}
               >
                 Paths ({paths.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('studio')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'studio'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Import
               </button>
             </nav>
           </div>
@@ -887,6 +1110,15 @@ export default function ManagePage() {
                                 </Btn>
                                 <Btn
                                   onClick={() => {
+                                    setBulkActionType('download');
+                                    handleBulkDownload();
+                                  }}
+                                >
+                                  <FaDownload className="mr-2 h-3.5 w-3.5" />
+                                  Download
+                                </Btn>
+                                <Btn
+                                  onClick={() => {
                                     setBulkActionType('delete');
                                     handleBulkDelete();
                                   }}
@@ -1041,6 +1273,68 @@ export default function ManagePage() {
                       </div>
                     )
                   })()
+                )}
+              </div>
+            )}
+
+            {activeTab === 'studio' && (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Import Studio
+                  </h3>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      className="hidden"
+                      accept=".zip"
+                    />
+                    <Btn onClick={handleImportClick} disabled={isImporting}>
+                      {isImporting ? 'Importing...' : <><FaFileImport className="mr-2 h-4 w-4" /> Import from Zip</>}
+                    </Btn>
+                    {importedData && (
+                       <Btn onClick={handleSaveImport} disabled={isSaving}>
+                        {isSaving ? 'Saving...' : <><FaSave className="mr-2 h-4 w-4" /> Save to DB</>}
+                      </Btn>
+                    )}
+                  </div>
+                </div>
+                {importedData ? (
+                   <div className="flex gap-6">
+                    <div className="w-1/3">
+                      <div className="p-4 border rounded-lg bg-gray-50 h-[600px] overflow-auto">
+                        <h4 className="font-bold mb-2 text-gray-700">Imported Content</h4>
+                        <ImportTreeView 
+                          data={importedData}
+                          onSelect={handleTreeSelect}
+                          onDelete={handleTreeDelete}
+                          selectedItem={selectedTreeItem}
+                        />
+                      </div>
+                    </div>
+                    <div className="w-2/3">
+                      <div className="p-4 border rounded-lg bg-white h-[600px] overflow-auto">
+                        <ImportContentViewer 
+                          selectedItem={selectedTreeItem}
+                          imageUrls={imageUrls}
+                          onItemChange={handleImportedItemChange}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div 
+                    onClick={handleImportClick}
+                    className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-gray-50"
+                  >
+                    <FaUpload className="mx-auto h-12 w-12 text-gray-400" />
+                    <h3 className="mt-2 text-sm font-medium text-gray-900">No file imported</h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {isImporting ? 'Processing file...' : 'Click here or use the button above to import a zip file.'}
+                    </p>
+                  </div>
                 )}
               </div>
             )}
