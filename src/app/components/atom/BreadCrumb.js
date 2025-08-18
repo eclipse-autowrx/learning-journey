@@ -6,6 +6,13 @@
 //
 // SPDX-License-Identifier: MIT
 
+// Copyright (c) 2025 Eclipse Foundation.
+// 
+// This program and the accompanying materials are made available under the
+// terms of the MIT License which is available at
+// https://opensource.org/licenses/MIT.
+//
+// SPDX-License-Identifier: MIT
 /*
     Admin can change the label of the home link in the breadcrumb via BREADCRUMB_CONFIG
     Example:
@@ -16,7 +23,7 @@
 
 import Link from "next/link";
 
-const BreadCrumb = async ({ items }) => {
+const BreadCrumb = ({ items }) => {
 
     let config = {
         "HOME_LABEL": "Home"

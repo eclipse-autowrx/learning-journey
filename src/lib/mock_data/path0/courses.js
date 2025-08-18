@@ -6,17 +6,17 @@
 //
 // SPDX-License-Identifier: MIT
 
-import {LESSONS as TEST_A } from "./test_a"
-import {LESSONS as TEST_B } from "./test_b"
-import {LESSONS as TEST_C } from "./test_c"
-import {LESSONS as TEST_D } from "./test_d"
+import {LESSONS as TEST_A } from "./test_a.js"
+import {LESSONS as TEST_B } from "./test_b.js"
+import {LESSONS as TEST_C } from "./test_c.js"
+import {LESSONS as TEST_D } from "./test_d.js"
 
 export const COURSES = [
     {
         _id: "6452a86e7895abcd12345678", // Random MongoDB ObjectId
         name: "Overview",
-        shortDescription: "Overview",
-        description: "Overview",
+        shortDescription: "",
+        description: "",
         icon_name: "",
         top_icon: "/imgs/icon_book.png",
         state: "finished",
@@ -60,7 +60,7 @@ export const COURSES = [
         state: "inprogress",
         type: "lesson",
         extends: {
-            external_link: "https://www.sdv.guide/sdv101/part-b-lessons-learned",
+            // external_link: "https://www.sdv.guide/sdv101/part-b-lessons-learned",
         },
     },
     {

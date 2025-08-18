@@ -10,6 +10,7 @@
 
 import { useEffect, useState } from 'react';
 import PathList from './PathList';
+import { genQueryParamsForRequest } from '@/lib/frontend/utils';
 
 const HomeContent = ({ }) => {
     const [items, setItems] = useState([]);
@@ -26,23 +27,23 @@ const HomeContent = ({ }) => {
             for (const [key, value] of searchParams.entries()) {
                 queryParams[key] = value;
             }
-            // console.log("Query Params:", queryParams);
         }
 
         if (queryParams.user_id) {
-            await auth(queryParams.user_id, queryParams.token)
+            localStorage.setItem('user_id', queryParams.user_id);
+            localStorage.setItem('token', queryParams.token || '');
+            await auth()
         }
 
         await fetchPaths()
     }
 
-    /*
 
     const fetchProgressForCourses = async (course_ids) => {
         if (!course_ids) return null
         try {
       
-          const res = await fetch(`/api/progress/courses/bulk/${course_ids}`, {
+          const res = await fetch(`/api/progress/courses/bulk/${course_ids}?${genQueryParamsForRequest()}`, {
             method: "GET",
             headers: {
               "Content-Type": "application/json"
@@ -58,35 +59,50 @@ const HomeContent = ({ }) => {
           return null;
         }
     }
-    */
 
     const applyProgressForCollections = async (collections) => {
         // TODO: must  fetch course progress by course_ids
         try {
-            collections.forEach(collection => {
-                if(collection.paths) {
+            const allCourseIds = collections.reduce((acc, collection) => {
+                if (collection.paths) {
                     collection.paths.forEach(path => {
-                        if(path.courses) {
-                            path.courses.forEach(course => {
-                                if(course.progress) {
-                                    course.context = {
-                                        state: course.progress.state,
-                                        progress: course.progress
-                                    }
-                                }
-                            })
+                        if (path.course_ids) {
+                            acc.push(...path.course_ids);
                         }
-                    })
+                    });
                 }
-            })
-        } catch(err) {
+                return acc;
+            }, []);
+            // return allCourseIds;
+            const courseProgresses = await fetchProgressForCourses(allCourseIds.join(','));
+            if (courseProgresses && courseProgresses.success && courseProgresses.data) {
+                const progresses = courseProgresses.data;
+                collections.forEach(collection => {
+                    if (collection.paths) {
+                        collection.paths.forEach(path => {
+                            if (path.courses) {
+                                path.courses.forEach(course => {
+                                    const matchProgress = progresses.find(p => p.course_id === course._id);
+                                    if (matchProgress) {
+                                        course.context = {
+                                            state: matchProgress.state,
+                                            progress: matchProgress
+                                        };
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        } catch (err) {
             console.log(err)
         }
     }
 
     const fetchPaths = async () => {
         try {
-            const response = await fetch("/api/collections")
+            const response = await fetch("/api/collections?state=published")
             const data = await response.json();
             if (data && data.success) {
                 let collections = data.data
@@ -101,9 +117,9 @@ const HomeContent = ({ }) => {
         }
     }
 
-    const auth = async (user_id, token) => {
+    const auth = async () => {
         try {
-            await fetch(`/api/user/auth?user_id=${encodeURIComponent(user_id)}&token=${encodeURIComponent(token)}`, {
+            await fetch(`/api/user/auth?${genQueryParamsForRequest()}`, {
                 method: "POST"
             });
         } catch (error) {

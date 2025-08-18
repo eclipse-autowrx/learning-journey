@@ -6,7 +6,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import {LESSONS as TEST_A } from "./test_a"
+import {LESSONS as TEST_A } from "./test_a.js"
 
 export const COURSES = [
     {

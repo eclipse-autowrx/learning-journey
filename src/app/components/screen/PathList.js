@@ -81,9 +81,9 @@ const PathList = ({ paths, title, titleTag, description }) => {
                                     <div className="w-18 text-base">Progress:</div>
                                     <div className="grow flex items-center">
                                         {path.courses && path.courses.length > 0 && path.courses.filter(c => c.type !== 'award')
-                                            .map((c, cIndex) => <>
-                                            {cIndex > 0 && <div key={cIndex*2} className="grow h-[2px] bg-black"></div>}
-                                            <div key={(cIndex*2)+1}>
+                                            .map((c, cIndex) => <div key={cIndex} className={`flex items-center ${cIndex>0?'grow':''}`}>
+                                            <div className={`h-[2px] ${cIndex > 0?'bg-black grow':'w-0'}`}></div>
+                                            <div>
                                                 {c.context?.state === 'completed' && <div
                                                     className="rounded-full w-4 h-4 border-black border-2 bg-black grid place-items-center">
                                                     <FaCheck size={10} className="text-white" />
@@ -96,7 +96,7 @@ const PathList = ({ paths, title, titleTag, description }) => {
                                                 {!['completed', 'in_progress'].includes(c.context?.state) && <div
                                                     className="rounded-full w-4 h-4 border-black border-2 bg-white"></div>}
                                             </div>
-                                        </>)}
+                                        </div>)}
                                     </div>
                                 </>}
                             </div>

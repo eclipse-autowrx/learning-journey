@@ -147,38 +147,110 @@ const VideoLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
             <div className="mt-2 text-gray-500 text-sm leading-tight">{lesson.description}</div>
         </div>
 
-        <div className="mt-6 px-4 lg:px-8 min-h-[480px] grid place-items-center">
-            <iframe
-                width="100%"
-                height="600"
-                src={lesson.video_url}
+        {/* Video Player */}
+        <div className="relative bg-black">
+          {lesson.video_url ? (
+            lesson.video_provider === 'youtube' ? (
+              <iframe
+                className="w-full h-96"
+                src={getVideoEmbedUrl(lesson.video_url, 'youtube')}
+                title={lesson.name}
+                frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
-            ></iframe>
+              ></iframe>
+            ) : (
+              <video
+                id="lesson-video"
+                className="w-full h-96 object-contain"
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={handleLoadedMetadata}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                controls
+              >
+                <source src={lesson.video_url} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            )
+          ) : (
+            <div className="w-full h-96 flex items-center justify-center bg-gray-900">
+              <div className="text-center text-white">
+                <p className="text-lg mb-4">Video content not available</p>
+                <p className="text-sm text-gray-400">Please check the video URL configuration</p>
+              </div>
+            </div>
+          )}
+
+          {/* Custom Controls Overlay - Hide for YouTube */}
+          {lesson.video_provider !== 'youtube' && (
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={togglePlayPause}
+                  className="text-white hover:text-gray-300 transition-colors"
+                >
+                  {isPlaying ? <FaPause size={20} /> : <FaPlay size={20} />}
+                </button>
+                
+                <div className="flex-1 mx-4">
+                  <div className="w-full bg-gray-600 rounded-full h-2">
+                    <div
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+                
+                <button
+                  onClick={toggleFullscreen}
+                  className="text-white hover:text-gray-300 transition-colors"
+                >
+                  {isFullscreen ? <FaCompress size={20} /> : <FaExpand size={20} />}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
-        {lesson.markdown_content && <div className="my-4">
-            <Markdown
-                components={components}
-            >
-                {lesson.markdown_content}</Markdown>
-        </div> }
-
-        <div className="mt-2 px-2 py-2 border-t border-gray-500 flex items-center space-x-2">
-            <div className="grow"></div>
-
-            <BtnFullRounded
-                onClick={() => {
-                    if (onCloseRequest) {
-                        onCloseRequest({})
-                    }
-                }}>
-                Next Lesson
-            </BtnFullRounded>
-
+        {/* Progress Bar */}
+        <div className="p-4 bg-gray-50">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">Progress</span>
+            <span className="text-sm text-gray-500">{Math.round(progress)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-green-500 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
 
+        {/* Lesson Info */}
+        <div className="p-6">
+          <div className="flex flex-wrap gap-2 mb-4">
+            {lesson.tags?.map((tag, index) => (
+              <span
+                key={index}
+                className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          
+          {lesson.completion_criteria && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-medium text-blue-900 mb-2">Completion Criteria</h3>
+              <p className="text-blue-800 text-sm">
+                {lesson.completion_criteria === 'view' && 'Watch the video to complete this lesson'}
+                {lesson.completion_criteria === 'complete' && 'Complete the entire video to finish this lesson'}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
+  );
 }
-
-export default VideoLesson

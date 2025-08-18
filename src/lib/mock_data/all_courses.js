@@ -36,6 +36,7 @@ const processCourse = (course) => {
         c.thumb = c.thumb || ''
         c.category = c.category || ''
         c.icon = c.icon || ''
+        c.top_icon = c.top_icon || "/imgs/icon_book.png"
         c.icon_name = c.icon_name || ''
         c.state = c.state || ''
         c.duration = c.duration || "4 hrs"

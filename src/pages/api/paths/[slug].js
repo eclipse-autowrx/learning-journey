@@ -6,17 +6,10 @@
 //
 // SPDX-License-Identifier: MIT
 
-import connectToDatabase from "@/lib/mongodb";
-import { ALL_COURSES } from "@/lib/mock_data/all_courses";
+import { PathService, CourseService } from "@/lib/services/dataService";
 import { ICONs } from "@/lib/mock_data/media";
-import { PATHS } from "@/lib/mock_data/paths";
-
-// import { getProgressForCourses } from "@/pages/api/progress/courses/utils";
 import { check_auth } from "@/lib/backend/check_auth";
-// import { processCourseContext } from "@/pages/api/progress/courses/utils";
-
 import { STATE_NOT_STARTED, STATE_IN_PROGRESS, STATE_COMPLETED, STATE_LOCKED } from "@/lib/const";
-
 
 const ICON_SET = {
   not_started: 'https://bewebstudio.digitalauto.tech/data/projects/zb1Shh3qkfNG/course-notyet.png',
@@ -26,12 +19,11 @@ const ICON_SET = {
 }
 
 function addMediaUrlForCourses(path) {
-
-  if (!path || !path.courses) return
-  let ICONS = path.icon_set || ICON_SET
-
-
+  if (!path || !Array.isArray(path.courses)) return;
+  const ICONS = path.icon_set || ICON_SET;
+  path.courses = path.courses.filter(Boolean);
   path.courses.forEach((course) => {
+    if (!course) return;
     if (!course.icon) {
       switch (course.context?.state) {
         case STATE_NOT_STARTED:
@@ -58,55 +50,62 @@ export default async function handler(req, res) {
   const { slug } = req.query;
 
   const { user_id, token } = check_auth(req, res);
+  
   switch (method) {
     case "GET":
       try {
-        let dbPath = PATHS.find((path) => path.slug === slug);
-        if (!dbPath) {
-          return res
-            .status(404)
-            .json({ success: false, error: "Path not found" });
-        }
+        const dbPath = await PathService.getBySlug(slug);
+        if (!dbPath) return res.status(404).json({ success: false, error: "Path not found" });
 
         try {
-          dbPath.courses = ALL_COURSES.filter((course) =>
-            dbPath.course_ids.includes(course._id)
-          );
+          // Normalize and populate courses
+          const hasCoursesArray = Array.isArray(dbPath.courses) && dbPath.courses.length > 0;
+          if (hasCoursesArray) {
+            const first = dbPath.courses[0];
+            const looksPopulated = first && typeof first === 'object' && !!first.name;
+            if (!looksPopulated) {
+              const ids = dbPath.courses;
+              dbPath.courses = await CourseService.getCoursesByPath({ courses: ids });
+            }
+          }
 
-          // if (user_id) {
-          //   let progresses = await getProgressForCourses(user_id, dbPath.course_ids)
-          //   if (progresses && Array.isArray(progresses)) {
-          //     progresses = JSON.parse(JSON.stringify(progresses))
-          //     dbPath.courses.forEach((course) => {
-          //       const progress = progresses.find(
-          //         (p) => p.course_id === course._id
-          //       );
-          //       // if(!progress) {
-          //       //   console.log(`Found no progress for course ${course.name}`)
-          //       // }
-          //       course.progress = progress || null;
+          // If courses are missing, leave as empty array
+          if (!hasCoursesArray || !dbPath.courses || dbPath.courses.length === 0) {
+            dbPath.courses = [];
+          }
 
-          //       processCourseContext(course)
-          //     });
-          //   } else {
-          //     console.log("Found not progresses")
-          //   }
-          // } else {
-          //   console.log(">>>>> Missing user_id")
-          // }
-
-          // addMediaUrlForCourses(dbPath);
-          // console.log(`dbCourse`, dbPath.courses)
+          addMediaUrlForCourses(dbPath);
         } catch (err) {
-          console.log(err);
+          console.log('Error processing courses:', err);
         }
 
         res.status(200).json({ success: true, data: dbPath });
       } catch (error) {
+        console.error('Error fetching path:', error);
+        res.status(400).json({ success: false, error: error.message });
+      }
+      break;
+    case "PUT":
+      try {
+        const updateData = req.body;
+        const updatedPath = await PathService.updatePath(slug, updateData);
+        res.status(200).json({ success: true, data: updatedPath });
+      } catch (error) {
+        console.error('Error updating path:', error);
+        res.status(400).json({ success: false, error: error.message });
+      }
+      break;
+    case "DELETE":
+      try {
+        await PathService.deletePath(slug);
+        res.status(200).json({ success: true, message: "Path deleted successfully" });
+      } catch (error) {
+        console.error('Error deleting path:', error);
         res.status(400).json({ success: false, error: error.message });
       }
       break;
     default:
+      res.status(405).json({ success: false, error: 'Method not allowed' });
       break;
   }
 }

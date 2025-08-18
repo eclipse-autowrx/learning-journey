@@ -579,8 +579,8 @@ By aligning development strategies with domain-specific requirements, OEMs can o
 `
     },
     {
-        slug: 'test_A',
-        name: "Test A",
+        slug: 'test',
+        name: "Test",
         description: "This question set evaluates understanding of Software-Defined Vehicles (SDVs) from provided documents. It covers SDV characteristics, development challenges, and safety standards like ASILs.",
         type: "quiz",
         questions: [

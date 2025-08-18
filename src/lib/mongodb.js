@@ -6,9 +6,18 @@
 //
 // SPDX-License-Identifier: MIT
 
-import mongoose from "mongoose";
+// Copyright (c) 2025 Eclipse Foundation.
+// 
+// This program and the accompanying materials are made available under the
+// terms of the MIT License which is available at
+// https://opensource.org/licenses/MIT.
+//
+// SPDX-License-Identifier: MIT
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/";
+import mongoose from "mongoose";
+import './models/index.js'; // Import all models to ensure they are registered
+
+const MONGO_URI = process.env.MONGO_URI || "mongodb://admin:password123@localhost:27017/learning_journey?authSource=admin";
 
 if (!MONGO_URI) {
   throw new Error("Please define the MONGO_URI environment variable");

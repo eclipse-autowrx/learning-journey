@@ -24,13 +24,36 @@ const Page = async ({ params }) => {
   let dbCourse = null
 
   try {
-    dbPath = await fetchPathBySlug(path_slug, 
-      cookieStore.get('user_id')?.value || "",
-      cookieStore.get('token')?.value || "");
-    if (dbPath.courses) {
-      dbCourse = dbPath.courses.find((c) => c.slug == course_slug)
-    }
-    // dbCourse = await fetchCourseBySlug(course_slug);
+    const user_id = cookieStore.get('user_id')?.value || "";
+    const token = cookieStore.get('token')?.value || "";
+    dbPath = await fetchPathBySlug(path_slug, user_id, token);
+    // if (dbPath.courses) {
+    //   dbCourse = dbPath.courses.find((c) => c.slug == course_slug)
+    // }
+    dbCourse = await fetchCourseBySlug(course_slug, `user_id=${user_id}&token=${token}`);
+    // // Call API to get progress for dbCourse
+    // if (dbCourse && dbCourse._id) {
+    //   try {
+    //     const user_id = cookieStore.get('user_id')?.value || "";
+    //     const token = cookieStore.get('token')?.value || "";
+    //     // Only fetch progress if user is logged in
+    //     if (user_id && token) {
+    //       const progressRes = await fetch(
+    //         process.env.HOST  +`/api/progress/courses/${dbCourse._id}?user_id=${user_id}&token=${token}`,
+    //         { cache: "no-store" }
+    //       );
+    //       if (progressRes.ok) {
+    //         const progressData = await progressRes.json();
+    //         if (progressData && progressData.success && progressData.data) {
+    //           dbCourse.progress = progressData.data;
+    //         }
+    //       }
+    //     }
+    //   } catch (err) {
+    //     // If progress fetch fails, just continue
+    //     console.log("Failed to fetch course progress", err);
+    //   }
+    // }
   } catch (err) {
     console.log(err)
   }
@@ -40,18 +63,16 @@ const Page = async ({ params }) => {
 
   return (
     <div
-      className="w-full bg-[#FFF9EC] text-slate-600 text-2xl p-0 pb-4
-                h-fit min-h-full place-items-center"
+      className="w-full bg-[#FFF9EC] text-slate-600 text-2xl p-0 pb-1
+                h-screen flex flex-col"
     >
       <BreadCrumb items={[
         { label: dbPath.name, link: `/path/${path_slug}` },
         { label: dbCourse.name, link: `/path/${path_slug}/course/${course_slug}` }
       ]} />
 
-      <div className="w-full mt-4 px-4 flex flex-col">
-        <div className="w-full px-2 lg:px-4">
-          <CourseScreen course={dbCourse} path_slug={path_slug}/>
-        </div>
+      <div className="w-full grow pt-2 px-4 flex flex-col">
+        <CourseScreen course={dbCourse} path_slug={path_slug} />
       </div>
     </div>
   );

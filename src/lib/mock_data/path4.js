@@ -24,7 +24,7 @@ export const PATH4 = {
   state: "draft",
   level: "1",
   configs: {
-    display_type: "list"
+    display_type: "canvas"
   },
   extends: {
     extraField1: "extraValue1",
@@ -48,11 +48,41 @@ export const PATH4 = {
     "3452a86e7895abcd12345684"
   ],
   maps: [
-    // {
-    //     course_id: "652f3c2e4f1a2b3c4d5e6f7g",
-    //     x: "2%",
-    //     y: "35.8%"
-    // }
+    {
+        course_id: "3452a86e7895abcd12345678",
+        x: "8%",
+        y: "45%"
+    },
+    {
+        course_id: "3452a86e7895abcd12345679",
+        x: "22%",
+        y: "52%"
+    },
+    {
+      course_id: "3452a86e7895abcd12345680",
+      x: "36%",
+      y: "48%"
+    },
+    {
+      course_id: "3452a86e7895abcd12345681",
+      x: "50%",
+      y: "55%"
+    },
+    {
+      course_id: "3452a86e7895abcd12345682",
+      x: "64%",
+      y: "42%"
+    },
+    {
+      course_id: "3452a86e7895abcd12345683",
+      x: "78%",
+      y: "53%"
+    },
+    {
+      course_id: "3452a86e7895abcd12345684",
+      x: "92%",
+      y: "47%"
+    }
   ],
   createdAt: "2024-07-19T14:00:00.000Z",
   updatedAt: "2024-07-19T14:00:00.000Z",

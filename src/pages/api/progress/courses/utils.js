@@ -7,7 +7,7 @@
 // SPDX-License-Identifier: MIT
 
 import connectToDatabase from "@/lib/mongodb";
-import CourseProgress from "@/lib/models/CourseProgress";
+import { CourseProgress } from "@/lib/models/index.js";
 
 
 import { STATE_NOT_STARTED, STATE_IN_PROGRESS, STATE_COMPLETED, STATE_LOCKED } from "@/lib/const";
@@ -56,6 +56,7 @@ export const processCourseContext = async (course) => {
     if (course.progress) {
         course.context.state = course.progress?.state || STATE_NOT_STARTED
 
+
         if (course.lessons) {
             course.lessons.forEach(lesson => {
                 lesson.context = {
@@ -63,9 +64,15 @@ export const processCourseContext = async (course) => {
                 }
 
                 if (course.progress?.lessons && lesson.slug) {
-                    const lessonProgress = course.progress.lessons[lesson.slug]
+                    let lessonProgress = course.progress.lessons[lesson.slug]
+                    if(!lessonProgress) {
+                        lessonProgress = course.progress.lessons.get(lesson.slug)
+                    }
+                    // console.log(`course.progress.lessons`, course.progress.lessons)
+                    // console.log(`lessonProgress ${lesson.slug}`, lessonProgress)
                     if (lessonProgress) {
                         lesson.context.state = lessonProgress.state || STATE_NOT_STARTED
+                        lesson.context.progress = lessonProgress
                     }
                 }
             })

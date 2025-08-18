@@ -22,7 +22,7 @@ export const PATH3 = {
   valid_from: "2025-01-01T00:00:00.000Z",
   valid_to: "2026-01-01T00:00:00.000Z",
   level: "2",
-  state: "draft",
+  state: "locked",
   configs: {
     display_type: "list"
   },

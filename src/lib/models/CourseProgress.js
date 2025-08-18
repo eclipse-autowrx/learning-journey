@@ -5,11 +5,10 @@
 // https://opensource.org/licenses/MIT.
 //
 // SPDX-License-Identifier: MIT
-
 import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
-import { COURSE_STATES, LESSON_STATES, STATE_NOT_STARTED } from '@/lib/const.js';
+import { COURSE_PROGRESS_STATES, LESSON_PROGRESS_STATES, STATE_NOT_STARTED } from '../const.js';
 
 
 const CourseProgressSchema = new mongoose.Schema(
@@ -18,7 +17,7 @@ const CourseProgressSchema = new mongoose.Schema(
     course_id: { type: Schema.Types.ObjectId },
     state: {
       type: String,
-      enum: COURSE_STATES,
+      enum: Object.values(COURSE_PROGRESS_STATES),
       default: STATE_NOT_STARTED
     },
     started_at: { type: Date },
@@ -29,7 +28,7 @@ const CourseProgressSchema = new mongoose.Schema(
       of: {
         state: {
           type: String,
-          enum: LESSON_STATES,
+          enum: Object.values(LESSON_PROGRESS_STATES),
           default: STATE_NOT_STARTED
         },
         updated_at: { type: Date },

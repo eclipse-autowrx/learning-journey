@@ -6,15 +6,38 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { lessons_overview } from "./lessons_overview";
-import { lessons_parta } from "./lessons_parta";
+import { lessons_overview } from "./lessons_overview.js";
+import { lessons_parta } from "./lessons_parta.js";
+import { lessons_partb } from "./lessons_partb.js";
+import { lessons_partc } from "./lessons_partc.js";
+import { lessons_partd } from "./lessons_partd.js";
+// Start Generation Here
+export const courses_opt2 = [
+    {
+        _id: "6452a86e7895abcd12345682", // Random MongoDB ObjectId
+        name: "Part D: Advanced Topics",
+        slug: 'part-d-advanced-topics',
+        shortDescription: "Part D: Advanced Topics",
+        description: "This course covers advanced topics in Software-Defined Vehicle (SDV) development, including enterprise-level strategies and implementation.",
+        icon_name: "",
+        top_icon: "/imgs/icon_book.png",
+        state: "notstarted",
+        type: "lesson",
+        lessons: lessons_partd,
+        extends: {
+            // external_link: "https://www.sdv.guide/sdv101/part-d-advanced-topics",
+        },
+    }
+];
+
+
 
 export const COURSES = [
     {
         _id: "6452a86e7895abcd12345678", // Random MongoDB ObjectId
         name: "Overview",
-        shortDescription: "Overview",
-        description: "Overview",
+        shortDescription: "",
+        description: "",
         icon_name: "",
         top_icon: "/imgs/icon_book.png",
         state: "finished",
@@ -42,39 +65,44 @@ export const COURSES = [
         name: "Part B: Lessons Learned",
         slug: 'part-b-lessons-learned',
         shortDescription: "Part B: Lessons Learned",
-        description: "Part B: Lessons Learned",
+        description: "",
         icon_name: "",
         top_icon: "/imgs/icon_book.png",
         state: "inprogress",
         type: "lesson",
+        lessons: lessons_partb,
         extends: {
-            external_link: "https://www.sdv.guide/sdv101/part-b-lessons-learned",
+            // external_link: "https://www.sdv.guide/sdv101/part-b-lessons-learned",
         },
     },
     {
         _id: "6452a86e7895abcd12345681", // Random MongoDB ObjectId
         name: "Part C: Building Blocks",
-        shortDescription: "Part C: Building Blocks",
-        description: "Part C: Building Blocks",
+        slug: 'part-c-building-blocks',
+        shortDescription: "",
+        description: "",
         icon_name: "",
         state: "",
         top_icon: "/imgs/icon_book.png",
         type: "lesson",
+        lessons: lessons_partc,
         extends: {
-            external_link: "https://www.sdv.guide/sdv101/part-c-building-blocks",
+            // external_link: "https://www.sdv.guide/sdv101/part-c-building-blocks",
         },
     },
     {
         _id: "6452a86e7895abcd12345682", // Random MongoDB ObjectId
         name: "Part D: Implementation Strategies",
         shortDescription: "Part D: Implementation Strategies",
-        description: "Part D: Implementation Strategies",
+        description: "",
+        slug: 'part-d-implementation-strategies',
         icon_name: "",
         state: "",
         top_icon: "/imgs/icon_book.png",
         type: "lesson",
+        lessons: lessons_partd,
         extends: {
-            external_link: "https://www.sdv.guide/sdv101/part-d-implementation-strategies",
+            // external_link: "https://www.sdv.guide/sdv101/part-d-implementation-strategies",
         },
     },
     // {

@@ -19,7 +19,7 @@ export const PATH2_5 = {
   tags: ["onboard", "general", "playground", "beginner", "getting-started"],
   valid_from: "2025-01-01T00:00:00.000Z",
   valid_to: "2026-01-01T00:00:00.000Z",
-  state: "published",
+  state: "locked",
   level: "4",
   configs: {
     display_type: "list"
