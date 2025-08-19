@@ -39,6 +39,12 @@ export default async function handler(req, res) {
         if (query.state) {
           filter.state = query.state;
         }
+
+        if (query.manage && user_id) {
+          filter.owner_id = user_id;
+        } else {
+          filter.state = 'published';
+        }
         
         // Get collections from database with populated paths and courses
         const dbCollections = await CollectionService.getAll(filter);
@@ -124,7 +130,10 @@ export default async function handler(req, res) {
 
     case "POST":
       try {
-        const collectionData = req.body;
+        if (!user_id) {
+          return res.status(401).json({ success: false, error: "Unauthorized" });
+        }
+        const collectionData = { ...req.body, owner_id: user_id };
         
         // Validate required fields
         if (!collectionData.name) {

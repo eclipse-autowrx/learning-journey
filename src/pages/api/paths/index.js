@@ -7,14 +7,22 @@
 // SPDX-License-Identifier: MIT
 
 import { PathService } from "../../../lib/services/dataService.js";
+import { check_auth } from "../../../lib/backend/check_auth.js";
 
 export default async function handler(req, res) {
-  const { method } = req;
+  const { method, query } = req;
+  const { user_id } = check_auth(req, res);
 
   switch (method) {
     case "GET":
       try {
-        const dbPaths = await PathService.getAll();
+        const filter = {};
+        if (query.manage && user_id) {
+          filter.owner_id = user_id;
+        } else {
+          filter.state = 'published';
+        }
+        const dbPaths = await PathService.getAll(filter);
         const transformedPaths = dbPaths.map(path => ({
           ...path,
           total_courses: path.courses ? path.courses.length : 0
@@ -27,7 +35,10 @@ export default async function handler(req, res) {
       break;
     case "POST":
       try {
-        const pathData = req.body;
+        if (!user_id) {
+          return res.status(401).json({ success: false, error: "Unauthorized" });
+        }
+        const pathData = { ...req.body, owner_id: user_id };
         const newPath = await PathService.create(pathData);
         res.status(201).json({ success: true, data: newPath });
       } catch (error) {

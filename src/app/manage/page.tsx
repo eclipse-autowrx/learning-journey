@@ -47,6 +47,7 @@ import {
 } from '@/lib/utils/notifications';
 import { COLLECTION_STATES, PATH_STATES } from '@/lib/const';
 import React from 'react';
+import { useAuth } from '@/lib/frontend/auth';
 
 interface Collection {
   _id: string;
@@ -165,10 +166,13 @@ export default function ManagePage() {
   const [selectedTreeItem, setSelectedTreeItem] = useState<any | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (isAuthenticated) {
+      fetchData();
+    }
+  }, [isAuthenticated]);
 
   const fetchData = async () => {
     try {
@@ -770,6 +774,30 @@ export default function ManagePage() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h3 className="mt-2 text-lg font-medium text-gray-900">Authentication Required</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            You must be logged in to access this page.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

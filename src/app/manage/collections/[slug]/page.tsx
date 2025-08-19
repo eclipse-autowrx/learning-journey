@@ -31,6 +31,7 @@ import {
 } from 'react-icons/fa';
 import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
 import { PATH_STATES, COLLECTION_STATES } from '@/lib/const';
+import { useAuth } from '@/lib/frontend/auth';
 
 interface Collection {
   _id: string;
@@ -61,7 +62,8 @@ interface Path {
 export default function CollectionDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = params?.slug as string;
+  const collectionSlug = params?.slug as string;
+  const { isAuthenticated, loading: authLoading } = useAuth();
   
   const [collection, setCollection] = useState<Collection | null>(null);
   const [paths, setPaths] = useState<Path[]>([]);
@@ -93,11 +95,24 @@ export default function CollectionDetailPage() {
   const [bulkNewState, setBulkNewState] = useState<string>('draft');
 
   useEffect(() => {
-    if (slug) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openDropdown && !(event.target as Element).closest('.dropdown-container')) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openDropdown]);
+
+  useEffect(() => {
+    if (isAuthenticated && collectionSlug) {
       fetchCollectionData();
       fetchAllPaths();
     }
-  }, [slug]);
+  }, [isAuthenticated, collectionSlug]);
 
   useEffect(() => {
     // Filter paths based on search term
@@ -114,23 +129,34 @@ export default function CollectionDetailPage() {
     }
   }, [searchTerm, allPaths, collection]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (openDropdown && !(event.target as Element).closest('.dropdown-container')) {
-        setOpenDropdown(null);
-      }
-    };
+  if (authLoading) {
+    return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Checking authentication...</p>
+            </div>
+        </div>
+    );
+  }
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [openDropdown]);
+  if (!isAuthenticated) {
+    return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="text-center">
+                <h3 className="mt-2 text-lg font-medium text-gray-900">Authentication Required</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                    You must be logged in to access this page.
+                </p>
+            </div>
+        </div>
+    );
+  }
 
   const fetchCollectionData = async () => {
+    if (!collectionSlug) return;
     try {
-      const response = await fetch(`/api/collections/${slug}`);
+      const response = await fetch(`/api/collections/${collectionSlug}`);
       if (response.ok) {
         const data = await response.json();
         setCollection(data.data);
@@ -170,7 +196,7 @@ export default function CollectionDetailPage() {
 
   const handleSave = async () => {
     try {
-      const response = await fetch(`/api/collections/${slug}`, {
+      const response = await fetch(`/api/collections/${collectionSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -208,7 +234,7 @@ export default function CollectionDetailPage() {
   // State change handler
   const handleStateChange = async (newState: string) => {
     try {
-      const response = await fetch(`/api/collections/${slug}`, {
+      const response = await fetch(`/api/collections/${collectionSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -239,7 +265,7 @@ export default function CollectionDetailPage() {
       if (!pathToAdd) return;
 
       const updatedPaths = [...collection.paths, pathToAdd];
-      const response = await fetch(`/api/collections/${slug}`, {
+      const response = await fetch(`/api/collections/${collectionSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -275,7 +301,7 @@ export default function CollectionDetailPage() {
     
     try {
       const updatedPaths = collection.paths.filter(p => p._id !== pathId);
-      const response = await fetch(`/api/collections/${slug}`, {
+      const response = await fetch(`/api/collections/${collectionSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -368,7 +394,7 @@ export default function CollectionDetailPage() {
     
     try {
       const updatedPaths = collection.paths.filter(p => !selectedPaths.includes(p._id));
-      const response = await fetch(`/api/collections/${slug}`, {
+      const response = await fetch(`/api/collections/${collectionSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

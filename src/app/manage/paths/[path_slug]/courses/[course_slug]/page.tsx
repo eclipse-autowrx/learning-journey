@@ -46,6 +46,7 @@ import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
 import { COURSE_STATES } from '@/lib/const';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ImageEditor from '@/app/components/atom/ImageEditor';
+import { useAuth } from '@/lib/frontend/auth';
 
 function validateQuizLesson(lesson: any) {
   if (lesson.lesson_type !== 'quiz') {
@@ -119,43 +120,84 @@ export default function CourseDetailPage() {
   const params = useParams();
   const pathSlug = params?.path_slug as string;
   const courseSlug = params?.course_slug as string;
-
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  
   const [course, setCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [selectedLessonSlug, setSelectedLessonSlug] = useState<string | null>(null);
-  const [lessonDetailTab, setLessonDetailTab] = useState<'info' | 'view' | 'edit'>('info');
-  const [editableLesson, setEditableLesson] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'info' | 'lessons'>('info');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [path, setPath] = useState<{ name: string, slug: string } | null>(null);
-  const [isLessonDirty, setIsLessonDirty] = useState(false);
-
+  
   // Edit mode states
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     name: '',
+    slug: '',
     description: '',
-    category: '',
-    duration: 0,
-    icon: '',
-    top_icon: '',
     image: null as string | null,
+    thumb: null as string | null,
+    category: '',
+    state: '',
+    tags: [] as string[],
+    configs: {},
+    extends: {},
   });
+  const [courseState, setCourseState] = useState('draft');
+  
+  // Bulk selection and filter states
+  const [selectedLessons, setSelectedLessons] = useState<string[]>([]);
+  const [selectedLessonStates, setSelectedLessonStates] = useState<string[]>(LESSON_STATES.map(s => s.value));
+  const [showBulkActionModal, setShowBulkActionModal] = useState(false);
+  const [bulkActionType, setBulkActionType] = useState<'state' | 'delete' | null>(null);
+  const [bulkNewState, setBulkNewState] = useState<string>('draft');
 
-  // Add state for showLessonModal, lessonForm, and selectedLessons
+  // Lesson creation modal states
   const [showLessonModal, setShowLessonModal] = useState(false);
-  const [lessonForm, setLessonForm] = useState({
+  const [lessonForm, setLessonForm] = useState<any>({
     name: '',
     description: '',
     lesson_type: 'text-markdown',
-    state: 'draft'
+    state: 'draft',
+    content: {},
   });
-  const [selectedLessons, setSelectedLessons] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const fetchCourseData = async () => {
+    try {
+      const courseRes = await fetch(`/api/courses/${courseSlug}`);
+      const courseData = await courseRes.json();
+
+      if (courseData.success) {
+        setCourse(courseData.data);
+        setLessons(courseData.data.lessons || []);
+        setEditForm({
+          name: courseData.data.name || '',
+          slug: courseData.data.slug || '',
+          description: courseData.data.description || '',
+          image: courseData.data.image || null,
+          thumb: courseData.data.thumb || null,
+          category: courseData.data.category || '',
+          state: courseData.data.state || 'draft',
+          tags: courseData.data.tags || [],
+          configs: courseData.data.configs || {},
+          extends: courseData.data.extends || {},
+        });
+        setCourseState(courseData.data.state || 'draft');
+      } else {
+        console.error('Failed to fetch course:', courseData.error);
+      }
+    } catch (error) {
+      console.error('Error fetching course data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetchCourseData();
-  }, [courseSlug]);
+    if (isAuthenticated) {
+      fetchCourseData();
+    }
+  }, [isAuthenticated, courseSlug]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -170,47 +212,29 @@ export default function CourseDetailPage() {
     };
   }, []);
 
-  const fetchCourseData = async () => {
-    try {
-      const [courseRes, lessonsRes, pathRes] = await Promise.all([
-        fetch(`/api/courses/${courseSlug}`),
-        fetch(`/api/courses/${courseSlug}/lessons`),
-        fetch(`/api/paths/${pathSlug}`)
-      ]);
+  if (authLoading) {
+    return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Checking authentication...</p>
+            </div>
+        </div>
+    );
+  }
 
-      const courseData = await courseRes.json();
-      const lessonsData = await lessonsRes.json();
-      const pathData = await pathRes.json();
-
-      if (courseData.success) {
-        setCourse(courseData.data);
-        // Set edit form with current data
-        setEditForm({
-          name: courseData.data.name || '',
-          description: courseData.data.description || '',
-          category: courseData.data.category || '',
-          duration: courseData.data.duration || 0,
-          icon: courseData.data.icon || '',
-          top_icon: courseData.data.top_icon || '',
-          image: courseData.data.image || null
-        });
-      }
-      if (lessonsData.success) {
-        setLessons(lessonsData.data);
-        if (!selectedLessonSlug && lessonsData.data.length > 0) {
-          setSelectedLessonSlug(lessonsData.data[0].slug);
-          setEditableLesson(lessonsData.data[0]);
-        }
-      }
-      if (pathData.success) {
-        setPath(pathData.data);
-      }
-    } catch (error) {
-      console.error('Error fetching course data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!isAuthenticated) {
+    return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="text-center">
+                <h3 className="mt-2 text-lg font-medium text-gray-900">Authentication Required</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                    You must be logged in to access this page.
+                </p>
+            </div>
+        </div>
+    );
+  }
 
   const selectedLesson: Lesson | null = selectedLessonSlug
     ? lessons.find(l => l.slug === selectedLessonSlug) || null

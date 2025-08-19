@@ -14,6 +14,26 @@ import mongoose from 'mongoose';
 import fs from 'fs/promises';
 import path from 'path';
 
+const OMIT_FIELDS = ['owner_id', '_id'];
+
+function omitFields(obj, fields) {
+  if (Array.isArray(obj)) {
+    return obj.map(item => omitFields(item, fields));
+  }
+  if (obj !== null && typeof obj === 'object') {
+    const newObj = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        if (!fields.includes(key)) {
+          newObj[key] = omitFields(obj[key], fields);
+        }
+      }
+    }
+    return newObj;
+  }
+  return obj;
+}
+
 async function getFileContent(filePath) {
   try {
     const fullPath = path.join(process.cwd(), 'public', filePath);
@@ -86,7 +106,8 @@ export default async function handler(req, res) {
       }
     }
 
-    zip.file('data.json', JSON.stringify(exportData, null, 2));
+    const sanitizedExportData = omitFields(exportData, OMIT_FIELDS);
+    zip.file('data.json', JSON.stringify(sanitizedExportData, null, 2));
 
     const zipContent = await zip.generateAsync({ type: 'nodebuffer' });
 

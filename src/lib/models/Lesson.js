@@ -23,6 +23,7 @@ const LessonSchema = new mongoose.Schema(
     image: { type: String },
     thumb: { type: String },
     tags: { type: [String] },
+    owner_id: { type: String, required: true },
     
     // Lesson ordering within a course
     order: { type: Number, default: 0 },
