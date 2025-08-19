@@ -9,10 +9,35 @@
 import { CourseService } from "@/lib/services/dataService";
 import { check_auth } from "@/lib/backend/check_auth";
 
+// Function to sanitize quiz questions by removing correct answer flags
+// Only sanitize for regular users, preserve for admin/management requests
+function sanitizeQuizQuestions(lessons, isManagementRequest = false) {
+  if (!lessons || !Array.isArray(lessons)) return lessons;
+  
+  // If this is a management request, don't sanitize (preserve is_correct flags)
+  if (isManagementRequest) return lessons;
+  
+  return lessons.map(lesson => {
+    if (lesson.lesson_type === 'quiz' && lesson.quiz_questions) {
+      const sanitizedLesson = { ...lesson };
+      sanitizedLesson.quiz_questions = lesson.quiz_questions.map(question => ({
+        ...question,
+        answers: question.answers?.map(answer => ({
+          label: answer.label,
+          // Remove is_correct flag for regular users - only backend should know correct answers
+          // is_correct: answer.is_correct // This line is intentionally removed for security
+        }))
+      }));
+      return sanitizedLesson;
+    }
+    return lesson;
+  });
+}
+
 export default async function handler(req, res) {
   const { method } = req;
   const { slug } = req.query;
-  check_auth(req, res); // not required for manage view
+  const { user_id } = check_auth(req, res);
 
   switch (method) {
     case "GET":
@@ -52,7 +77,13 @@ export default async function handler(req, res) {
           sequence: l.sequence || l.interactive_config,
         }));
 
-        return res.status(200).json({ success: true, data: normalized });
+        // Check if this is a management request (admin user)
+        const isManagementRequest = req.query.manage === 'true' && user_id;
+        
+        // Sanitize quiz questions to remove correct answer flags for regular users
+        const sanitizedLessons = sanitizeQuizQuestions(normalized, isManagementRequest);
+
+        return res.status(200).json({ success: true, data: sanitizedLessons });
       } catch (error) {
         return res.status(400).json({ success: false, error: error.message });
       }

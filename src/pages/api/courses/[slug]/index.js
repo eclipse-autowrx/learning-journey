@@ -10,6 +10,31 @@ import { getProgressForCourse } from "@/pages/api/progress/courses/utils";
 import { check_auth } from "@/lib/backend/check_auth";
 import { processCourseContext } from "@/pages/api/progress/courses/utils";
 
+// Function to sanitize quiz questions by removing correct answer flags
+// Only sanitize for regular users, preserve for admin/management requests
+function sanitizeQuizQuestions(lessons, isManagementRequest = false) {
+  if (!lessons || !Array.isArray(lessons)) return lessons;
+  
+  // If this is a management request, don't sanitize (preserve is_correct flags)
+  if (isManagementRequest) return lessons;
+  
+  return lessons.map(lesson => {
+    if (lesson.lesson_type === 'quiz' && lesson.quiz_questions) {
+      const sanitizedLesson = { ...lesson };
+      sanitizedLesson.quiz_questions = lesson.quiz_questions.map(question => ({
+        ...question,
+        answers: question.answers?.map(answer => ({
+          label: answer.label,
+          // Remove is_correct flag for regular users - only backend should know correct answers
+          // is_correct: answer.is_correct // This line is intentionally removed for security
+        }))
+      }));
+      return sanitizedLesson;
+    }
+    return lesson;
+  });
+}
+
 export default async function handler(req, res) {
   const { method } = req;
   const { slug } = req.query;
@@ -28,6 +53,14 @@ export default async function handler(req, res) {
         }
         dbCourse.progress = courseProgress;
         await processCourseContext(dbCourse);
+
+        // Check if this is a management request (admin user)
+        const isManagementRequest = req.query.manage === 'true' && user_id;
+        
+        // Sanitize quiz questions to remove correct answer flags for regular users
+        if (dbCourse.lessons) {
+          dbCourse.lessons = sanitizeQuizQuestions(dbCourse.lessons, isManagementRequest);
+        }
 
         return res.status(200).json({ success: true, data: dbCourse });
       } catch (error) {

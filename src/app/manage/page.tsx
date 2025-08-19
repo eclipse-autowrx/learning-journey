@@ -29,9 +29,13 @@ import {
   FaTree,
   FaFileImport,
   FaTimes,
-  FaSave
+  FaSave,
+  FaUserShield
 } from 'react-icons/fa';
 import { VscJson } from 'react-icons/vsc';
+import Tippy from '@tippyjs/react';
+import 'tippy.js/dist/tippy.css';
+import 'tippy.js/themes/light.css';
 import StateFilter from '@/app/components/atom/StateFilter';
 import Btn from '@/app/components/atom/Btn';
 import TagEditor from '@/app/components/atom/TagEditor';
@@ -150,7 +154,6 @@ export default function ManagePage() {
   });
   
   // Dropdown state
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
   // Bulk action modal state
   const [showBulkActionModal, setShowBulkActionModal] = useState(false);
@@ -180,7 +183,7 @@ export default function ManagePage() {
       
       // Fetch each API separately to identify which one is failing
       console.log('Fetching collections...');
-      const collectionsRes = await fetch('/api/collections');
+      const collectionsRes = await fetch('/api/collections?manage=true');
       console.log('Collections response status:', collectionsRes.status);
       const collectionsData = await collectionsRes.json();
       console.log('Collections data:', collectionsData);
@@ -447,13 +450,6 @@ export default function ManagePage() {
     } catch (error) {
       console.error('Error creating lesson:', error);
       showToast.error('Failed to create lesson');
-    }
-  };
-
-  const handleClickOutside = (event: MouseEvent) => {
-    const target = event.target as Element;
-    if (!target.closest('.dropdown-container')) {
-      setOpenDropdown(null);
     }
   };
 
@@ -768,13 +764,6 @@ export default function ManagePage() {
     }
   };
 
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -822,6 +811,14 @@ export default function ManagePage() {
               <p className="mt-1 text-sm text-gray-500">
                 Overview of all content in the platform.
               </p>
+            </div>
+            <div>
+              <Link href="/admin">
+                <Btn>
+                  <FaUserShield className="mr-2 h-4 w-4" />
+                  Admin
+                </Btn>
+              </Link>
             </div>
           </div>
         </div>
@@ -1038,39 +1035,42 @@ export default function ManagePage() {
                                         <FaArrowRight className="h-4 w-4" />
                                       </Link>
                                       <div className="relative dropdown-container">
-                                        <button 
-                                          onClick={() => setOpenDropdown(openDropdown === collection._id ? null : collection._id)}
-                                          className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
-                                          title="More options"
-                                        >
-                                          <FaEllipsisV className="h-4 w-4" />
-                                        </button>
-                                        {openDropdown === collection._id && (
-                                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                                            <div className="py-1">
-                                              <button
-                                                onClick={() => {
-                                                  openEditCollection(collection);
-                                                  setOpenDropdown(null);
-                                                }}
-                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                                              >
-                                                <FaEdit className="h-4 w-4 mr-2" />
-                                                Edit Collection
-                                              </button>
-                                              <button
-                                                onClick={() => {
-                                                  handleDeleteCollection(collection);
-                                                  setOpenDropdown(null);
-                                                }}
-                                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
-                                              >
+                                        <Tippy
+                                          content={
+                                            <div className="py-1 min-w-max">
+                                                <button
+                                                  onClick={() => {
+                                                    openEditCollection(collection);
+                                                  }}
+                                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                                >
+                                                  <FaEdit className="h-4 w-4 mr-2" />
+                                                  Edit Collection
+                                                </button>
+                                                <button
+                                                  onClick={() => {
+                                                    handleDeleteCollection(collection);
+                                                  }}
+                                                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                                                >
                                                   <FaTrash className="h-4 w-4 mr-2 text-red-600" />
-                                                Delete Collection
-                                              </button>
+                                                  Delete Collection
+                                                </button>
                                             </div>
-                                          </div>
-                                        )}
+                                          }
+                                          interactive={true}
+                                          arrow={true}
+                                          placement="bottom-end"
+                                          trigger="click"
+                                          theme="light"
+                                        >
+                                          <button
+                                            className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
+                                            title="More options"
+                                          >
+                                            <FaEllipsisV className="h-4 w-4" />
+                                          </button>
+                                        </Tippy>
                                       </div>
                                     </div>
                                   </td>
@@ -1265,39 +1265,42 @@ export default function ManagePage() {
                                         <FaArrowRight className="h-4 w-4" />
                                       </Link>
                                       <div className="relative dropdown-container">
-                                        <button 
-                                          onClick={() => setOpenDropdown(openDropdown === path._id ? null : path._id)}
-                                          className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
-                                          title="More options"
-                                        >
-                                          <FaEllipsisV className="h-4 w-4" />
-                                        </button>
-                                        {openDropdown === path._id && (
-                                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                                            <div className="py-1">
-                                              <button
-                                                onClick={() => {
-                                                  // TODO: Implement edit path functionality
-                                                  setOpenDropdown(null);
-                                                }}
-                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                                              >
-                                                <FaEdit className="h-4 w-4 mr-2" />
-                                                Edit Path
-                                              </button>
-                                              <button
-                                                onClick={() => {
-                                                  handleDeletePath(path);
-                                                  setOpenDropdown(null);
-                                                }}
-                                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
-                                              >
+                                        <Tippy
+                                          content={
+                                            <div className="py-1 min-w-max">
+                                                <button
+                                                  onClick={() => {
+                                                    // TODO: Implement edit path functionality
+                                                  }}
+                                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                                >
+                                                  <FaEdit className="h-4 w-4 mr-2" />
+                                                  Edit Path
+                                                </button>
+                                                <button
+                                                  onClick={() => {
+                                                    handleDeletePath(path);
+                                                  }}
+                                                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                                                >
                                                   <FaTrash className="h-4 w-4 mr-2 text-red-600" />
-                                                Delete Path
-                                              </button>
+                                                  Delete Path
+                                                </button>
                                             </div>
-                                          </div>
-                                        )}
+                                          }
+                                          interactive={true}
+                                          arrow={true}
+                                          placement="bottom-end"
+                                          trigger="click"
+                                          theme="light"
+                                        >
+                                          <button
+                                            className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
+                                            title="More options"
+                                          >
+                                            <FaEllipsisV className="h-4 w-4" />
+                                          </button>
+                                        </Tippy>
                                       </div>
                                     </div>
                                   </td>

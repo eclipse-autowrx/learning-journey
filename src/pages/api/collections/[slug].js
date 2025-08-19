@@ -9,6 +9,63 @@ import connectToDatabase from '../../../lib/mongodb.js';
 import { Collection } from '../../../lib/models/index.js';
 import { check_auth } from '../../../lib/backend/check_auth.js';
 
+// Function to sanitize quiz questions by removing correct answer flags
+// Only sanitize for regular users, preserve for admin/management requests
+function sanitizeQuizQuestions(lessons, isManagementRequest = false) {
+  if (!lessons || !Array.isArray(lessons)) return lessons;
+  
+  // If this is a management request, don't sanitize (preserve is_correct flags)
+  if (isManagementRequest) return lessons;
+  
+  return lessons.map(lesson => {
+    if (lesson.lesson_type === 'quiz' && lesson.quiz_questions) {
+      const sanitizedLesson = { ...lesson };
+      sanitizedLesson.quiz_questions = lesson.quiz_questions.map(question => ({
+        ...question,
+        answers: question.answers?.map(answer => ({
+          label: answer.label,
+          // Remove is_correct flag for regular users - only backend should know correct answers
+          // is_correct: answer.is_correct // This line is intentionally removed for security
+        }))
+      }));
+      return sanitizedLesson;
+    }
+    return lesson;
+  });
+}
+
+// Recursive function to sanitize quiz questions throughout the collection structure
+function sanitizeCollectionData(collection, isManagementRequest = false) {
+  if (!collection) return collection;
+  
+  const sanitizedCollection = { ...collection };
+  
+  // Sanitize paths
+  if (sanitizedCollection.paths && Array.isArray(sanitizedCollection.paths)) {
+    sanitizedCollection.paths = sanitizedCollection.paths.map(path => {
+      const sanitizedPath = { ...path };
+      
+      // Sanitize courses within paths
+      if (sanitizedPath.courses && Array.isArray(sanitizedPath.courses)) {
+        sanitizedPath.courses = sanitizedPath.courses.map(course => {
+          const sanitizedCourse = { ...course };
+          
+          // Sanitize lessons within courses
+          if (sanitizedCourse.lessons && Array.isArray(sanitizedCourse.lessons)) {
+            sanitizedCourse.lessons = sanitizeQuizQuestions(sanitizedCourse.lessons, isManagementRequest);
+          }
+          
+          return sanitizedCourse;
+        });
+      }
+      
+      return sanitizedPath;
+    });
+  }
+  
+  return sanitizedCollection;
+}
+
 export default async function handler(req, res) {
   const { method, query } = req;
   const { slug } = query;
@@ -37,27 +94,33 @@ export default async function handler(req, res) {
           });
         }
 
+        // Check if this is a management request (admin user)
+        const isManagementRequest = query.manage === 'true' && user_id;
+        
+        // Sanitize quiz questions to remove correct answer flags for regular users
+        const sanitizedCollection = sanitizeCollectionData(collection, isManagementRequest);
+
         const transformedCollection = {
-          _id: collection._id,
-          name: collection.name,
-          slug: collection.slug,
-          description: collection.description,
-          category: collection.category,
-          tags: collection.tags,
-          paths: collection.paths || [],
-          path_order: collection.path_order || [],
-          total_paths: collection.paths ? collection.paths.length : 0,
-          state: collection.state,
-          valid_from: collection.valid_from,
-          valid_to: collection.valid_to,
-          configs: collection.configs,
-          extends: collection.extends,
-          hiddenContent: collection.hiddenContent,
-          meta_title: collection.meta_title,
-          meta_description: collection.meta_description,
-          accessibility_notes: collection.accessibility_notes,
-          created_at: collection.createdAt,
-          updated_at: collection.updatedAt
+          _id: sanitizedCollection._id,
+          name: sanitizedCollection.name,
+          slug: sanitizedCollection.slug,
+          description: sanitizedCollection.description,
+          category: sanitizedCollection.category,
+          tags: sanitizedCollection.tags,
+          paths: sanitizedCollection.paths || [],
+          path_order: sanitizedCollection.path_order || [],
+          total_paths: sanitizedCollection.paths ? sanitizedCollection.paths.length : 0,
+          state: sanitizedCollection.state,
+          valid_from: sanitizedCollection.valid_from,
+          valid_to: sanitizedCollection.valid_to,
+          configs: sanitizedCollection.configs,
+          extends: sanitizedCollection.extends,
+          hiddenContent: sanitizedCollection.hiddenContent,
+          meta_title: sanitizedCollection.meta_title,
+          meta_description: sanitizedCollection.meta_description,
+          accessibility_notes: sanitizedCollection.accessibility_notes,
+          created_at: sanitizedCollection.createdAt,
+          updated_at: sanitizedCollection.updatedAt
         };
 
         res.status(200).json({ success: true, data: transformedCollection });

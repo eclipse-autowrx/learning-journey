@@ -6,6 +6,18 @@
 //
 // SPDX-License-Identifier: MIT
 
+const getCookie = (name) => {
+    if (typeof document === 'undefined') {
+        return null;
+    }
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+        return parts.pop().split(';').shift();
+    }
+    return null;
+};
+
 export const genQueryParamsForRequest = () => {
     let query = ''
     const queryParams = {};
@@ -16,14 +28,14 @@ export const genQueryParamsForRequest = () => {
         }
 
         if (!queryParams.user_id) {
-            const storedUserId = localStorage.getItem('user_id');
+            const storedUserId = getCookie('user_id');
             if (storedUserId) {
                 queryParams.user_id = storedUserId;
             }
         }
 
         if (!queryParams.token) {
-            const storedToken = localStorage.getItem('token');
+            const storedToken = getCookie('token');
             if (storedToken) {
                 queryParams.token = storedToken;
             }

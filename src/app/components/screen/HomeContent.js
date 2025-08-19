@@ -30,9 +30,7 @@ const HomeContent = ({ }) => {
         }
 
         if (queryParams.user_id) {
-            localStorage.setItem('user_id', queryParams.user_id);
-            localStorage.setItem('token', queryParams.token || '');
-            await auth()
+            await auth(queryParams.user_id, queryParams.token || '')
         }
 
         await fetchPaths()
@@ -117,9 +115,9 @@ const HomeContent = ({ }) => {
         }
     }
 
-    const auth = async () => {
+    const auth = async (user_id, token) => {
         try {
-            await fetch(`/api/user/auth?${genQueryParamsForRequest()}`, {
+            await fetch(`/api/user/auth?user_id=${encodeURIComponent(user_id)}&token=${encodeURIComponent(token)}`, {
                 method: "POST"
             });
         } catch (error) {
