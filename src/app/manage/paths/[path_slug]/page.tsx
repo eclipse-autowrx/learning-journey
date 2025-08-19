@@ -27,11 +27,20 @@ import {
   FaCog,
   FaList,
   FaSave,
-  FaTimes
+  FaTimes,
+  FaThLarge
 } from 'react-icons/fa';
 import { COURSE_STATES, PATH_STATES } from '@/lib/const';
 import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
 import ImageEditor from '@/app/components/atom/ImageEditor';
+import PathCanvasEditor from '@/app/components/paths/PathCanvasEditor';
+import { useAuth } from '@/lib/frontend/auth';
+
+interface MapItem {
+  course_id: string;
+  x: string;
+  y: string;
+}
 
 interface Path {
   _id: string;
@@ -53,6 +62,7 @@ interface Path {
   created_at: string;
   updated_at: string;
   courses: Course[]; // Added courses to the Path interface
+  maps: MapItem[];
 }
 
 interface Course {
@@ -70,11 +80,12 @@ interface Course {
 export default function PathDetailPage() {
   const params = useParams();
   const pathSlug = params?.path_slug as string;
+  const { isAuthenticated, loading: authLoading } = useAuth();
   
   const [path, setPath] = useState<Path | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'info' | 'background' | 'courses'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'courses' | 'canvas'>('info');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
   // Edit mode states
@@ -113,22 +124,51 @@ export default function PathDetailPage() {
     state: 'draft'
   });
 
-  useEffect(() => {
-    fetchPathData();
-  }, [pathSlug]);
+  const handleSaveCanvas = async (maps: MapItem[]) => {
+    try {
+      const response = await fetch(`/api/paths/${pathSlug}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ maps }),
+      });
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (!target.closest('.dropdown-container')) {
-        setOpenDropdown(null);
+      if (response.ok) {
+        showToast.success('Canvas layout updated successfully');
+        fetchPathData(); // Refresh data
+      } else {
+        const error = await response.json();
+        showToast.error(`Error: ${error.error || 'Failed to update canvas layout'}`);
       }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+    } catch (error) {
+      console.error('Error updating canvas layout:', error);
+      showToast.error('Failed to update canvas layout');
+    }
+  };
+
+  const handleBackgroundImageUpdate = async (url: string) => {
+    try {
+      const response = await fetch(`/api/paths/${pathSlug}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ background_img: url }),
+      });
+
+      if (response.ok) {
+        showToast.success('Background image updated successfully');
+        fetchPathData(); // Refresh data
+      } else {
+        const error = await response.json();
+        showToast.error(`Error: ${error.error || 'Failed to update background image'}`);
+      }
+    } catch (error) {
+      console.error('Error updating background image:', error);
+      showToast.error('Failed to update background image');
+    }
+  };
 
   const fetchPathData = async () => {
     try {
@@ -170,125 +210,49 @@ export default function PathDetailPage() {
     }
   };
 
-  const getStateColor = (state: string) => {
-    switch (state) {
-      case 'published':
-        return 'bg-blue-100 text-blue-800';
-      case 'released':
-        return 'bg-green-100 text-green-800';
-      case 'draft':
-        return 'bg-blue-100 text-blue-800';
-      case 'archived':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchPathData();
     }
-  };
+  }, [isAuthenticated, pathSlug]);
 
-  const formatDuration = (minutes: number) => {
-    if (minutes < 60) {
-      return `${minutes}m`;
-    }
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
-  };
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.dropdown-container')) {
+        setOpenDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
-  // Bulk selection handlers
-  const handleSelectAllCourses = (checked: boolean) => {
-    if (checked) {
-      const visibleCourses = courses
-        .filter(c => selectedCourseStates.includes(c.state))
-        .map(c => c._id);
-      setSelectedCourses(visibleCourses);
-    } else {
-      setSelectedCourses([]);
-    }
-  };
-
-  const handleToggleCourse = (id: string) => {
-    setSelectedCourses(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+  if (authLoading) {
+    return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Checking authentication...</p>
+            </div>
+        </div>
     );
-  };
+  }
 
-  // Bulk action handlers
-  const handleBulkStateChange = async () => {
-    // Show confirmation dialog
-    const result = await showStateChangeConfirm('courses', selectedCourses.length, bulkNewState);
-    if (!result.isConfirmed) {
-      return;
-    }
-    
-    try {
-      const response = await fetch('/api/courses/bulk', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ids: selectedCourses,
-          state: bulkNewState
-        }),
-      });
+  if (!isAuthenticated) {
+    return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="text-center">
+                <h3 className="mt-2 text-lg font-medium text-gray-900">Authentication Required</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                    You must be logged in to access this page.
+                </p>
+            </div>
+        </div>
+    );
+  }
 
-      const result = await response.json();
-      
-      // Show result using toast notifications
-      showBulkOperationResult(result);
-      
-      if (result.success) {
-        // Refresh data after operation
-        await fetchPathData();
-        
-        // Clear selections
-        setSelectedCourses([]);
-        setShowBulkActionModal(false);
-      }
-    } catch (error) {
-      console.error('Error performing bulk state change:', error);
-      showToast.error('Failed to update items');
-    }
-  };
-
-  const handleBulkDelete = async () => {
-    // Show confirmation dialog
-    const result = await showBulkDeleteConfirm('courses', selectedCourses.length);
-    if (!result.isConfirmed) {
-      return;
-    }
-    
-    try {
-      const response = await fetch('/api/courses/bulk', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ids: selectedCourses
-        }),
-      });
-
-      const result = await response.json();
-      
-      // Show result using toast notifications
-      showBulkOperationResult(result);
-      
-      if (result.success) {
-        // Refresh data after operation
-        await fetchPathData();
-        
-        // Clear selections
-        setSelectedCourses([]);
-        setShowBulkActionModal(false);
-      }
-    } catch (error) {
-      console.error('Error performing bulk delete:', error);
-      showToast.error('Failed to delete items');
-    }
-  };
-
-  // Path edit handlers
   const handleSave = async () => {
     try {
       const response = await fetch(`/api/paths/${pathSlug}`, {
@@ -476,6 +440,124 @@ export default function PathDetailPage() {
     }
   };
 
+  // Bulk selection handlers
+  const handleSelectAllCourses = (checked: boolean) => {
+    if (checked) {
+      const visibleCourses = courses
+        .filter(c => selectedCourseStates.includes(c.state))
+        .map(c => c._id);
+      setSelectedCourses(visibleCourses);
+    } else {
+      setSelectedCourses([]);
+    }
+  };
+
+  const handleToggleCourse = (id: string) => {
+    setSelectedCourses(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  // Bulk action handlers
+  const handleBulkStateChange = async () => {
+    // Show confirmation dialog
+    const result = await showStateChangeConfirm('courses', selectedCourses.length, bulkNewState);
+    if (!result.isConfirmed) {
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/courses/bulk', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ids: selectedCourses,
+          state: bulkNewState
+        }),
+      });
+
+      const result = await response.json();
+      
+      // Show result using toast notifications
+      showBulkOperationResult(result);
+      
+      if (result.success) {
+        // Refresh data after operation
+        await fetchPathData();
+        
+        // Clear selections
+        setSelectedCourses([]);
+        setShowBulkActionModal(false);
+      }
+    } catch (error) {
+      console.error('Error performing bulk state change:', error);
+      showToast.error('Failed to update items');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    // Show confirmation dialog
+    const result = await showBulkDeleteConfirm('courses', selectedCourses.length);
+    if (!result.isConfirmed) {
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/courses/bulk', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ids: selectedCourses
+        }),
+      });
+
+      const result = await response.json();
+      
+      // Show result using toast notifications
+      showBulkOperationResult(result);
+      
+      if (result.success) {
+        // Refresh data after operation
+        await fetchPathData();
+        
+        // Clear selections
+        setSelectedCourses([]);
+        setShowBulkActionModal(false);
+      }
+    } catch (error) {
+      console.error('Error performing bulk delete:', error);
+      showToast.error('Failed to delete items');
+    }
+  };
+
+  const getStateColor = (state: string) => {
+    switch (state) {
+      case 'published':
+        return 'bg-blue-100 text-blue-800';
+      case 'released':
+        return 'bg-green-100 text-green-800';
+      case 'draft':
+        return 'bg-blue-100 text-blue-800';
+      case 'archived':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatDuration = (minutes: number) => {
+    if (minutes < 60) {
+      return `${minutes}m`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -566,17 +648,6 @@ export default function PathDetailPage() {
                 Path Information
               </button>
               <button
-                onClick={() => setActiveTab('background')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'background'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <FaRoute className="inline mr-2 h-4 w-4" />
-                Background Image
-              </button>
-              <button
                 onClick={() => setActiveTab('courses')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'courses'
@@ -587,10 +658,21 @@ export default function PathDetailPage() {
                 <FaList className="inline mr-2 h-4 w-4" />
                 Courses ({courses.length})
               </button>
+              <button
+                onClick={() => setActiveTab('canvas')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'canvas'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <FaThLarge className="inline mr-2 h-4 w-4" />
+                Canvas
+              </button>
             </nav>
           </div>
 
-          <div className="p-6">
+          <div className={activeTab === 'canvas' ? 'py-6' : 'p-6'}>
             {activeTab === 'info' && (
               <div>
                 <div className="flex justify-between items-center mb-6">
@@ -791,78 +873,6 @@ export default function PathDetailPage() {
 
 
 
-              </div>
-            )}
-
-            {activeTab === 'background' && (
-              <div>
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-medium text-gray-900">Background Image</h3>
-                  <div className="flex items-center space-x-3">
-                    {isEditing ? (
-                      <>
-                        <Btn onClick={handleSave}>
-                          <FaSave className="mr-2 h-4 w-4" />
-                          Save
-                        </Btn>
-                        <Btn variant="outlined" onClick={handleCancelEdit}>
-                          <FaTimes className="mr-2 h-4 w-4" />
-                          Cancel
-                        </Btn>
-                      </>
-                    ) : (
-                      <Btn onClick={() => setIsEditing(true)}>
-                        <FaEdit className="mr-2 h-4 w-4" />
-                        Edit Background Image
-                      </Btn>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="space-y-6">
-                  {isEditing ? (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Background Image URL</label>
-                      <input
-                        type="url"
-                        value={editForm.background_img || ''}
-                        onChange={(e) => setEditForm({...editForm, background_img: e.target.value || null})}
-                        className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="https://example.com/background.jpg"
-                      />
-                      {editForm.background_img && (
-                        <div className="mt-4">
-                          <img
-                            src={editForm.background_img}
-                            alt="Background Preview"
-                            className="w-full h-96 object-cover rounded-lg border border-gray-200"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500 mb-2">Current Background Image</dt>
-                      {path.background_img ? (
-                        <div className="mt-2">
-                          <img 
-                            src={path.background_img} 
-                            alt={`${path.name} background`}
-                            className="w-full h-96 object-cover rounded-lg border border-gray-200"
-                          />
-                        </div>
-                      ) : (
-                        <div className="mt-2 p-6 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                          <FaRoute className="mx-auto h-8 w-8 text-gray-400" />
-                          <p className="mt-2 text-sm text-gray-500">No background image uploaded</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
               </div>
             )}
 
@@ -1083,6 +1093,18 @@ export default function PathDetailPage() {
                   </div>
                 )}
               </div>
+            )}
+
+            {activeTab === 'canvas' && (
+                <div className=''>
+                    {path && (
+                        <PathCanvasEditor
+                            path={path}
+                            onSave={handleSaveCanvas}
+                            onBackgroundImageUpdate={handleBackgroundImageUpdate}
+                        />
+                    )}
+                </div>
             )}
           </div>
         </div>

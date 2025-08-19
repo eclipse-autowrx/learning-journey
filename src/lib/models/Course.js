@@ -22,6 +22,7 @@ const CourseSchema = new mongoose.Schema(
     image: { type: String },
     thumb: { type: String },
     tags: { type: [String] },
+    owner_id: { type: String, required: true },
     category: { type: String, limit: 255 },
     icon: { type: String },
     difficulty: { 

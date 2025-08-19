@@ -106,23 +106,45 @@ const PathScreen = ({ path }) => {
   const [updateTrigger, setUpdateTrigger] = useState(0)
 
   useEffect(() => {
+    console.log(`path`, path)
+  }, [path])
+
+  useEffect(() => {
+    console.log(`courses`, courses)
+  }, [courses])
+
+  useEffect(() => {
+    console.log(`maps`, maps)
+  }, [maps])
+
+  useEffect(() => {
     if(path) {
-      setMaps(path?.maps || [])
-      setCourses(path?.courses || [])
+      let courses = path?.courses || []
+      let maps = path?.maps || []
+      if(courses.length > 0 && maps.length > 0) {
+        maps.forEach(map => {
+          map.course = courses.find(c => c._id === map.course_id)
+        })
+      }
+      setMaps(maps)
+      setCourses(courses)
       setUpdateTrigger(1)
     }
   }, [path])
 
   useEffect(() => {
     if(updateTrigger) {
-      if(path?.course_ids){
-        updateProgressForCourses()
+      if(path?.course_ids || path?.courses){
+        // updateProgressForCourses()
       }
     }
   }, [updateTrigger])
 
   const updateProgressForCourses = async () => {
-    if (!path?.course_ids) IoReturnDownBackSharp
+    if(!path) return
+    if (!path?.course_ids) {
+      path.course_ids = path?.courses?.map(c => c._id) || []
+    }
     try {
       let res = await fetchProgressForCourses(path?.course_ids.join(','))
       if (res.success && res.data) {
@@ -190,9 +212,18 @@ const PathScreen = ({ path }) => {
           if (hasChanged) {
             setMaps(tmpMaps)
           }
+        } else {
+          console.log(`no maps or courses`)
+          setMaps([])
         }
+      } else {
+        console.log(`no course_ids`)
+        setMaps([])
+        setCourses([])
       }
-    } catch (err) { }
+    } catch (err) {
+      console.log(`error`, err)
+    }
   }
 
   if (!path) return;

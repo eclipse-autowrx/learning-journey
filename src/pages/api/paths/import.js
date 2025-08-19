@@ -12,6 +12,7 @@ import Lesson from '@/lib/models/Lesson';
 import formidable from 'formidable';
 import fs from 'fs/promises';
 import path from 'path';
+import { check_auth } from '@/lib/backend/check_auth';
 
 export const config = {
     api: {
@@ -56,6 +57,11 @@ export default async function handler(req, res) {
         return res.status(405).json({ success: false, error: 'Method not allowed' });
     }
 
+    const { user_id } = check_auth(req, res);
+    if (!user_id) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+
     await dbConnect();
     
     // Ensure media store directory exists
@@ -92,7 +98,7 @@ export default async function handler(req, res) {
             let createdCount = { paths: 0, courses: 0, lessons: 0 };
 
             for (const p of paths) {
-                const newPathData = cleanId(p);
+                const newPathData = { ...cleanId(p), owner_id: user_id };
                 newPathData.slug = await generateUniqueSlug(newPathData.name, Path);
                 
                 const importedCourses = newPathData.courses || [];
@@ -104,7 +110,7 @@ export default async function handler(req, res) {
 
                 const newCourseIds = [];
                 for (const c of importedCourses) {
-                    const newCourseData = cleanId(c);
+                    const newCourseData = { ...cleanId(c), owner_id: user_id };
                     newCourseData.slug = await generateUniqueSlug(newCourseData.name, Course);
                     
                     const importedLessons = newCourseData.lessons || [];
@@ -125,7 +131,7 @@ export default async function handler(req, res) {
 
                     const newLessonIds = [];
                     for (const l of importedLessons) {
-                        const newLessonData = cleanId(l);
+                        const newLessonData = { ...cleanId(l), owner_id: user_id };
                         newLessonData.slug = await generateUniqueSlug(newLessonData.name, Lesson);
                         newLessonData.course_id = newCourse._id;
 

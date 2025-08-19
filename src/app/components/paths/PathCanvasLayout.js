@@ -67,7 +67,8 @@ const CourseNode = ({ path, item, onRequestUpdateProgress }) => {
       style={{
         top: item.y,
         left: item.x,
-        width: "11wv",
+        width: "11vw",
+        transform: "translate(-50%, -50%)",
       }}
       onClick={async () => {
 
@@ -87,12 +88,18 @@ const CourseNode = ({ path, item, onRequestUpdateProgress }) => {
           return;
         }
 
+        
+
+        if (!item.course || !item.course?.slug) {
+          showToast.warning("Course is not available now!");
+          return;
+        }
+
         // Start the course if not already started
         if (!item.course?.context?.state || item.course?.context?.state === 'not_started') {
           await saveStateCourseStarted(item.course)
           showToast.info(`Started course: ${item.course?.name}`)
         }
-
         router.push(
           `/path/${path.slug}/course/${item.course?.slug}`
         );
@@ -129,7 +136,7 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
   const router = useRouter();
 
   return <div className="px-2 lg:px-4">
-    <div className="relative w-full h-[560px] rounded-sm border-6 border-gray-200"
+    <div className="relative w-full h-[560px] rounded-sm border-2 border-gray-200"
       style={{
         backgroundImage: `url(${path.background_img})`,
         backgroundSize: "cover",
