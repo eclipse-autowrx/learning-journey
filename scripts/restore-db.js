@@ -44,7 +44,7 @@ function parseMongoUri(mongoUri) {
     
     return {
       host: url.hostname,
-      port: url.port || '27017',
+      port: url.port || '27000',
       username: url.username,
       password: url.password,
       database: dbName,

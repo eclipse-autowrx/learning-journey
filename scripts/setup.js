@@ -38,7 +38,7 @@ const envPath = join(process.cwd(), '.env.local');
 if (!existsSync(envPath)) {
   console.log('📝 Creating .env.local file...');
   const envContent = `# Database Configuration
-MONGO_URI=mongodb://admin:password123@localhost:27017/learning_journey?authSource=admin
+MONGO_URI=mongodb://admin:password123@localhost:27000/learning_journey?authSource=admin
 
 # Application Configuration
 NODE_ENV=development

@@ -10,7 +10,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password123}
       MONGO_INITDB_DATABASE: learning_journey
     ports:
-      - "${MONGO_PORT:-27017}:27017"
+      - "${MONGO_PORT:-27000}:27017"
     volumes:
       - mongodb_data_prod:/data/db
       - ./mongo-init:/docker-entrypoint-initdb.d

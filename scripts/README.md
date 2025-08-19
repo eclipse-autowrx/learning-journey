@@ -115,7 +115,7 @@ The scripts parse the `MONGO_URI` environment variable to extract:
 - **Username**: From the URI credentials
 - **Password**: From the URI credentials  
 - **Host**: From the URI hostname
-- **Port**: From the URI port (defaults to 27017)
+- **Port**: From the URI port (defaults to 27000)
 - **Authentication Database**: From the `authSource` parameter (defaults to admin)
 
 ### Example MONGO_URI format:
@@ -126,7 +126,7 @@ mongodb://username:password@hostname:port/database?authSource=admin
 ### Environment File Setup:
 Create a `.env` file in your project root with:
 ```bash
-MONGO_URI=mongodb://admin:password123@localhost:27017/learning_journey?authSource=admin
+MONGO_URI=mongodb://admin:password123@localhost:27000/learning_journey?authSource=admin
 ```
 
 The scripts will automatically detect and use the correct configuration based on your environment.

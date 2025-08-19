@@ -99,12 +99,12 @@ This guide will help you set up the Learning Journey application with separate c
 ## Services
 
 ### Development Services
-- **MongoDB:** Port 27017, Database: learning_journey
+- **MongoDB:** Port 27000, Database: learning_journey
 - **MongoDB Express:** Port 8081, Admin UI
 - **Next.js App:** Run locally with `npm run dev`
 
 ### Production Services
-- **MongoDB:** Port 27017, Database: learning_journey
+- **MongoDB:** Port 27000, Database: learning_journey
 - **MongoDB Express:** Port 8081 (optional, with admin profile)
 - **Next.js App:** Port 3000, Production build
 - **Nginx:** Port 80/443 (optional, with nginx profile)
@@ -114,7 +114,7 @@ This guide will help you set up the Learning Journey application with separate c
 ### Development
 Create a `.env.dev` file:
 ```env
-MONGO_URI=mongodb://admin:password123@localhost:27017/learning_journey?authSource=admin
+MONGO_URI=mongodb://admin:password123@localhost:27000/learning_journey?authSource=admin
 NODE_ENV=development
 PORT=3000
 ```
@@ -188,7 +188,7 @@ The API endpoints are designed to:
 ### MongoDB Connection Issues
 1. Check if MongoDB container is running: `docker ps`
 2. View MongoDB logs: `docker-compose logs mongodb`
-3. Ensure ports are not in use: `netstat -an | grep 27017`
+3. Ensure ports are not in use: `netstat -an | grep 27000`
 
 ### Migration Issues
 1. Ensure MongoDB is fully started before running migration

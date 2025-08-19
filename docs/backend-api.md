@@ -55,7 +55,7 @@
 # Run mongodb
 ```sh
 mkdir -p ~/mongo-data
-docker run --name mongo-dev -p 27017:27017 -v ~/mongo-data:/data/db -d mongo
+docker run --name mongo-dev -p 27000:27017 -v ~/mongo-data:/data/db -d mongo
 
   ```
 
