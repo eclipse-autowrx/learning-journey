@@ -28,14 +28,30 @@ async function handler(req, res) {
         return;
     }
 
-    // Ensure media store directory exists
+    // Ensure media store directory exists and is writable
     if (!fs.existsSync(MEDIA_STORE_PATH)) {
-        fs.mkdirSync(MEDIA_STORE_PATH, { recursive: true });
+        try {
+            fs.mkdirSync(MEDIA_STORE_PATH, { recursive: true });
+        } catch (mkdirErr) {
+            console.error('Failed to create media store directory:', mkdirErr);
+            res.status(500).json({ error: 'Failed to create media directory' });
+            return;
+        }
+    }
+    
+    // Check if directory is writable
+    try {
+        await fs.promises.access(MEDIA_STORE_PATH, fs.constants.W_OK);
+    } catch (accessErr) {
+        console.error('Media store directory is not writable:', accessErr);
+        res.status(500).json({ error: 'Media directory is not writable' });
+        return;
     }
 
     const form = formidable({
         multiples: false,
-        uploadDir: MEDIA_STORE_PATH,
+        // Always stream to a temp directory to avoid locking in the final destination on Windows
+        uploadDir: path.join(process.cwd(), '.tmp_uploads'),
         keepExtensions: true,
     });
 
@@ -55,7 +71,12 @@ async function handler(req, res) {
         }
 
 
-        const ext = path.extname(file.originalFilename || '');
+        const ext = path.extname(file.originalFilename || '').toLowerCase();
+        const allowedExts = ['.png', '.jpg', '.jpeg', '.webp'];
+        if (!allowedExts.includes(ext)) {
+            res.status(400).json({ error: 'Unsupported file type' });
+            return;
+        }
 
         // Helper function to slugify the original filename (without extension)
         function slugify(str) {
@@ -73,65 +94,133 @@ async function handler(req, res) {
         const slug = slugify(nameWithoutExt);
         const randomStr = Math.random().toString(36).slice(2, 5);
         const uniqueName = `${slug}_${randomStr}${ext}`;
+        // Ensure temp dir exists
+        const TMP_DIR = path.join(process.cwd(), '.tmp_uploads');
+        if (!fs.existsSync(TMP_DIR)) {
+            try {
+                fs.mkdirSync(TMP_DIR, { recursive: true });
+            } catch (tmpMkdirErr) {
+                console.error('Failed to create temp directory:', tmpMkdirErr);
+                res.status(500).json({ error: 'Failed to create temp directory' });
+                return;
+            }
+        }
         const destPath = path.join(MEDIA_STORE_PATH, uniqueName);
 
         try {
             // Move file to destination
             console.log('file.filepath', file.filepath);
             console.log('file.path', file.path);
-            await fs.promises.rename(file.filepath || file.path, destPath);
+            
+            // For Windows compatibility, always use copy+unlink instead of rename
+            const fromPath = file.filepath || file.path;
+            try {
+                await fs.promises.copyFile(fromPath, destPath);
+                // Clean up temp file
+                try { 
+                    await fs.promises.unlink(fromPath); 
+                } catch (unlinkErr) {
+                    console.log('Warning: Could not delete temp file:', unlinkErr.message);
+                }
+            } catch (copyErr) {
+                console.error('Failed to copy file:', copyErr);
+                return res.status(500).json({ error: 'Failed to save file' });
+            }
 
             // INSERT_YOUR_CODE
 
-
-
             // Read the image
-            const image = sharp(destPath);
+            let image;
+            try {
+                image = sharp(destPath);
+            } catch (e) {
+                return res.status(415).json({ error: 'Unable to read image' });
+            }
 
             // Get metadata to check size
             const metadata = await image.metadata();
 
             // If image is larger than 1200 in width or height, resize it
             if (metadata.width > MAX_IMG_SIZE || metadata.height > MAX_IMG_SIZE) {
-                await image
+                const resizedBuffer = await image
                     .resize({
                         width: MAX_IMG_SIZE,
                         height: MAX_IMG_SIZE,
                         fit: 'inside',
                         withoutEnlargement: true,
                     })
-                    .toFile(destPath + '.tmp');
+                    .toBuffer();
 
-                // Replace the original file with the resized one
-                await fs.promises.rename(destPath + '.tmp', destPath);
+                // Create a temporary file for the resized image to avoid Windows file lock issues
+                const tempResizedPath = path.join(process.cwd(), '.tmp_uploads', `resized_${uniqueName}`);
+                try {
+                    // Write resized image to temp file first
+                    await fs.promises.writeFile(tempResizedPath, resizedBuffer);
+                    
+                    // Then replace the original file atomically
+                    await fs.promises.copyFile(tempResizedPath, destPath);
+                    
+                    // Clean up temp resized file
+                    try {
+                        await fs.promises.unlink(tempResizedPath);
+                    } catch (cleanupErr) {
+                        console.log('Warning: Could not delete temp resized file:', cleanupErr.message);
+                    }
+                } catch (resizeErr) {
+                    console.error('Failed to save resized image:', resizeErr);
+                    // Continue with original image if resize fails
+                }
             }
 
             // Create a thumbnail (max 480x480)
-            const thumbName = `${slug}_${randomStr}_thumb${ext}`;
+            const thumbName = `${slug}_${randomStr}_thumb.png`;
             const thumbPath = path.join(MEDIA_STORE_PATH, thumbName);
 
-            await sharp(destPath)
-                .resize({
-                    width: THUMBNAIL_SIZE,
-                    height: THUMBNAIL_SIZE,
-                    fit: 'inside',
-                    withoutEnlargement: true,
-                })
-                .toFile(thumbPath);
+            try {
+                await sharp(destPath)
+                    .resize({
+                        width: THUMBNAIL_SIZE,
+                        height: THUMBNAIL_SIZE,
+                        fit: 'inside',
+                        withoutEnlargement: true,
+                    })
+                    .png()
+                    .toFile(thumbPath);
+            } catch (thumbErr) {
+                console.error('Failed to create thumbnail:', thumbErr);
+                // Continue without thumbnail if creation fails
+            }
 
             // Construct public URL (assuming /images/ is mapped to MEDIA_STORE_PATH)
             const publicUrl = `/images/${uniqueName}`;
-            const publicThumbUrl = `/images/${thumbName}`;
+            const publicThumbUrl = thumbPath ? `/images/${thumbName}` : null;
 
-            res.status(200).json({
-                success: true,
-                url: publicUrl,
-                filename: uniqueName,
-                thumbnail: publicThumbUrl,
-            });
+            if (!res.headersSent) {
+                res.status(200).json({
+                    success: true,
+                    url: publicUrl,
+                    filename: uniqueName,
+                    thumbnail: publicThumbUrl,
+                });
+            }
         } catch (moveErr) {
             console.log('moveErr', moveErr);
-            res.status(500).json({ error: 'Failed to save file' });
+            
+            // Clean up any files that might have been created
+            try {
+                if (fs.existsSync(destPath)) {
+                    await fs.promises.unlink(destPath);
+                }
+            } catch (cleanupErr) {
+                console.log('Warning: Could not cleanup destination file:', cleanupErr.message);
+            }
+            
+            if (!res.headersSent) {
+                res.status(500).json({ 
+                    error: 'Failed to save file',
+                    details: process.env.NODE_ENV === 'development' ? moveErr.message : undefined
+                });
+            }
         }
     });
 }

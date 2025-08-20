@@ -14,7 +14,7 @@ import ViewportVisibleDetect from "../atom/ViewPortVisibleDetect";
 import MarkdownRender from "../atom/MarkdownRender";
 
 
-const TextMarkdownLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
+const TextMarkdownLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = true }) => {
 
     if (!lesson) return <></>
 
@@ -41,14 +41,14 @@ const TextMarkdownLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
         <div className="px-4 py-4 flex items-center space-x-2">
             <div className="grow"></div>
 
-            <BtnFullRounded
+            {showNextButton &&<BtnFullRounded
                 onClick={() => {
                     if (onCloseRequest) {
                         onCloseRequest({})
                     }
                 }}>
                 Next Lesson
-            </BtnFullRounded>
+            </BtnFullRounded>}
         </div>
     </div>
 }

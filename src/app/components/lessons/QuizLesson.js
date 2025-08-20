@@ -14,6 +14,8 @@ import BtnFullRounded from "../atom/BtnFullRounded";
 import { STATE_COMPLETED } from "@/lib/const";
 import { showToast } from "@/lib/utils/notifications";
 
+const PASSING_SCORE_PERCENTAGE = 80;
+
 const QuizQuestion = ({ question, index, onGotAnswer }) => {
 
   const [tmpAnswer, setTmpAnswer] = useState(-1)
@@ -55,7 +57,7 @@ const QuizQuestion = ({ question, index, onGotAnswer }) => {
   </div>
 }
 
-const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
+const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = true }) => {
 
   const [numQuestions, setNumQuestions] = useState(0)
   const [curQuestionIndex, setCurQuestionIndex] = useState(0)
@@ -153,11 +155,6 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
       <div className="mt-2 px-1 py-2 flex items-center space-x-2">
         <BtnFullRounded disable={!gotAllAnswer || isSubmitting}
           onClick={async () => {
-            if (onSumbitLesson) {
-              let data = questions.map(q => { return { answerIndex: q.answerIndex } })
-              onSumbitLesson(data)
-            }
-            
             setIsSubmitting(true);
             try {
               const answers = questions.map((q, index) => ({
@@ -174,7 +171,16 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
               const resultData = await res.json();
               if (resultData.success) {
                 setQuizResult(resultData);
-                setTextResult(`You answered ${resultData.score} out of ${resultData.total} questions correctly.`);
+                const scorePercentage = (resultData.score / resultData.total) * 100;
+                if (scorePercentage >= PASSING_SCORE_PERCENTAGE) {
+                  setTextResult(`You passed! You answered ${resultData.score} out of ${resultData.total} questions correctly.`);
+                  if (onSumbitLesson) {
+                    let data = questions.map(q => { return { answerIndex: q.answerIndex } })
+                    onSumbitLesson(data)
+                  }
+                } else {
+                  setTextResult(`You did not pass. You answered ${resultData.score} out of ${resultData.total} questions correctly. You need at least ${PASSING_SCORE_PERCENTAGE}% to pass.`);
+                }
               } else {
                 showToast.error(resultData.error || 'Failed to submit quiz.');
               }
@@ -231,13 +237,13 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
             Start again
           </BtnFullRounded>
 
-          <BtnFullRounded onClick={() => {
+          {showNextButton && <BtnFullRounded onClick={() => {
             if (onCloseRequest) {
               onCloseRequest()
             }
           }}>
             Next Lesson
-          </BtnFullRounded>
+          </BtnFullRounded>}
         </div>
       </div>
     ) : (

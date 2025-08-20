@@ -223,8 +223,16 @@ export const CourseService = {
 
   async getBySlug(slug) {
     await connectToDatabase();
-    return await Course.findOne({ slug })
-      .populate('lessons', 'name slug description lesson_type state duration created_at markdown_content content quiz_questions passing_score max_attempts video_url video_duration video_provider interactive_config sequence');
+    const course = await Course.findOne({ slug })
+      .populate('lessons', 'name slug description lesson_type state duration created_at markdown_content content quiz_questions passing_score max_attempts video_url video_duration video_provider interactive_config sequence')
+      .lean();
+    if (course && course.lessons) {
+      const lessonIds = course.lessons.map(lesson => lesson._id || lesson);
+      const populatedLessons = await Lesson.find({ '_id': { $in: lessonIds } }).lean();
+      const lessonMap = new Map(populatedLessons.map(lesson => [lesson._id.toString(), lesson]));
+      course.lessons = course.lessons.map(lesson => lessonMap.get((lesson._id || lesson).toString())).filter(Boolean);
+    }
+    return course;
   },
 
   async create(data) {
@@ -329,7 +337,7 @@ export const LessonService = {
 
   async getById(id) {
     await connectToDatabase();
-    return await Lesson.findById(id);
+    return await Lesson.findById(id).lean();
   },
 
   async getBySlug(slug) {

@@ -53,7 +53,7 @@ const PathList = ({ paths, title, titleTag, description }) => {
                         className={`w-full bg-white text-slate-600 text-lg rounded-xl 
                                 cursor-pointer flex flex-col justify-center px-0 overflow-hidden
                                 ${path.state === 'locked' && 'opacity-80'}`}>
-                        <img src={path.thumb}
+                        <img src={path.thumb || path.image}
                             className="w-full h-[200px] object-cover rounded-t-xl hover:scale-110" />
                         <div className="grow px-4 pt-4 pb-2">
                             <div className="mt-2 mb-2 text-left flex items-center justify-between">

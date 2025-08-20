@@ -43,7 +43,7 @@ import {
   FaGripVertical
 } from 'react-icons/fa';
 import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
-import { COURSE_STATES } from '@/lib/const';
+import { COURSE_STATES, LESSON_STATES } from '@/lib/const';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ImageEditor from '@/app/components/atom/ImageEditor';
 import { useAuth } from '@/lib/frontend/auth';
@@ -124,6 +124,7 @@ export default function CourseDetailPage() {
   
   const [course, setCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [path, setPath] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'info' | 'lessons'>('info');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -147,6 +148,7 @@ export default function CourseDetailPage() {
   // Bulk selection and filter states
   const [selectedLessons, setSelectedLessons] = useState<string[]>([]);
   const [selectedLessonStates, setSelectedLessonStates] = useState<string[]>(LESSON_STATES.map(s => s.value));
+  const [selectedLessonSlug, setSelectedLessonSlug] = useState<string | null>(null);
   const [showBulkActionModal, setShowBulkActionModal] = useState(false);
   const [bulkActionType, setBulkActionType] = useState<'state' | 'delete' | null>(null);
   const [bulkNewState, setBulkNewState] = useState<string>('draft');
@@ -162,8 +164,20 @@ export default function CourseDetailPage() {
   });
   const [isSaving, setIsSaving] = useState(false);
 
+  // Lesson editing states
+  const [editableLesson, setEditableLesson] = useState<Lesson | null>(null);
+  const [lessonDetailTab, setLessonDetailTab] = useState<'info' | 'edit' | 'view'>('info');
+  const [isLessonDirty, setIsLessonDirty] = useState(false);
+
   const fetchCourseData = async () => {
     try {
+      // Fetch path data first
+      const pathRes = await fetch(`/api/paths/${pathSlug}`);
+      const pathData = await pathRes.json();
+      if (pathData.success) {
+        setPath(pathData.data);
+      }
+
       const courseRes = await fetch(`/api/courses/${courseSlug}`);
       const courseData = await courseRes.json();
 
@@ -200,57 +214,75 @@ export default function CourseDetailPage() {
   }, [isAuthenticated, courseSlug]);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (!target.closest('.dropdown-container')) {
-        setOpenDropdown(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+     const handleClickOutside = (event: MouseEvent) => {
+       const target = event.target as Element;
+       if (!target.closest('.dropdown-container')) {
+         setOpenDropdown(null);
+       }
+     };
+     document.addEventListener('mousedown', handleClickOutside);
+     return () => {
+       document.removeEventListener('mousedown', handleClickOutside);
+     };
+   }, []);
 
-  if (authLoading) {
-    return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Checking authentication...</p>
-            </div>
-        </div>
-    );
-  }
+   // This useEffect must be called unconditionally to follow Rules of Hooks
+   useEffect(() => {
+     if (selectedLessonSlug && lessons.length > 0) {
+       const foundLesson = lessons.find(l => l.slug === selectedLessonSlug);
+       if (foundLesson) {
+         setEditableLesson(foundLesson);
+         setLessonDetailTab('info');
+       }
+     }
+   }, [selectedLessonSlug, lessons]);
 
-  if (!isAuthenticated) {
-    return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="text-center">
-                <h3 className="mt-2 text-lg font-medium text-gray-900">Authentication Required</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                    You must be logged in to access this page.
-                </p>
-            </div>
-        </div>
-    );
-  }
-
-  const selectedLesson: Lesson | null = selectedLessonSlug
-    ? lessons.find(l => l.slug === selectedLessonSlug) || null
-    : null;
-
-  useEffect(() => {
-    if (selectedLesson) {
-      setEditableLesson(selectedLesson);
-      setLessonDetailTab('info');
+   useEffect(() => {
+    // Select the first lesson by default if no lesson is selected
+    if (lessons.length > 0 && !selectedLessonSlug) {
+      setSelectedLessonSlug(lessons[0].slug);
     }
-  }, [selectedLessonSlug]);
+  }, [lessons, selectedLessonSlug]);
 
-  const handleLessonContentChange = (newValue: any) => {
-    setEditableLesson((prev: any) => ({ ...prev, ...newValue }));
-    setIsLessonDirty(true);
-  };
+   const handleLessonContentChange = (newValue: any) => {
+     setEditableLesson((prev: any) => ({ ...prev, ...newValue }));
+     setIsLessonDirty(true);
+   };
+
+   const handleLessonInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+     const { name, value } = e.target;
+     setEditableLesson((prev: any) => ({ ...prev, [name]: value }));
+     setIsLessonDirty(true);
+   };
+
+   // Calculate selectedLesson after all hooks are declared
+   const selectedLesson: Lesson | null = selectedLessonSlug
+     ? lessons.find(l => l.slug === selectedLessonSlug) || null
+     : null;
+
+   if (authLoading) {
+     return (
+         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+             <div className="text-center">
+                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                 <p className="mt-4 text-gray-600">Checking authentication...</p>
+             </div>
+         </div>
+     );
+   }
+
+   if (!isAuthenticated) {
+     return (
+         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+             <div className="text-center">
+                 <h3 className="mt-2 text-lg font-medium text-gray-900">Authentication Required</h3>
+                 <p className="mt-1 text-sm text-gray-500">
+                     You must be logged in to access this page.
+                 </p>
+             </div>
+         </div>
+     );
+   }
 
   const mapLessonForRender = (lesson: Lesson) => {
     // Adapt minimal lesson shape to renderer expectations
@@ -336,6 +368,10 @@ export default function CourseDetailPage() {
   // Course edit handlers
   const handleSave = async () => {
     try {
+      if (!editForm.name) {
+        showToast.error('Course name cannot be empty');
+        return;
+      }
       const response = await fetch(`/api/courses/${courseSlug}`, {
         method: 'PUT',
         headers: {
@@ -363,12 +399,15 @@ export default function CourseDetailPage() {
     if (course) {
       setEditForm({
         name: course.name || '',
+        slug: course.slug || '',
         description: course.description || '',
         category: course.category || '',
-        duration: course.duration || 0,
-        icon: course.icon || '',
-        top_icon: course.top_icon || '',
-        image: course.image || null
+        image: course.image || null,
+        thumb: null,
+        state: course.state || 'draft',
+        tags: [],
+        configs: {},
+        extends: {},
       });
     }
   };
@@ -382,40 +421,15 @@ export default function CourseDetailPage() {
   const handleLessonSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!lessonForm.name) {
+      showToast.error('Lesson name cannot be empty');
+      return;
+    }
     let submissionData: any = { ...lessonForm };
     if (lessonForm.lesson_type === 'text-markdown') {
-      submissionData.markdown_content = `# Welcome to Your New Lesson!
-
-This is a sample lesson created in **Text-Markdown** format. You can use this to get started with your content creation.
-
-## Getting Started
-
-You can use standard Markdown syntax to format your text. Here are a few examples:
-
-- **Bold text:** \`**Bold text**\`
-- *Italic text:* \`*Italic text*\`
-- \`Code snippets:\` \`\` \`Code snippets\` \`\`
-
-### Lists
-
-You can create ordered or unordered lists.
-
-1.  First item
-2.  Second item
-3.  Third item
-
-- Unordered item
-- Another unordered item
-
-### Links and Images
-
-You can also add [links](https://www.example.com) and images:
-
-![Placeholder Image](https://via.placeholder.com/150)
-
-> This is a blockquote. You can use it to highlight important information.
-
-Now, you can go ahead and edit this content to create your amazing lesson!`;
+      submissionData.markdown_content = `# New Lesson
+    
+Start writing your lesson content here.`;
     } else if (lessonForm.lesson_type === 'quiz') {
       submissionData.quiz_questions = [
         {
@@ -449,7 +463,10 @@ Now, you can go ahead and edit this content to create your amazing lesson!`;
       });
       showToast.success('Lesson created and added to course');
       setShowLessonModal(false);
-      fetchCourseData();
+      // Update state and set new lesson as active
+      const updatedLessonsState = [...lessons, newLesson];
+      setLessons(updatedLessonsState);
+      setSelectedLessonSlug(newLesson.slug);
     } catch (err: any) {
       showToast.error(err?.message || 'Failed to create lesson');
     }
@@ -465,6 +482,8 @@ Now, you can go ahead and edit this content to create your amazing lesson!`;
     }
 
     try {
+      const lessonIndexToDelete = lessons.findIndex(l => l._id === lessonId);
+
       const updatedLessons = lessons.filter(l => l._id !== lessonId).map(l => l._id);
       await fetch(`/api/courses/${courseSlug}`, {
         method: 'PUT',
@@ -474,7 +493,19 @@ Now, you can go ahead and edit this content to create your amazing lesson!`;
       // Optionally, you might want to delete the lesson document itself if it's not referenced anywhere else
       // await fetch(`/api/lessons/${lessonId}`, { method: 'DELETE' });
       showToast.success('Lesson removed from course');
-      fetchCourseData();
+      
+      const newLessons = lessons.filter(l => l._id !== lessonId);
+      setLessons(newLessons);
+
+      if (selectedLessonSlug === lessons[lessonIndexToDelete].slug) {
+        if (newLessons.length === 0) {
+          setSelectedLessonSlug(null);
+        } else {
+          const newActiveIndex = Math.max(0, lessonIndexToDelete - 1);
+          setSelectedLessonSlug(newLessons[newActiveIndex].slug);
+        }
+      }
+
     } catch (err: any) {
       showToast.error(err?.message || 'Failed to remove lesson');
     }
@@ -734,13 +765,24 @@ Now, you can go ahead and edit this content to create your amazing lesson!`;
                   </div>
                   {/* Course Image */}
                   <div className="w-[300px] flex-shrink-0">
-                    <ImageEditor
-                      label="Course Image"
-                      imageUrl={editForm.image}
-                      onImageUrlChange={(url) => setEditForm({ ...editForm, image: url })}
-                      allowDelete={false}
-                      mode="avatar"
-                    />
+                    {isEditing ? (
+                      <ImageEditor
+                        label="Course Image"
+                        imageUrl={editForm.image}
+                        onImageUrlChange={(url) => setEditForm({ ...editForm, image: url })}
+                        allowDelete={false}
+                        mode="avatar"
+                      />
+                    ) : (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Course Image</label>
+                        {course.image ? (
+                          <img src={course.image} alt={course.name} className="rounded-md w-full object-contain" />
+                        ) : (
+                          <div className="text-sm text-gray-500">No image</div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -765,7 +807,7 @@ Now, you can go ahead and edit this content to create your amazing lesson!`;
                 ) : (
                   <div className="flex gap-6">
                     {/* Left: lesson list */}
-                    <div className="w-[320px] min-w-[320px]">
+                                      <div className="w-[320px] min-w-[320px]">
                       <DragDropContext onDragEnd={onDragEnd}>
                         <Droppable droppableId="lessons">
                           {(provided) => (
@@ -845,11 +887,16 @@ Now, you can go ahead and edit this content to create your amazing lesson!`;
                                 disabled={!isLessonDirty}
                                 className={`inline-flex items-center px-4 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isLessonDirty ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'}`}
                                 onClick={async () => {
-                                  if (editableLesson.lesson_type === 'quiz' && !validateQuizLesson(editableLesson)) {
+                                  if (editableLesson?.lesson_type === 'quiz' && !validateQuizLesson(editableLesson)) {
                                     return; // Stop if validation fails
+                                  }
+                                  if (!editableLesson?.name) {
+                                    showToast.error('Lesson name cannot be empty');
+                                    return;
                                   }
                                   try {
                                     const originalSlug = selectedLesson?.slug;
+                                    if (!editableLesson) return;
                                     const res = await fetch(`/api/lessons/${originalSlug}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editableLesson) });
                                     const data = await res.json();
                                     if (data.success) {
@@ -878,11 +925,11 @@ Now, you can go ahead and edit this content to create your amazing lesson!`;
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div>
                                     <label className="block text-sm font-medium text-gray-700">Name</label>
-                                    <input className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.name) || ''} onChange={(e) => setEditableLesson((p: any) => ({ ...p, name: e.target.value }))} />
+                                    <input name="name" className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.name) || ''} onChange={handleLessonInfoChange} />
                                   </div>
                                   <div>
                                     <label className="block text-sm font-medium text-gray-700">Slug</label>
-                                    <input className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.slug) || ''} onChange={(e) => setEditableLesson((p: any) => ({ ...p, slug: e.target.value }))} />
+                                    <input name="slug" className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.slug) || ''} onChange={handleLessonInfoChange} />
                                   </div>
                                   {/* <div>
                                     <label className="block text-sm font-medium text-gray-700">Type</label>
@@ -900,7 +947,7 @@ Now, you can go ahead and edit this content to create your amazing lesson!`;
                                 </div>
                                 <div>
                                   <label className="block text-sm font-medium text-gray-700">Description</label>
-                                  <textarea rows={4} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.description) || ''} onChange={(e) => setEditableLesson((p: any) => ({ ...p, description: e.target.value }))} />
+                                  <textarea name="description" rows={4} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.description) || ''} onChange={handleLessonInfoChange} />
                                 </div>
                                 {/* Save moved to header */}
                               </div>
@@ -912,13 +959,13 @@ Now, you can go ahead and edit this content to create your amazing lesson!`;
                                   const adapted = mapLessonForRender(editableLesson as Lesson);
                                   switch (editableLesson?.lesson_type) {
                                     case 'video':
-                                      return <VideoLesson lesson={adapted as any} onComplete={() => { }} />
+                                      return <VideoLesson lesson={adapted as any} onSumbitLesson={() => { }} onCloseRequest={() => { }} />
                                     case 'text-markdown':
-                                      return <TextMarkdownLesson lesson={adapted as any} onSumbitLesson={() => { }} onCloseRequest={() => { }} />
+                                      return <TextMarkdownLesson lesson={adapted as any} onSumbitLesson={() => { }} onCloseRequest={() => { }} showNextButton={false} />
                                     case 'quiz':
-                                      return <QuizLesson lesson={adapted as any} onSumbitLesson={() => { }} onCloseRequest={() => { }} />
+                                      return <QuizLesson lesson={adapted as any} onSumbitLesson={() => { }} onCloseRequest={() => { }} showNextButton={false} />
                                     case 'interactive':
-                                      return <InteractiveLesson lesson={adapted as any} onSumbitLesson={() => { }} onCloseRequest={() => { }} />
+                                      return <InteractiveLesson lesson={adapted as any} onSumbitLesson={() => { }} onCloseRequest={() => { }} showNextButton={false} />
                                     default:
                                       return <UnknownLessonViewer lesson={adapted as any} />
                                   }
@@ -967,15 +1014,15 @@ Now, you can go ahead and edit this content to create your amazing lesson!`;
               <form onSubmit={handleLessonSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Name *</label>
-                  <input type="text" required value={lessonForm.name} onChange={e => setLessonForm(f => ({ ...f, name: e.target.value }))} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                  <input type="text" required value={lessonForm.name} onChange={(e) => setLessonForm((f: any) => ({ ...f, name: e.target.value }))} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea value={lessonForm.description} onChange={e => setLessonForm(f => ({ ...f, description: e.target.value }))} rows={3} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                  <textarea value={lessonForm.description} onChange={(e) => setLessonForm((f: any) => ({ ...f, description: e.target.value }))} rows={3} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Lesson Type *</label>
-                  <select value={lessonForm.lesson_type} onChange={e => setLessonForm(f => ({ ...f, lesson_type: e.target.value }))} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                  <select value={lessonForm.lesson_type} onChange={(e) => setLessonForm((f: any) => ({ ...f, lesson_type: e.target.value }))} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     <option value="text-markdown">Text Markdown</option>
                     <option value="video">Video</option>
                     <option value="quiz">Quiz</option>

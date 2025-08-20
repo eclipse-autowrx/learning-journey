@@ -94,7 +94,7 @@ lesson = {
 }
 
 */
-const InteractiveLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
+const InteractiveLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = true }) => {
 
     const [hasParentWindow, setHasParentWindow] = useState(window && window.parent && window.parent !== window)
     const [isSequenceFinished, setIsSequenceFinished] = useState(false)
@@ -231,7 +231,7 @@ const InteractiveLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
                     {isSequenceFinished ? 'Restart' : 'Start'}
                 </BtnFullRounded>
 
-                {(isCompleted || isSequenceFinished) && <BtnFullRounded
+                {(isCompleted || isSequenceFinished) && showNextButton && <BtnFullRounded
                     onClick={() => {
                         onCloseRequest()
                     }}>

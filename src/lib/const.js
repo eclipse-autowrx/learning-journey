@@ -46,6 +46,13 @@ export const PATH_STATES = [
   { value: 'locked', label: 'Locked' },
 ];
 
+export const LESSON_STATES = [
+  { value: 'draft', label: 'Draft' },
+  { value: 'reviewed', label: 'Reviewed' },
+  { value: 'published', label: 'Published' },
+  { value: 'archived', label: 'Archived' },
+];
+
 export const MEDIA_TYPES = {
     IMAGE: 'image',
     VIDEO: 'video',

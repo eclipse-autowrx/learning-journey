@@ -196,6 +196,10 @@ export default function CollectionDetailPage() {
 
   const handleSave = async () => {
     try {
+      if (!editForm.name) {
+        showToast.error('Collection name cannot be empty');
+        return;
+      }
       const response = await fetch(`/api/collections/${collectionSlug}`, {
         method: 'PUT',
         headers: {
@@ -280,7 +284,19 @@ export default function CollectionDetailPage() {
       if (response.ok) {
         showToast.success('Path added to collection successfully');
         setShowAddPathModal(false);
-        fetchCollectionData(); // Refresh data
+        
+        // Optimistically update the UI
+        const pathToAdd = allPaths.find(p => p._id === pathId);
+        if (pathToAdd) {
+            setPaths(prevPaths => [...prevPaths, pathToAdd]);
+            setCollection(prevCollection => {
+                if (!prevCollection) return null;
+                return {
+                    ...prevCollection,
+                    paths: [...prevCollection.paths, pathToAdd]
+                };
+            });
+        }
       } else {
         const error = await response.json();
         showToast.error(`Error: ${error.error || 'Failed to add path'}`);
@@ -842,7 +858,7 @@ export default function CollectionDetailPage() {
                                       <FaEllipsisV className="h-4 w-4" />
                                     </button>
                                     {openDropdown === path._id && (
-                                      <div className={`absolute right-0 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200 ${
+                                      <div className={`absolute right-0 w-48 bg-white rounded-md shadow-lg z-[9999] border border-gray-200 ${
                                         index === filteredArray.length - 1 ? 'bottom-full mb-2' : 'mt-2'
                                       }`}>
                                         <div className="py-1">

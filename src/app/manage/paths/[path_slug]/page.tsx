@@ -255,6 +255,10 @@ export default function PathDetailPage() {
 
   const handleSave = async () => {
     try {
+      if (!editForm.name) {
+        showToast.error('Path name cannot be empty');
+        return;
+      }
       const response = await fetch(`/api/paths/${pathSlug}`, {
         method: 'PUT',
         headers: {
@@ -338,6 +342,10 @@ export default function PathDetailPage() {
 
   const handleCourseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!courseForm.name) {
+      showToast.error('Course name cannot be empty');
+      return;
+    }
     
     try {
       // Step 1: Create the course
@@ -702,24 +710,26 @@ export default function PathDetailPage() {
                   {/* Basic Information */}
                   <div className="flex-1">
                     <dl className="space-y-6">
+                      {/* Row 1: Name (with slug under) and Category */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <dt className="text-sm font-medium text-gray-700 mb-2">Name</dt>
                           {isEditing ? (
-                            <input
-                              type="text"
-                              value={editForm.name}
-                              onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            />
+                            <>
+                              <input
+                                type="text"
+                                value={editForm.name}
+                                onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                                className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              />
+                              <p className="mt-1 text-xs text-gray-500">Slug: <span className="font-mono">{editForm.slug || path.slug}</span></p>
+                            </>
                           ) : (
-                            <dd className="text-sm text-gray-900">{path.name}</dd>
+                            <>
+                              <dd className="text-sm text-gray-900">{path.name}</dd>
+                              <p className="mt-1 text-xs text-gray-500">Slug: <span className="font-mono">{path.slug}</span></p>
+                            </>
                           )}
-                        </div>
-
-                        <div>
-                          <dt className="text-sm font-medium text-gray-700 mb-2">Slug</dt>
-                          <dd className="text-sm text-gray-500 font-mono">{path.slug}</dd>
                         </div>
 
                         <div>
@@ -735,7 +745,10 @@ export default function PathDetailPage() {
                             <dd className="text-sm text-gray-900">{path.category || '-'}</dd>
                           )}
                         </div>
+                      </div>
 
+                      {/* Row 2: Valid From and Valid To */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <dt className="text-sm font-medium text-gray-700 mb-2">Valid From</dt>
                           {isEditing ? (
@@ -1055,7 +1068,7 @@ export default function PathDetailPage() {
                                       <FaEllipsisV className="h-4 w-4" />
                                     </button>
                                     {openDropdown === course._id && (
-                                      <div className={`absolute right-0 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200 ${
+                                      <div className={`absolute right-0 w-48 bg-white rounded-md shadow-lg z-[9999] border border-gray-200 ${
                                         index === filteredArray.length - 1 ? 'bottom-full mb-2' : 'mt-2'
                                       }`}>
                                         <div className="py-1">

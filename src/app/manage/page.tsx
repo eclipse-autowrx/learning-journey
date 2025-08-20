@@ -130,6 +130,7 @@ export default function ManagePage() {
   
   // Path modal states
   const [showPathModal, setShowPathModal] = useState(false);
+  const [editingPath, setEditingPath] = useState<Path | null>(null);
   const [pathForm, setPathForm] = useState({
     name: '',
     description: '',
@@ -261,7 +262,10 @@ export default function ManagePage() {
 
   const handleCollectionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    if (!collectionForm.name) {
+      showToast.error('Collection name cannot be empty');
+      return;
+    }
     try {
       const url = editingCollection 
         ? `/api/collections/${editingCollection.slug}`
@@ -322,6 +326,7 @@ export default function ManagePage() {
 
   // Path functions
   const openCreatePath = () => {
+    setEditingPath(null);
     setPathForm({
       name: '',
       description: '',
@@ -330,12 +335,27 @@ export default function ManagePage() {
     setShowPathModal(true);
   };
 
+  const openEditPath = (path: Path) => {
+    setEditingPath(path);
+    setPathForm({
+      name: path.name,
+      description: path.description || '',
+      state: path.state || 'draft',
+    });
+    setShowPathModal(true);
+  };
+
   const handlePathSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    if (!pathForm.name) {
+      showToast.error('Path name cannot be empty');
+      return;
+    }
     try {
-      const response = await fetch('/api/paths', {
-        method: 'POST',
+      const url = editingPath ? `/api/paths/${editingPath.slug}` : '/api/paths';
+      const method = editingPath ? 'PUT' : 'POST';
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -343,16 +363,17 @@ export default function ManagePage() {
       });
 
       if (response.ok) {
-        showToast.success('Path created successfully');
+        showToast.success(editingPath ? 'Path updated successfully' : 'Path created successfully');
         setShowPathModal(false);
+        setEditingPath(null);
         fetchData(); // Refresh data
       } else {
         const error = await response.json();
-        showToast.error(`Error: ${error.error || 'Failed to create path'}`);
+        showToast.error(`Error: ${error.error || (editingPath ? 'Failed to update path' : 'Failed to create path')}`);
       }
     } catch (error) {
-      console.error('Error creating path:', error);
-      showToast.error('Failed to create path');
+      console.error('Error saving path:', error);
+      showToast.error(editingPath ? 'Failed to update path' : 'Failed to create path');
     }
   };
 
@@ -1063,6 +1084,9 @@ export default function ManagePage() {
                                           placement="bottom-end"
                                           trigger="click"
                                           theme="light"
+                                          // Ensure overlay does not get clipped and stays above all
+                                          appendTo={() => document.body}
+                                          zIndex={9999}
                                         >
                                           <button
                                             className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
@@ -1270,7 +1294,7 @@ export default function ManagePage() {
                                             <div className="py-1 min-w-max">
                                                 <button
                                                   onClick={() => {
-                                                    // TODO: Implement edit path functionality
+                                                    openEditPath(path);
                                                   }}
                                                   className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                                                 >
@@ -1293,6 +1317,9 @@ export default function ManagePage() {
                                           placement="bottom-end"
                                           trigger="click"
                                           theme="light"
+                                          // Ensure overlay does not get clipped and stays above all
+                                          appendTo={() => document.body}
+                                          zIndex={9999}
                                         >
                                           <button
                                             className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
@@ -1530,7 +1557,7 @@ export default function ManagePage() {
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Create Path
+                {editingPath ? 'Edit Path' : 'Create Path'}
               </h3>
               
               <form onSubmit={handlePathSubmit} className="space-y-4">
@@ -1561,6 +1588,22 @@ export default function ManagePage() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    State
+                  </label>
+                  <select
+                    value={pathForm.state}
+                    onChange={(e) => setPathForm({...pathForm, state: e.target.value})}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                    <option value="locked">Locked</option>
+                  </select>
+                </div>
+
                 <div className="flex justify-end space-x-3 pt-4">
                   <Btn
                     variant="outlined"
@@ -1571,7 +1614,7 @@ export default function ManagePage() {
                   <Btn
                     type="submit"
                   >
-                    Create
+                    {editingPath ? 'Update' : 'Create'}
                   </Btn>
                 </div>
               </form>

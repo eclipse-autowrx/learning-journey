@@ -80,10 +80,10 @@ const LessonListItem = ({ lesson, isActive, onActive, index }) => {
             }
         }}>
         <div className={`w-[42px] min-w-[42px] ${isActive && 'light-box' } aspect-square rounded-lg grid place-items-center`}>
-            {lesson.type === 'quiz' && <img className='w-8 h-8' src='/imgs/bare/lesson_quiz.svg' alt='lesson_video'/>}
-            {lesson.type === 'video' && <img className='w-8 h-8' src='/imgs/bare/lesson_video.svg' alt='lesson_video'/>}
-            {lesson.type === 'text-markdown' && <img className='w-8 h-8' src='/imgs/bare/lesson_book.svg' alt='lesson_markdown'/>}
-            {lesson.type === 'interactive' && <img className='w-10 h-10' src='/imgs/bare/lesson_interactive.svg' alt='lesson_interractive'/>}
+            {lesson.lesson_type === 'quiz' && <img className='w-8 h-8' src='/imgs/bare/lesson_quiz.svg' alt='lesson_video'/>}
+            {lesson.lesson_type === 'video' && <img className='w-8 h-8' src='/imgs/bare/lesson_video.svg' alt='lesson_video'/>}
+            {lesson.lesson_type === 'text-markdown' && <img className='w-8 h-8' src='/imgs/bare/lesson_book.svg' alt='lesson_markdown'/>}
+            {lesson.lesson_type === 'interactive' && <img className='w-10 h-10' src='/imgs/bare/lesson_interactive.svg' alt='lesson_interractive'/>}
         </div>
         <div className='grow pl-3 py-0 flex flex-col h-full w-full items-start'>
             <div className='w-full txt-sub-title text-sm line-clamp-2 flex items-start justify-between space-x-1'>
@@ -102,45 +102,42 @@ const CourseScreen = ({ course, path_slug }) => {
 
     const [activeLessonIndex, setActiveLessonIndex] = useState(0)
     const [activeLesson, setActiveLesson] = useState()
-    const [lessons, setLessons] = useState([])
     const [lessonsTable, setLessonsTable] = useState([])
     const [showCourseFinishAnnounce, setShowCourseFinishAnnounce] = useState(false)
 
     useEffect(() => {
+        if (!lessonsTable || lessonsTable.length === 0) return;
         try {
-            let lesson = lessons[activeLessonIndex]
-            setActiveLesson(null)
-            setTimeout(() => {
-                setActiveLesson(lesson)
-            }, 100)
+            const lesson = lessonsTable[activeLessonIndex];
+            setActiveLesson(lesson);
         } catch (err) {
-            // console.log(err)
-            setActiveLesson(null)
+            setActiveLesson(null);
         }
-    }, [activeLessonIndex, lessons])
-
+    }, [activeLessonIndex, lessonsTable]);
+    
+    useEffect(() => {
+        console.log('activeLesson', activeLesson)
+    }, [activeLesson])
 
     useEffect(() => {
         if (course.lessons && course.lessons.length > 0) {
-            // setActiveLessonSlug(course.lessons[0].slug)
-            setLessons(course.lessons)
-            setLessonsTable(course.lessons)
-            setActiveLessonIndex(0)
+            setLessonsTable(course.lessons);
+            setActiveLessonIndex(0);
         }
-    }, [course.lessons])
+    }, [course.lessons]);
 
     const gotoNextLesson = () => {
-        if (activeLessonIndex < lessons.length - 1) {
+        if (activeLessonIndex < lessonsTable.length - 1) {
             setActiveLessonIndex((v) => v + 1)
         }
-        if (activeLessonIndex == lessons.length - 1) {
+        if (activeLessonIndex == lessonsTable.length - 1) {
             setShowCourseFinishAnnounce(true)
             setActiveLessonIndex(-1)
         }
     }
 
     const applyNewProgressToCourse = async (progress) => {
-        if (!progress || !progress.lessons || !lessons) return
+        if (!progress || !progress.lessons || !lessonsTable) return
         let tmpLessons = JSON.parse(JSON.stringify(lessonsTable))
         tmpLessons.forEach(lesson => {
             let matchProgress = progress.lessons[lesson.slug]
@@ -202,8 +199,7 @@ const CourseScreen = ({ course, path_slug }) => {
 
                     {activeLesson && <div className='w-full h-full'>
 
-
-                        {activeLesson.type === 'quiz' && <QuizLesson lesson={activeLesson}
+                        {activeLesson.lesson_type === 'quiz' && <QuizLesson lesson={activeLesson}
                             onCloseRequest={() => {
                                 gotoNextLesson()
                             }}
@@ -216,7 +212,7 @@ const CourseScreen = ({ course, path_slug }) => {
                                 applyNewProgressToCourse(newCourseProgress)
                             }} />}
 
-                        {activeLesson.type === 'video' && <VideoLesson lesson={activeLesson}
+                        {activeLesson.lesson_type === 'video' && <VideoLesson lesson={activeLesson}
                             onCloseRequest={() => {
                                 gotoNextLesson()
                             }}
@@ -230,7 +226,7 @@ const CourseScreen = ({ course, path_slug }) => {
                             }}
                         />}
 
-                        {activeLesson.type === 'text-markdown' && <TextMarkdownLesson lesson={activeLesson}
+                        {activeLesson.lesson_type === 'text-markdown' && <TextMarkdownLesson lesson={activeLesson}
                             onCloseRequest={() => {
                                 gotoNextLesson()
                             }}
@@ -251,7 +247,7 @@ const CourseScreen = ({ course, path_slug }) => {
                             }}
                         />}
 
-                        {activeLesson.type === 'interactive' && <InteractiveLesson lesson={activeLesson}
+                        {activeLesson.lesson_type === 'interactive' && <InteractiveLesson lesson={activeLesson}
                             onCloseRequest={() => {
                                 gotoNextLesson()
                             }}

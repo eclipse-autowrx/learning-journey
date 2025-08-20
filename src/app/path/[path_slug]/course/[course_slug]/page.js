@@ -13,6 +13,7 @@ import { fetchPathBySlug } from "@/lib/utils/consume_apis/api_path"
 import { fetchCourseBySlug } from "@/lib/utils/consume_apis/api_course"
 import CourseScreen from "@/app/components/screen/CourseScreen"
 import { cookies } from 'next/headers';
+import { LessonService } from '@/lib/services/dataService';
 
 const Page = async ({ params }) => {
   const cookieStore = await cookies();
@@ -27,33 +28,20 @@ const Page = async ({ params }) => {
     const user_id = cookieStore.get('user_id')?.value || "";
     const token = cookieStore.get('token')?.value || "";
     dbPath = await fetchPathBySlug(path_slug, user_id, token);
-    // if (dbPath.courses) {
-    //   dbCourse = dbPath.courses.find((c) => c.slug == course_slug)
-    // }
     dbCourse = await fetchCourseBySlug(course_slug, `user_id=${user_id}&token=${token}`);
-    // // Call API to get progress for dbCourse
-    // if (dbCourse && dbCourse._id) {
-    //   try {
-    //     const user_id = cookieStore.get('user_id')?.value || "";
-    //     const token = cookieStore.get('token')?.value || "";
-    //     // Only fetch progress if user is logged in
-    //     if (user_id && token) {
-    //       const progressRes = await fetch(
-    //         process.env.HOST  +`/api/progress/courses/${dbCourse._id}?user_id=${user_id}&token=${token}`,
-    //         { cache: "no-store" }
-    //       );
-    //       if (progressRes.ok) {
-    //         const progressData = await progressRes.json();
-    //         if (progressData && progressData.success && progressData.data) {
-    //           dbCourse.progress = progressData.data;
-    //         }
-    //       }
-    //     }
-    //   } catch (err) {
-    //     // If progress fetch fails, just continue
-    //     console.log("Failed to fetch course progress", err);
-    //   }
-    // }
+    
+    if (dbCourse && dbCourse.lessons) {
+      const lessonPromises = dbCourse.lessons.map(lesson => {
+        if (typeof lesson === 'string') {
+          return LessonService.getById(lesson); // Assuming getById fetches full lesson
+        }
+        // If it's already an object, but maybe not fully populated
+        return LessonService.getById(lesson._id);
+      });
+      const populatedLessons = await Promise.all(lessonPromises);
+      dbCourse.lessons = populatedLessons.filter(l => l); // Filter out any nulls
+    }
+
   } catch (err) {
     console.log(err)
   }
@@ -61,18 +49,22 @@ const Page = async ({ params }) => {
 
   if (!dbPath || !dbCourse) notFound()
 
+  // Ensure data is plain objects before passing to client components
+  const plainCourse = JSON.parse(JSON.stringify(dbCourse));
+  const plainPath = JSON.parse(JSON.stringify(dbPath));
+
   return (
     <div
       className="w-full bg-[#FFF9EC] text-slate-600 text-2xl p-0 pb-1
                 h-screen flex flex-col"
     >
       <BreadCrumb items={[
-        { label: dbPath.name, link: `/path/${path_slug}` },
-        { label: dbCourse.name, link: `/path/${path_slug}/course/${course_slug}` }
+        { label: plainPath.name, link: `/path/${path_slug}` },
+        { label: plainCourse.name, link: `/path/${path_slug}/course/${course_slug}` }
       ]} />
 
       <div className="w-full grow pt-2 px-4 flex flex-col">
-        <CourseScreen course={dbCourse} path_slug={path_slug} />
+        <CourseScreen course={plainCourse} path_slug={path_slug} />
       </div>
     </div>
   );
