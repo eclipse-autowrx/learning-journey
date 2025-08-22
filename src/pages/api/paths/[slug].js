@@ -54,8 +54,12 @@ export default async function handler(req, res) {
   switch (method) {
     case "GET":
       try {
+        console.log(` PathService.getBySlugslug`, slug)
         const dbPath = await PathService.getBySlug(slug);
-        if (!dbPath) return res.status(404).json({ success: false, error: "Path not found" });
+        if (!dbPath) { 
+          console.log(` PathService.getBySlug not found`, slug)
+          return res.status(404).json({ success: false, error: "Path not found" });
+        }
 
         try {
           // Normalize and populate courses

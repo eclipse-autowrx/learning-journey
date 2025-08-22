@@ -8,7 +8,7 @@
 
 "use client"
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { MdOutlineQuiz } from "react-icons/md";
 import { GoVideo } from "react-icons/go";
 import { SlNotebook } from "react-icons/sl";
@@ -104,6 +104,7 @@ const CourseScreen = ({ course, path_slug }) => {
     const [activeLesson, setActiveLesson] = useState()
     const [lessonsTable, setLessonsTable] = useState([])
     const [showCourseFinishAnnounce, setShowCourseFinishAnnounce] = useState(false)
+    const scrollContainerRef = useRef(null)
 
     useEffect(() => {
         if (!lessonsTable || lessonsTable.length === 0) return;
@@ -114,6 +115,22 @@ const CourseScreen = ({ course, path_slug }) => {
             setActiveLesson(null);
         }
     }, [activeLessonIndex, lessonsTable]);
+
+    // Always reset scroll to top-left when the active lesson changes
+    useEffect(() => {
+        try {
+            if (typeof window !== 'undefined') {
+                window.scrollTo(0, 0);
+            }
+            const el = scrollContainerRef.current;
+            if (el && typeof el.scrollTo === 'function') {
+                el.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            } else if (el) {
+                el.scrollTop = 0;
+                el.scrollLeft = 0;
+            }
+        } catch (_) {}
+    }, [activeLesson?.slug]);
     
     useEffect(() => {
         console.log('activeLesson', activeLesson)
@@ -178,7 +195,7 @@ const CourseScreen = ({ course, path_slug }) => {
 
             <div className='grow border border-slate-200 bg-white rounded flex flex-col relative' 
                 style={{ maxHeight: 'calc(100vh - 40px)' }}>
-                <div className='absolue w-full h-full top-0 left-0 bottom-0 right-0 overflow-y-auto'>
+                <div ref={scrollContainerRef} className='absolue w-full h-full top-0 left-0 bottom-0 right-0 overflow-y-auto'>
                     {showCourseFinishAnnounce && <div className='w-full h-full grid place-items-center'>
                         <div className='flex flex-col px-4 py-4 w-fit h-fit'>
                             <div className="text-center">

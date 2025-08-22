@@ -20,16 +20,26 @@ async function fetchPaths() {
     }
 }
 
-async function fetchPathBySlug(slug, user_id, token) {
+async function fetchPathBySlug(slug, user_id, token, origin) {
     if (!slug) throw ('Invalid post slug');
 
     try {
-        const response = (await fetch(process.env.HOST + `/api/paths/${slug}?user_id=${user_id}&token=${token}`))
+        // Determine base URL: server needs absolute, client can be relative
+        const isServer = typeof window === 'undefined';
+        const baseUrl = origin || (isServer
+            ? (process.env.APP_DOMAIN
+                || process.env.NEXT_PUBLIC_API_URL
+                || process.env.HOST
+                || 'http://localhost:3000')
+            : '');
+
+        const qs = `user_id=${encodeURIComponent(user_id || '')}&token=${encodeURIComponent(token || '')}`;
+        const response = await fetch(`${baseUrl}/api/paths/${slug}?${qs}`);
         const data = await response.json();
         if (data && data.success) {
             return data.data
         } else {
-            throw ('Path not found')
+            throw (data?.error || 'Path not found')
         }
     } catch (error) {
         console.log(error)

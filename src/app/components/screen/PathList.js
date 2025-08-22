@@ -30,6 +30,10 @@ const PathLevel = ({ path }) => {
 const PathList = ({ paths, title, titleTag, description }) => {
     const router = useRouter();
 
+    useEffect(() => {
+        console.log(`paths`, paths)
+    }, [paths])
+
     return <div id={titleTag||null} className="bg-white w-full pt-4 pb-8 flex justify-center items-center">
         <div className="container rounded-xl bg-[#F8F296] text-slate-600 p-0 pb-8 flex flex-col pt-4 items-center">
             <div className="text-[20px] lg:text-[26px] font-bold text-gray-800">{title}</div>

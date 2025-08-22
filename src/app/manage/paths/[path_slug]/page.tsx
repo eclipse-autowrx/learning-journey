@@ -23,6 +23,8 @@ import {
   FaTrash, 
   FaArrowLeft,
   FaArrowRight,
+  FaArrowUp,
+  FaArrowDown,
   FaEllipsisV,
   FaCog,
   FaList,
@@ -59,10 +61,13 @@ interface Path {
   configs: any;
   extends: any;
   hiddenContent: any;
+  created_by?: string;
+  time_to_complete?: number;
   created_at: string;
   updated_at: string;
   courses: Course[]; // Added courses to the Path interface
   maps: MapItem[];
+  key_points?: { title: string; content: string }[];
 }
 
 interface Course {
@@ -99,13 +104,16 @@ export default function PathDetailPage() {
     thumb: null as string | null,
     category: '',
     state: '',
+    created_by: '',
+    time_to_complete: 0 as number,
     display_type: 'list',
     tags: [] as string[],
     valid_from: '',
     valid_to: '',
     configs: {
       display_type: 'canvas'
-    }
+    },
+    key_points: [] as { title: string; content: string }[]
   });
   const [pathState, setPathState] = useState('draft');
   
@@ -187,13 +195,16 @@ export default function PathDetailPage() {
           thumb: pathData.data.thumb || null,
           category: pathData.data.category || '',
           state: pathData.data.state || 'draft',
+          created_by: pathData.data.created_by || '',
+          time_to_complete: typeof pathData.data.time_to_complete === 'number' ? pathData.data.time_to_complete : 0,
           display_type: pathData.data.configs?.display_type || 'canvas',
           tags: pathData.data.tags || [],
           valid_from: pathData.data.valid_from ? pathData.data.valid_from.split('T')[0] : '',
           valid_to: pathData.data.valid_to ? pathData.data.valid_to.split('T')[0] : '',
           configs: {
             display_type: pathData.data.configs?.display_type || 'canvas'
-          }
+          },
+          key_points: Array.isArray(pathData.data.key_points) ? pathData.data.key_points : []
         });
         setPathState(pathData.data.state || 'draft');
         // Set courses from the path data if available
@@ -293,13 +304,16 @@ export default function PathDetailPage() {
         thumb: path.thumb || null,
         category: path.category || '',
         state: path.state || 'draft',
+        created_by: path.created_by || '',
+        time_to_complete: typeof path.time_to_complete === 'number' ? path.time_to_complete : 0,
         display_type: path.configs?.display_type || 'canvas',
         tags: path.tags || [],
         valid_from: path.valid_from ? path.valid_from.split('T')[0] : '',
         valid_to: path.valid_to ? path.valid_to.split('T')[0] : '',
         configs: {
           display_type: path.configs?.display_type || 'canvas'
-        }
+        },
+        key_points: Array.isArray(path.key_points) ? path.key_points : []
       });
       setPathState(path.state || 'draft');
     }
@@ -713,7 +727,7 @@ export default function PathDetailPage() {
                       {/* Row 1: Name (with slug under) and Category */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <dt className="text-sm font-medium text-gray-700 mb-2">Name</dt>
+                          <dt className="text-sm font-semibold text-gray-900 mb-2">Name</dt>
                           {isEditing ? (
                             <>
                               <input
@@ -733,7 +747,7 @@ export default function PathDetailPage() {
                         </div>
 
                         <div>
-                          <dt className="text-sm font-medium text-gray-700 mb-2">Category</dt>
+                          <dt className="text-sm font-semibold text-gray-900 mb-2">Category</dt>
                           {isEditing ? (
                             <input
                               type="text"
@@ -750,7 +764,7 @@ export default function PathDetailPage() {
                       {/* Row 2: Valid From and Valid To */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <dt className="text-sm font-medium text-gray-700 mb-2">Valid From</dt>
+                          <dt className="text-sm font-semibold text-gray-900 mb-2">Valid From</dt>
                           {isEditing ? (
                             <input
                               type="date"
@@ -759,14 +773,14 @@ export default function PathDetailPage() {
                               className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             />
                           ) : (
-                            <dd className="text-sm text-gray-900">
+                            <dd className="text-sm text-gray-700">
                               {path.valid_from ? new Date(path.valid_from).toLocaleDateString() : '-'}
                             </dd>
                           )}
                         </div>
 
                         <div>
-                          <dt className="text-sm font-medium text-gray-700 mb-2">Valid To</dt>
+                          <dt className="text-sm font-semibold text-gray-900 mb-2">Valid To</dt>
                           {isEditing ? (
                             <input
                               type="date"
@@ -775,15 +789,57 @@ export default function PathDetailPage() {
                               className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             />
                           ) : (
-                            <dd className="text-sm text-gray-900">
+                            <dd className="text-sm text-gray-700">
                               {path.valid_to ? new Date(path.valid_to).toLocaleDateString() : '-'}
                             </dd>
                           )}
                         </div>
                       </div>
 
+                      {/* Row 3: Display Type and Time to Complete */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <dt className="text-sm font-semibold text-gray-900 mb-2">Display Type</dt>
+                          {isEditing ? (
+                            <select
+                              value={editForm.configs?.display_type || 'list'}
+                              onChange={(e) => {
+                                const value = e.target.value as 'list' | 'canvas';
+                                setEditForm(prev => ({
+                                  ...prev,
+                                  display_type: value,
+                                  configs: { ...(prev.configs || {}), display_type: value }
+                                }));
+                              }}
+                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            >
+                              <option value="list">List</option>
+                              <option value="canvas">Canvas</option>
+                            </select>
+                          ) : (
+                            <dd className="text-sm text-gray-700 capitalize">{(path.configs?.display_type || 'list')}</dd>
+                          )}
+                        </div>
+                        <div>
+                          <dt className="text-sm font-semibold text-gray-900 mb-2">Time to complete (hours)</dt>
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              min={0}
+                              step="0.5"
+                              value={editForm.time_to_complete ?? 0}
+                              onChange={(e) => setEditForm({ ...editForm, time_to_complete: Number(e.target.value) })}
+                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="e.g. 2"
+                            />
+                          ) : (
+                            <dd className="text-sm text-gray-700">{typeof path.time_to_complete === 'number' ? path.time_to_complete : 0}</dd>
+                          )}
+                        </div>
+                      </div>
+
                       <div>
-                        <dt className="text-sm font-medium text-gray-700 mb-2">Description</dt>
+                        <dt className="text-sm font-semibold text-gray-900 mb-2">Description</dt>
                         {isEditing ? (
                           <textarea
                             value={editForm.description}
@@ -792,7 +848,117 @@ export default function PathDetailPage() {
                             className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                           />
                         ) : (
-                          <dd className="text-sm text-gray-900">{path.description}</dd>
+                          <dd className="text-sm text-gray-700">{path.description}</dd>
+                        )}
+                      </div>
+
+                      {/* Row: Key Points Editor */}
+                      <div>
+                        <dt className="text-sm font-semibold text-gray-900 mb-2">Key Points</dt>
+                        {isEditing ? (
+                          <div className="space-y-3">
+                            {(editForm.key_points || []).map((kp, idx) => (
+                              <div key={idx} className="border rounded-md p-3 bg-gray-50">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <input
+                                    type="text"
+                                    value={kp.title}
+                                    onChange={(e) => {
+                                      const next = [...(editForm.key_points || [])];
+                                      next[idx] = { ...next[idx], title: e.target.value };
+                                      setEditForm({ ...editForm, key_points: next });
+                                    }}
+                                    placeholder="Title"
+                                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                  />
+                                  <div className="flex flex-col">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (idx === 0) return;
+                                        const next = [...(editForm.key_points || [])];
+                                        [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+                                        setEditForm({ ...editForm, key_points: next });
+                                      }}
+                                      className="p-1 text-gray-600 hover:text-black"
+                                      title="Move up"
+                                    >
+                                      <FaArrowUp />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const next = [...(editForm.key_points || [])];
+                                        if (idx >= next.length - 1) return;
+                                        [next[idx + 1], next[idx]] = [next[idx], next[idx + 1]];
+                                        setEditForm({ ...editForm, key_points: next });
+                                      }}
+                                      className="p-1 text-gray-600 hover:text-black"
+                                      title="Move down"
+                                    >
+                                      <FaArrowDown />
+                                    </button>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const next = (editForm.key_points || []).filter((_, i) => i !== idx);
+                                      setEditForm({ ...editForm, key_points: next });
+                                    }}
+                                    className="px-2 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                                <textarea
+                                  value={kp.content}
+                                  onChange={(e) => {
+                                    const next = [...(editForm.key_points || [])];
+                                    next[idx] = { ...next[idx], content: e.target.value };
+                                    setEditForm({ ...editForm, key_points: next });
+                                  }}
+                                  rows={3}
+                                  placeholder="Content"
+                                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                />
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => setEditForm({ ...editForm, key_points: [...(editForm.key_points || []), { title: '', content: '' }] })}
+                              className="px-3 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700"
+                            >
+                              Add Key Point
+                            </button>
+                          </div>
+                        ) : (
+                          <dd className="space-y-2 text-gray-700">
+                            {(path.key_points || []).map((kp, idx) => (
+                              <div key={idx}>
+                                <div className="text-sm font-semibold text-gray-800">{kp.title}</div>
+                                <div className="text-sm text-gray-700">{kp.content}</div>
+                              </div>
+                            ))}
+                            {(path.key_points || []).length === 0 && (
+                              <span className="text-sm text-gray-500">No key points</span>
+                            )}
+                          </dd>
+                        )}
+                      </div>
+
+                      {/* Row: Provider (stored in created_by) */}
+                      <div>
+                        <dt className="text-sm font-semibold text-gray-900 mb-2">Provider</dt>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={editForm.created_by || ''}
+                            onChange={(e) => setEditForm({ ...editForm, created_by: e.target.value })}
+                            className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Provider organization name"
+                          />
+                        ) : (
+                          <dd className="text-sm text-gray-700">{path.created_by || '-'}</dd>
                         )}
                       </div>
 

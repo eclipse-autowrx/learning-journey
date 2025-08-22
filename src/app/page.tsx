@@ -9,6 +9,7 @@
 import HomeContent from "./components/screen/HomeContent";
 import PathList from "./components/screen/PathList";
 import { FaDiamond } from "react-icons/fa6";
+import Link from 'next/link';
 
 const winston = require('winston');
 
@@ -57,24 +58,26 @@ export default async function Home() {
         <div className="container h-full flex flex-col gap-2 mt-8">
           <div className="w-full text-center">How do you want to start?</div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-2 text-xs sm:text-sm lg:text-md xl:text-lg text-center leading-tight">
-            <a href="#pathList">
+            <a href="#pathList" className="flex">
               <div className="flex-1 rounded-lg bg-white flex flex-col items-center justify-center px-2 py-2 cursor-pointer hover:scale-105">
                 <img className="h-28 p-4" src="/imgs/learning_path_icon.png" />
                 <div className="text-[#46499E] font-bold px-4 py-1">I want to follow a guided path</div>
               </div>
             </a>
 
-            <div className="flex-1 rounded-lg bg-white flex flex-col items-center justify-center px-2 py-2 cursor-pointer hover:scale-105">
-              <img className="h-28" src="/imgs/edit_path_icon.jpg" />
-              <div className="text-[#46499E] font-bold px-4 py-1">I want to design a new path</div>
-            </div>
+            <a href="/manage" className="flex">
+              <div className="flex-1 rounded-lg bg-white flex flex-col items-center justify-center px-2 py-2 cursor-pointer hover:scale-105">
+                <img className="h-28" src="/imgs/edit_path_icon.jpg" />
+                <div className="text-[#46499E] font-bold px-4 py-1">I want to design a new path</div>
+              </div>
+            </a>
 
             <div className="flex-1 rounded-lg bg-white flex flex-col items-center justify-center px-2 py-2 cursor-pointer hover:scale-105">
               <img className="h-28" src="/imgs/hackathon.png" />
               <div className="text-[#46499E] font-bold px-4 py-1">I want to plan a hackathon</div>
             </div>
 
-            <a href="#dreamkit">
+            <a href="#dreamkit" className="flex">
               <div className="flex-1 rounded-lg bg-white flex flex-col items-center justify-center px-2 py-2 cursor-pointer hover:scale-105">
                 <img className="h-28" src="/imgs/dreamKit.png" />
                 <div className="text-[#46499E] font-bold px-4 py-1">I want to work with dreamKIT</div>

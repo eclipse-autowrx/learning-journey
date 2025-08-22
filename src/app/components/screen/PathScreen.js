@@ -251,10 +251,10 @@ const PathScreen = ({ path }) => {
               Approx. <span className="mx-1"><b>{path.time_to_complete} </b></span> hours
             </div>}
 
-            {/* Created by and created date */}
+            {/* Created by and last updated date */}
             <div className='text-slate-500 text-sm  my-2 flex items-center'>
               <CiTimer size={20} className='mr-1' />
-              <div> Latest updated  <b>{dayjs(path.created_at).format('MMM DD, YYYY')}</b></div>
+              <div> Last updated <b>{dayjs(path.updated_at || path.created_at).format('MMM DD, YYYY')}</b></div>
 
               <FaUserTie size={18} className='ml-8 mr-1 text-slate-400' />
               <div>Instructor</div>

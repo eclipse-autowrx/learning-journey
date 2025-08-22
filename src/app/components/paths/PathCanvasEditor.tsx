@@ -136,7 +136,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
         </div>
 
         <div className="w-full bg-gray-50 rounded-lg px-4 py-1">
-            <div className="flex gap-2 overflow-x-auto overflow-y-hidden h-[90px]">
+            <div className="flex gap-2 overflow-x-auto overflow-y-hidden h-[110px]">
                 {path.courses.length === 0 ? (
                     <div className="w-full flex items-center justify-center">
                         <p className="text-gray-500 text-sm italic">There are no courses in this path. You can add them in the 'Courses' tab.</p>
@@ -155,8 +155,8 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
                             style={{ width: "11vw" }}
                         >
                             <div className="relative" style={{
-                                width: "6.5vw",
-                                height: "6.5vw",
+                                width: "5vw",
+                                height: "5vw",
                             }}>
                                 <img
                                     src="/imgs/bare/course-notyet.png"
@@ -164,7 +164,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
                                 />
                             </div>
                             <div
-                                className="mt-0 text-slate-700 text-[10px] lg:text:[10px] xl:text-base font-semibold text-center leading-none"
+                                className="mt-0 text-slate-700 text-[12px] font-semibold text-center leading-none"
                                 style={{
                                     maxWidth: "11vw",
                                 }}

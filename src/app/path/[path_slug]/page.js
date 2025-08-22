@@ -11,7 +11,7 @@ import { notFound } from 'next/navigation'
 import { fetchPathBySlug } from "@/lib/utils/consume_apis/api_path"
 import BreadCrumb from "@/app/components/atom/BreadCrumb"
 
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
 const Page = async ({ params }) => {
   const cookieStore = await cookies();
@@ -21,10 +21,16 @@ const Page = async ({ params }) => {
   let curPath
 
   try {
+    // Build absolute origin for server-side fetch
+    const hdrs = await headers();
+    const host = hdrs.get('x-forwarded-host') || hdrs.get('host') || '';
+    const proto = hdrs.get('x-forwarded-proto') || 'http';
+    const origin = host ? `${proto}://${host}` : (process.env.APP_DOMAIN || process.env.NEXT_PUBLIC_API_URL || process.env.HOST || undefined);
     curPath = await fetchPathBySlug(
-      path_slug, 
-      cookieStore.get('user_id')?.value || "", 
-      cookieStore.get('token')?.value || "");
+      path_slug,
+      cookieStore.get('user_id')?.value || "",
+      cookieStore.get('token')?.value || "",
+      origin);
   } catch (err) {
     console.log(err)
   }

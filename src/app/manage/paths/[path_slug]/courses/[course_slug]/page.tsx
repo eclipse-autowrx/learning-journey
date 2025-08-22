@@ -718,7 +718,7 @@ Start writing your lesson content here.`;
                     <dl className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <dt className="text-sm font-medium text-gray-700 mb-2">Name</dt>
+                          <dt className="text-sm font-semibold text-gray-900 mb-2">Name</dt>
                           {isEditing ? (
                             <input
                               type="text"
@@ -731,11 +731,11 @@ Start writing your lesson content here.`;
                           )}
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-gray-700 mb-2">Slug</dt>
-                          <dd className="text-sm text-gray-500 font-mono">{course.slug}</dd>
+                          <dt className="text-sm font-semibold text-gray-900 mb-2">Slug</dt>
+                          <dd className="text-sm text-gray-700 font-mono">{course.slug}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-gray-700 mb-2">Category</dt>
+                          <dt className="text-sm font-semibold text-gray-900 mb-2">Category</dt>
                           {isEditing ? (
                             <input
                               type="text"
@@ -749,7 +749,7 @@ Start writing your lesson content here.`;
                         </div>
                       </div>
                       <div>
-                        <dt className="text-sm font-medium text-gray-700 mb-2">Description</dt>
+                        <dt className="text-sm font-semibold text-gray-900 mb-2">Description</dt>
                         {isEditing ? (
                           <textarea
                             value={editForm.description}
@@ -775,7 +775,7 @@ Start writing your lesson content here.`;
                       />
                     ) : (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Course Image</label>
+                        <label className="block text-sm font-semibold text-gray-900 mb-2">Course Image</label>
                         {course.image ? (
                           <img src={course.image} alt={course.name} className="rounded-md w-full object-contain" />
                         ) : (

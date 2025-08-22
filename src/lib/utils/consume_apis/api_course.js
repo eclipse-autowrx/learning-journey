@@ -6,10 +6,14 @@
 //
 // SPDX-License-Identifier: MIT
 
-async function fetchCourseBySlug(slug, queryParams) {
+async function fetchCourseBySlug(slug, queryParams, origin) {
     if (!slug) throw ('Invalid post slug');
     try {
-        const response = (await fetch(process.env.HOST + "/api/courses/" + slug + "?" + queryParams))
+        const isServer = typeof window === 'undefined';
+        const baseUrl = origin || (isServer
+            ? (process.env.APP_DOMAIN || process.env.NEXT_PUBLIC_API_URL || process.env.HOST || 'http://localhost:3000')
+            : '');
+        const response = await fetch(`${baseUrl}/api/courses/${slug}?${queryParams}`)
         const data = await response.json();
         if (data && data.success) {
             return data.data

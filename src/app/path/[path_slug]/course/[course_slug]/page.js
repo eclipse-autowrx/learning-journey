@@ -27,8 +27,10 @@ const Page = async ({ params }) => {
   try {
     const user_id = cookieStore.get('user_id')?.value || "";
     const token = cookieStore.get('token')?.value || "";
-    dbPath = await fetchPathBySlug(path_slug, user_id, token);
-    dbCourse = await fetchCourseBySlug(course_slug, `user_id=${user_id}&token=${token}`);
+    const hostHeader = cookieStore.get('host')?.value || process.env.APP_DOMAIN || process.env.NEXT_PUBLIC_API_URL || process.env.HOST || '';
+    const origin = hostHeader && hostHeader.startsWith('http') ? hostHeader : (hostHeader ? `http://${hostHeader}` : undefined);
+    dbPath = await fetchPathBySlug(path_slug, user_id, token, origin);
+    dbCourse = await fetchCourseBySlug(course_slug, `user_id=${user_id}&token=${token}`, origin);
     
     if (dbCourse && dbCourse.lessons) {
       const lessonPromises = dbCourse.lessons.map(lesson => {
