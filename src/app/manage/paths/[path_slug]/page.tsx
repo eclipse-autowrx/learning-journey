@@ -34,6 +34,7 @@ import {
 } from 'react-icons/fa';
 import { COURSE_STATES, PATH_STATES } from '@/lib/const';
 import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
+import DropdownMenu, { DropdownItem } from '@/app/components/atom/DropdownMenu';
 import ImageEditor from '@/app/components/atom/ImageEditor';
 import PathCanvasEditor from '@/app/components/paths/PathCanvasEditor';
 import { useAuth } from '@/lib/frontend/auth';
@@ -116,6 +117,7 @@ export default function PathDetailPage() {
     key_points: [] as { title: string; content: string }[]
   });
   const [pathState, setPathState] = useState('draft');
+  const [isStateDropdownOpen, setIsStateDropdownOpen] = useState(false);
   
   // Bulk selection and filter states
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
@@ -232,6 +234,7 @@ export default function PathDetailPage() {
       const target = event.target as Element;
       if (!target.closest('.dropdown-container')) {
         setOpenDropdown(null);
+        setIsStateDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -632,22 +635,18 @@ export default function PathDetailPage() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500">State:</span>
-                <select
-                  value={pathState}
-                  onChange={(e) => handleStateChange(e.target.value)}
-                  className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {PATH_STATES.map((state) => (
-                    <option key={state.value} value={state.value}>
-                      {state.label}
-                    </option>
-                  ))}
-                </select>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm text-gray-500">State:</span>
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(pathState)}`}>{pathState}</span>
+                  <DropdownMenu
+                    items={PATH_STATES.filter(s => s.value !== 'published').map((s) => ({ label: s.label, onClick: async () => { await handleStateChange(s.value); } })) as DropdownItem[]}
+                    trigger={<span>Change State</span>}
+                    buttonAriaLabel="Change state"
+                    align="left"
+                  />
+                </div>
               </div>
-            </div>
           </div>
         </div>
       </div>

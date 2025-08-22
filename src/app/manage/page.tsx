@@ -1422,7 +1422,10 @@ function ManagePageInner() {
               </h3>
               
               <div className="space-y-2">
-                {(activeTab === 'collections' ? COLLECTION_STATES : PATH_STATES).map((state) => (
+                {(activeTab === 'collections'
+                  ? COLLECTION_STATES.filter(s => s.value !== 'published')
+                  : PATH_STATES.filter(s => s.value !== 'published')
+                ).map((state) => (
                   <label key={state.value} className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
                     <input
                       type="radio"

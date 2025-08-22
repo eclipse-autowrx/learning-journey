@@ -13,11 +13,8 @@ export default async function handler(req, res) {
   const { method } = req;
   const { user_id, token } = check_auth(req, res);
 
-  // For now, we'll allow bulk operations without authentication
-  // In production, you should enforce authentication
-  // if (!user_id) {
-  //   return res.status(401).json({ success: false, error: 'Unauthorized' });
-  // }
+  // Enforce: Only admin endpoints should change to published
+  const isAdminApi = req.url?.startsWith('/api/admin/');
 
   switch (method) {
     case "PUT":
@@ -37,6 +34,11 @@ export default async function handler(req, res) {
             success: false, 
             error: 'Invalid state. Must be one of: published, draft, archived' 
           });
+        }
+
+        // Block elevating to published from non-admin routes
+        if (state === 'published' && !isAdminApi) {
+          return res.status(403).json({ success: false, error: 'Only admin may publish collections' });
         }
 
         const results = [];

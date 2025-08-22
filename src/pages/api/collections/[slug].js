@@ -38,7 +38,10 @@ function sanitizeQuizQuestions(lessons, isManagementRequest = false) {
 function sanitizeCollectionData(collection, isManagementRequest = false) {
   if (!collection) return collection;
   
-  const sanitizedCollection = { ...collection };
+  // Ensure we are working with a plain object, not a Mongoose document
+  const sanitizedCollection = (typeof collection.toObject === 'function')
+    ? collection.toObject()
+    : { ...collection };
   
   // Sanitize paths
   if (sanitizedCollection.paths && Array.isArray(sanitizedCollection.paths)) {

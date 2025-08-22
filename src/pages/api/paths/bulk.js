@@ -13,11 +13,8 @@ export default async function handler(req, res) {
   const { method } = req;
   const { user_id, token } = check_auth(req, res);
 
-  // For now, we'll allow bulk operations without authentication
-  // In production, you should enforce authentication
-  // if (!user_id) {
-  //   return res.status(401).json({ success: false, error: 'Unauthorized' });
-  // }
+  // Enforce: Only admin endpoints should change to published/locked
+  const isAdminApi = req.url?.startsWith('/api/admin/');
 
   switch (method) {
     case "PUT":
@@ -37,6 +34,10 @@ export default async function handler(req, res) {
             success: false, 
             error: 'Invalid state. Must be one of: published, draft, archived, locked' 
           });
+        }
+
+        if (['published', 'locked'].includes(state) && !isAdminApi) {
+          return res.status(403).json({ success: false, error: 'Only admin may set published/locked for paths' });
         }
 
         const results = [];

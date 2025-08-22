@@ -30,6 +30,7 @@ import {
   FaArrowRight
 } from 'react-icons/fa';
 import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
+import DropdownMenu, { DropdownItem } from '@/app/components/atom/DropdownMenu';
 import { PATH_STATES, COLLECTION_STATES } from '@/lib/const';
 import { useAuth } from '@/lib/frontend/auth';
 
@@ -80,6 +81,7 @@ export default function CollectionDetailPage() {
     tags: [] as string[]
   });
   const [collectionState, setCollectionState] = useState('draft');
+  const [isStateDropdownOpen, setIsStateDropdownOpen] = useState(false);
   
   // Path management states
   const [showAddPathModal, setShowAddPathModal] = useState(false);
@@ -98,6 +100,10 @@ export default function CollectionDetailPage() {
     const handleClickOutside = (event: MouseEvent) => {
       if (openDropdown && !(event.target as Element).closest('.dropdown-container')) {
         setOpenDropdown(null);
+      }
+      // Close state dropdown when clicking outside
+      if (!(event.target as Element).closest('.dropdown-container')) {
+        setIsStateDropdownOpen(false);
       }
     };
 
@@ -494,19 +500,18 @@ export default function CollectionDetailPage() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 <span className="text-sm text-gray-500">State:</span>
-                <select
-                  value={collectionState}
-                  onChange={(e) => handleStateChange(e.target.value)}
-                  className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {COLLECTION_STATES.map((state) => (
-                    <option key={state.value} value={state.value}>
-                      {state.label}
-                    </option>
-                  ))}
-                </select>
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(collectionState)}`}>{collectionState}</span>
+                <DropdownMenu
+                  items={COLLECTION_STATES.filter(s => s.value !== 'published').map((s) => ({
+                    label: s.label,
+                    onClick: async () => { await handleStateChange(s.value); },
+                  })) as DropdownItem[]}
+                  buttonAriaLabel="Change state"
+                  trigger={<span>Change State</span>}
+                  align="left"
+                />
               </div>
               {/* {activeTab === 'paths' && (
                 <Btn

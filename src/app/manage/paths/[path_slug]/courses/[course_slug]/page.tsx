@@ -43,6 +43,7 @@ import {
   FaGripVertical
 } from 'react-icons/fa';
 import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
+import DropdownMenu, { DropdownItem } from '@/app/components/atom/DropdownMenu';
 import { COURSE_STATES, LESSON_STATES } from '@/lib/const';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ImageEditor from '@/app/components/atom/ImageEditor';
@@ -144,6 +145,7 @@ export default function CourseDetailPage() {
     extends: {},
   });
   const [courseState, setCourseState] = useState('draft');
+  const [isStateDropdownOpen, setIsStateDropdownOpen] = useState(false);
   
   // Bulk selection and filter states
   const [selectedLessons, setSelectedLessons] = useState<string[]>([]);
@@ -218,6 +220,7 @@ export default function CourseDetailPage() {
        const target = event.target as Element;
        if (!target.closest('.dropdown-container')) {
          setOpenDropdown(null);
+         setIsStateDropdownOpen(false);
        }
      };
      document.addEventListener('mousedown', handleClickOutside);
@@ -624,35 +627,30 @@ Start writing your lesson content here.`;
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">State:</span>
-              <select
-                value={course.state}
-                onChange={async (e) => {
-                  try {
-                    const res = await fetch(`/api/courses/${courseSlug}`, {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ state: e.target.value })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                      setCourse(prev => prev ? { ...prev, state: e.target.value } : null);
-                      showToast.success('Course state updated successfully');
-                    } else {
-                      showToast.error(data.error || 'Failed to update course state');
-                    }
-                  } catch (error) {
-                    showToast.error('Failed to update course state');
-                  }
-                }}
-                className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                {COURSE_STATES.map((state) => (
-                  <option key={state.value} value={state.value}>
-                    {state.label}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center space-x-3">
+                <span className="text-sm text-gray-500">State:</span>
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(course.state)}`}>{course.state}</span>
+                <DropdownMenu
+                  items={COURSE_STATES.filter(s => s.value !== 'released' && s.value !== 'published').map((s) => ({
+                    label: s.label,
+                    onClick: async () => {
+                      try {
+                        const res = await fetch(`/api/courses/${courseSlug}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ state: s.value }) });
+                        const data = await res.json();
+                        if (data.success) {
+                          setCourse(prev => prev ? { ...prev, state: s.value } : null);
+                          showToast.success('Course state updated successfully');
+                        } else {
+                          showToast.error(data.error || 'Failed to update course state');
+                        }
+                      } catch (error) { showToast.error('Failed to update course state'); }
+                    },
+                  })) as DropdownItem[]}
+                  trigger={<span>Change State</span>}
+                  buttonAriaLabel="Change state"
+                  align="left"
+                />
+              </div>
             </div>
           </div>
         </div>
