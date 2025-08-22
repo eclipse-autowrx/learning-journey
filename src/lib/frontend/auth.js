@@ -14,6 +14,7 @@ export function useAuth() {
   const [auth, setAuth] = useState({
     isAuthenticated: false,
     userId: null,
+    userName: null,
     loading: true,
   });
 
@@ -26,12 +27,14 @@ export function useAuth() {
           setAuth({
             isAuthenticated: true,
             userId: data.user.id,
+            userName: data.user.name || null,
             loading: false,
           });
         } else {
           setAuth({
             isAuthenticated: false,
             userId: null,
+            userName: null,
             loading: false,
           });
         }
@@ -40,6 +43,7 @@ export function useAuth() {
         setAuth({
           isAuthenticated: false,
           userId: null,
+          userName: null,
           loading: false,
         });
       }

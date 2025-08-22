@@ -80,12 +80,14 @@ export default async function handler(req, res) {
         }
         
         try {
-            const importedData = JSON.parse(fields.data as string);
-            const imageUrlMap: Record<string, string> = {};
+            const rawData = Array.isArray(fields.data) ? fields.data[0] : fields.data;
+            const importedData = JSON.parse(typeof rawData === 'string' ? rawData : String(rawData));
+            const imageUrlMap = {};
 
             // Process uploaded files
             for (const oldPath in files) {
-                const file = files[oldPath] as formidable.File;
+                const fileEntry = files[oldPath];
+                const file = Array.isArray(fileEntry) ? fileEntry[0] : fileEntry;
                 const newFileName = `${Date.now()}_${path.basename(file.filepath)}`;
                 const newFilePath = path.join(MEDIA_STORE_PATH, newFileName);
                 await fs.rename(file.filepath, newFilePath);

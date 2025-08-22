@@ -1,29 +1,37 @@
 // Copyright (c) 2025 Eclipse Foundation.
-// 
-// This program and the accompanying materials are made available under the
-// terms of the MIT License which is available at
-// https://opensource.org/licenses/MIT.
-//
 // SPDX-License-Identifier: MIT
 
-export default function handler(req, res) {
-    if (req.method !== 'POST') {
-        res.status(405).json({ error: 'Method Not Allowed' });
-        return;
+import { check_auth } from '@/lib/backend/check_auth';
+import { ExternalUserService } from '@/lib/backend/user_service';
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', ['POST']);
+    return res.status(405).json({ success: false, error: `Method ${req.method} Not Allowed` });
+  }
+
+  // Accept user_id and token via query (from HomeContent) or body
+  const q = req.query || {};
+  const body = req.body || {};
+  const user_id = q.user_id || body.user_id || check_auth(req, res).user_id;
+  const token = q.token || body.token || check_auth(req, res).token;
+
+  if (!user_id || !token) {
+    return res.status(400).json({ success: false, error: 'Missing user_id or token' });
+  }
+
+  try {
+    const result = await ExternalUserService.validateUser(user_id, token);
+    if (!result.valid) {
+      return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
-
-    const { user_id, token } = req.query;
-
-    if (!user_id || !token) {
-        res.status(400).json({ error: 'Missing user_id or token' });
-        return;
-    }
-
-    // Set cookies for user_id and token
+    // Set cookies for subsequent requests
     res.setHeader('Set-Cookie', [
-        `user_id=${user_id}; Path=/; SameSite=none;Secure;`,
-        `token=${token}; Path=/; SameSite=none;Secure;`
+      `user_id=${encodeURIComponent(user_id)}; Path=/; HttpOnly; SameSite=Lax`,
+      `token=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax`,
     ]);
-
-    res.status(200).json({ status: 'ok' });
+    return res.status(200).json({ success: true });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: 'Auth failed' });
+  }
 }

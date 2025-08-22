@@ -7,6 +7,8 @@
 // SPDX-License-Identifier: MIT
 
 import { PathService } from "../../../lib/services/dataService.js";
+import { ExternalUserService } from "../../../lib/backend/user_service.js";
+import { getCachedName, setCachedName } from "../../../lib/backend/user_name_cache.js";
 import { check_auth } from "../../../lib/backend/check_auth.js";
 
 export default async function handler(req, res) {
@@ -23,10 +25,22 @@ export default async function handler(req, res) {
           filter.state = 'published';
         }
         const dbPaths = await PathService.getAll(filter);
-        const transformedPaths = dbPaths.map(path => ({
-          ...path,
-          total_courses: path.courses ? path.courses.length : 0
-        }));
+        const transformedPaths = [];
+        for (const p of dbPaths) {
+          let owner_name = getCachedName(p.owner_id);
+          if (!owner_name && p.owner_id && user_id) {
+            try {
+              const nameMap = await ExternalUserService.getNameMap([p.owner_id], token);
+              owner_name = nameMap[p.owner_id];
+              if (owner_name) setCachedName(p.owner_id, owner_name);
+            } catch (_) {}
+          }
+          transformedPaths.push({
+            ...p,
+            owner_name,
+            total_courses: p.courses ? p.courses.length : 0
+          });
+        }
         res.status(200).json({ success: true, data: transformedPaths });
       } catch (error) {
         console.error('Error fetching paths:', error);

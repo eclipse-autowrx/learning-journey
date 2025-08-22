@@ -7,6 +7,8 @@
 // SPDX-License-Identifier: MIT
 
 import { CollectionService } from '../../../lib/services/dataService.js';
+import { ExternalUserService } from '../../../lib/backend/user_service.js';
+import { getCachedName, setCachedName } from '../../../lib/backend/user_name_cache.js';
 import { CourseProgress, Path } from '../../../lib/models/index.js';
 import { check_auth } from '../../../lib/backend/check_auth.js';
 
@@ -81,11 +83,23 @@ export default async function handler(req, res) {
             effectivePaths = ids.map(id => byId.get(id.toString())).filter(Boolean);
           }
 
+          // Resolve owner name (best-effort)
+          let owner_name = getCachedName(collection.owner_id);
+          if (!owner_name && collection.owner_id && user_id) {
+            try {
+              const nameMap = await ExternalUserService.getNameMap([collection.owner_id], token);
+              owner_name = nameMap[collection.owner_id];
+              if (owner_name) setCachedName(collection.owner_id, owner_name);
+            } catch (_) {}
+          }
+
           transformedCollections.push({
             _id: collection._id,
             name: collection.name,
             slug: collection.slug,
             description: collection.description,
+            owner_id: collection.owner_id,
+            owner_name,
             category: collection.category,
             tags: collection.tags,
             paths: (effectivePaths || []).map(p => ({
@@ -99,6 +113,7 @@ export default async function handler(req, res) {
               level: p.level,
               path_type: p.path_type,
               state: p.state,
+              owner_id: p.owner_id,
               time_to_complete: p.time_to_complete,
               background_img: p.background_img,
               category: p.category,

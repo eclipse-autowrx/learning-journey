@@ -17,7 +17,17 @@ const ICONS = {
   lesson: <FaBook className="text-purple-500" />,
 };
 
-const TreeItem = ({ item, type, onSelect, onDelete, selectedItem }) => {
+type ItemType = 'path' | 'course' | 'lesson';
+
+interface TreeItemProps {
+  item: any;
+  type: ItemType;
+  onSelect: (item: any, type: ItemType) => void;
+  onDelete: (item: any, type: ItemType) => void;
+  selectedItem: { item: any; type: ItemType } | null;
+}
+
+const TreeItem: React.FC<TreeItemProps> = ({ item, type, onSelect, onDelete, selectedItem }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -27,12 +37,12 @@ const TreeItem = ({ item, type, onSelect, onDelete, selectedItem }) => {
     setIsExpanded(!isExpanded);
   };
 
-  const handleSelect = (e) => {
+  const handleSelect = (e: React.MouseEvent) => {
     e.stopPropagation();
     onSelect(item, type);
   };
   
-  const handleDelete = (e) => {
+  const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     onDelete(item, type);
     setIsDropdownOpen(false);
@@ -80,7 +90,7 @@ const TreeItem = ({ item, type, onSelect, onDelete, selectedItem }) => {
       </div>
       {isExpanded && hasChildren && (
         <div className="ml-6 pl-2 border-l-2 border-gray-200">
-          {item.courses?.map(course => (
+          {item.courses?.map((course: any) => (
             <TreeItem 
               key={course._id} 
               item={course} 
@@ -90,7 +100,7 @@ const TreeItem = ({ item, type, onSelect, onDelete, selectedItem }) => {
               selectedItem={selectedItem} 
             />
           ))}
-          {item.lessons?.map(lesson => (
+          {item.lessons?.map((lesson: any) => (
             <TreeItem 
               key={lesson._id} 
               item={lesson} 
@@ -107,14 +117,21 @@ const TreeItem = ({ item, type, onSelect, onDelete, selectedItem }) => {
 };
 
 
-export default function ImportTreeView({ data, onSelect, onDelete, selectedItem }) {
+interface ImportTreeViewProps {
+  data: any;
+  onSelect: (item: any, type: ItemType) => void;
+  onDelete: (item: any, type: ItemType) => void;
+  selectedItem: { item: any; type: ItemType } | null;
+}
+
+export default function ImportTreeView({ data, onSelect, onDelete, selectedItem }: ImportTreeViewProps) {
   if (!data || !data.paths) {
     return <p className="text-gray-500">No data to display.</p>;
   }
 
   return (
     <div>
-      {data.paths.map(path => (
+      {data.paths.map((path: any) => (
         <TreeItem 
           key={path._id} 
           item={path} 

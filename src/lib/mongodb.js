@@ -17,7 +17,7 @@
 import mongoose from "mongoose";
 import './models/index.js'; // Import all models to ensure they are registered
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://admin:password123@localhost:27000/learning_journey?authSource=admin";
+const MONGO_URI = process.env.MONGO_URI;
 
 if (!MONGO_URI) {
   throw new Error("Please define the MONGO_URI environment variable");

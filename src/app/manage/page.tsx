@@ -50,7 +50,7 @@ import {
   showToast
 } from '@/lib/utils/notifications';
 import { COLLECTION_STATES, PATH_STATES } from '@/lib/const';
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useAuth } from '@/lib/frontend/auth';
 
 interface Collection {
@@ -58,6 +58,8 @@ interface Collection {
   name: string;
   slug: string;
   description: string;
+  owner_id?: string;
+  owner_name?: string;
   category: string;
   tags?: string[];
   state: string;
@@ -70,6 +72,8 @@ interface Path {
   name: string;
   slug: string;
   description: string;
+  owner_id?: string;
+  owner_name?: string;
   category: string;
   state: string;
   total_courses: number;
@@ -99,7 +103,7 @@ interface Lesson {
   created_at: string;
 }
 
-export default function ManagePage() {
+function ManagePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -1751,5 +1755,13 @@ export default function ManagePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ManagePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="text-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div><p className="mt-4 text-gray-600">Loading management dashboard...</p></div></div>}>
+      <ManagePageInner />
+    </Suspense>
   );
 }

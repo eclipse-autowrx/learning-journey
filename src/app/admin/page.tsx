@@ -10,6 +10,7 @@ interface Content {
   state: string;
   created_at: string;
   owner_id?: string;
+  owner_name?: string;
   paths?: Path[];
 }
 
@@ -17,6 +18,8 @@ interface Path {
   _id: string;
   name: string;
   state: string;
+  owner_id?: string;
+  owner_name?: string;
   courses?: Course[];
 }
 
@@ -25,6 +28,7 @@ interface Course {
   name: string;
   state: string;
   owner_id?: string;
+  owner_name?: string;
 }
 
 interface Admin {
@@ -35,6 +39,7 @@ interface Admin {
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'collections' | 'admins'>('collections');
   const [collections, setCollections] = useState<Content[]>([]);
+  const [ownerNames, setOwnerNames] = useState<Record<string, string>>({});
   const [selectedCollection, setSelectedCollection] = useState<Content | null>(null);
   const [selectedPath, setSelectedPath] = useState<Path | null>(null);
   const [admins, setAdmins] = useState<Admin[]>([]);
@@ -56,6 +61,24 @@ export default function AdminPage() {
       const data = await res.json();
       if (data.success) {
         setCollections(data.data);
+        // Resolve owner names for collections, paths, and courses
+        const ids = new Set<string>();
+        (data.data || []).forEach((c: any) => {
+          if (c.owner_id) ids.add(c.owner_id);
+          (c.paths || []).forEach((p: any) => {
+            if (p.owner_id) ids.add(p.owner_id);
+            (p.courses || []).forEach((course: any) => {
+              if (course.owner_id) ids.add(course.owner_id);
+            });
+          });
+        });
+        if (ids.size > 0) {
+          try {
+            const nameRes = await fetch(`/api/users/names?ids=${encodeURIComponent(Array.from(ids).join(','))}`);
+            const nameData = await nameRes.json();
+            if (nameData.success) setOwnerNames(nameData.data || {});
+          } catch (_) {}
+        }
         if (selectedCollection) {
           const updatedSelectedCollection = data.data.find(
             (c: Content) => c._id === selectedCollection._id
@@ -88,6 +111,17 @@ export default function AdminPage() {
       const data = await res.json();
       if (data.success) {
         setAdmins(data.data);
+        // Resolve admin user names
+        const ids: string[] = (data.data || []).map((a: any) => a.user_id).filter(Boolean);
+        if (ids.length > 0) {
+          try {
+            const nameRes = await fetch(`/api/users/names?ids=${encodeURIComponent(ids.join(','))}`);
+            const nameData = await nameRes.json();
+            if (nameData.success) {
+              setOwnerNames((prev) => ({ ...(prev || {}), ...(nameData.data || {}) }));
+            }
+          } catch (_) {}
+        }
       }
     } catch (error) {
       console.error('Error fetching admins:', error);
@@ -222,7 +256,7 @@ export default function AdminPage() {
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Active</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner ID</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State</th>
                       </tr>
                     </thead>
@@ -235,7 +269,7 @@ export default function AdminPage() {
                             )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">{collection.name}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">{collection.owner_id}</td>
+                          <td className="px-6 py-4 whitespace-nowrap">{ownerNames[collection.owner_id || ''] || collection.owner_name || collection.owner_id}</td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <select
                               value={collection.state}
@@ -266,6 +300,7 @@ export default function AdminPage() {
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Active</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State</th>
                         </tr>
                       </thead>
@@ -278,6 +313,7 @@ export default function AdminPage() {
                               )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">{path.name}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{ownerNames[path.owner_id || ''] || (path as any).owner_name || path.owner_id}</td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <select
                                 value={path.state}
@@ -306,7 +342,7 @@ export default function AdminPage() {
                           <thead className="bg-gray-50">
                             <tr>
                               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner ID</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
                               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State</th>
                             </tr>
                           </thead>
@@ -314,7 +350,7 @@ export default function AdminPage() {
                             {selectedPath.courses?.map((course) => (
                               <tr key={course._id}>
                                 <td className="px-6 py-4 whitespace-nowrap">{course.name}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{course.owner_id}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{ownerNames[course.owner_id || ''] || course.owner_name || course.owner_id}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <select
                                     value={course.state}
@@ -359,7 +395,7 @@ export default function AdminPage() {
                 <ul>
                   {admins.map((admin) => (
                     <li key={admin._id} className="flex items-center justify-between py-2 border-b">
-                      <span>{admin.user_id}</span>
+                      <span>{ownerNames[admin.user_id] || admin.user_id}</span>
                       <button
                         onClick={() => handleDeleteAdmin(admin._id)}
                         className="text-red-600 hover:text-red-900"
