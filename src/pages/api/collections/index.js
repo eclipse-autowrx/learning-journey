@@ -37,16 +37,7 @@ export default async function handler(req, res) {
     case "GET":
       try {
         // Check if we should filter by state
-        const filter = {};
-        if (query.state) {
-          filter.state = query.state;
-        }
-
-        if (query.manage && user_id) {
-          filter.owner_id = user_id;
-        } else {
-          filter.state = 'published';
-        }
+        const filter = { state: 'published' };
         
         // Get collections from database with populated paths and courses
         const dbCollections = await CollectionService.getAll(filter);
@@ -143,55 +134,13 @@ export default async function handler(req, res) {
       }
       break;
 
-    case "POST":
-      try {
-        if (!user_id) {
-          return res.status(401).json({ success: false, error: "Unauthorized" });
-        }
-        const collectionData = { ...req.body, owner_id: user_id };
-        
-        // Validate required fields
-        if (!collectionData.name) {
-          return res.status(400).json({
-            success: false,
-            error: 'Name is required'
-          });
-        }
-
-        // Generate slug if not provided
-        if (!collectionData.slug) {
-          collectionData.slug = collectionData.name
-            .toLowerCase()
-            .replace(/[^a-z0-9\s-]/g, '')
-            .replace(/\s+/g, '-')
-            .replace(/-+/g, '-')
-            .trim('-');
-        }
-
-        const created = await CollectionService.create(collectionData);
-        res.status(201).json({ success: true, data: created });
-      } catch (error) {
-        console.error('Error creating collection:', error);
-        
-        if (error.code === 11000) {
-          res.status(400).json({
-            success: false,
-            error: 'A collection with this slug already exists'
-          });
-        } else {
-          res.status(500).json({
-            success: false,
-            error: 'Failed to create collection'
-          });
-        }
-      }
-      break;
-
+    // No POST here for learner API
+    
     default:
-      res.setHeader('Allow', ['GET', 'POST']);
+      res.setHeader('Allow', ['GET']);
       res.status(405).json({
         success: false,
-        error: `Method ${req.method} Not Allowed`
+        error: `Method ${req.method} Not Allowed. Use /api/creator/collections for management.`
       });
   }
 }

@@ -77,11 +77,8 @@ export default async function handler(req, res) {
           sequence: l.sequence || l.interactive_config,
         }));
 
-        // Check if this is a management request (admin user)
-        const isManagementRequest = req.query.manage === 'true' && user_id;
-        
         // Sanitize quiz questions to remove correct answer flags for regular users
-        const sanitizedLessons = sanitizeQuizQuestions(normalized, isManagementRequest);
+        const sanitizedLessons = sanitizeQuizQuestions(normalized, false);
 
         return res.status(200).json({ success: true, data: sanitizedLessons });
       } catch (error) {

@@ -139,7 +139,7 @@ export default function PathDetailPage() {
 
   const handleSaveCanvas = async (maps: MapItem[]) => {
     try {
-      const response = await fetch(`/api/paths/${pathSlug}`, {
+      const response = await fetch(`/api/creator/paths/${pathSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -162,7 +162,7 @@ export default function PathDetailPage() {
 
   const handleBackgroundImageUpdate = async (url: string) => {
     try {
-      const response = await fetch(`/api/paths/${pathSlug}`, {
+      const response = await fetch(`/api/creator/paths/${pathSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -185,7 +185,7 @@ export default function PathDetailPage() {
 
   const fetchPathData = async () => {
     try {
-    const pathRes = await fetch(`/api/paths/${pathSlug}?manage=true`);
+    const pathRes = await fetch(`/api/creator/paths/${pathSlug}`);
       const pathData = await pathRes.json();
 
       if (pathData.success) {
@@ -283,7 +283,7 @@ export default function PathDetailPage() {
         showToast.error('Path name cannot be empty');
         return;
       }
-      const response = await fetch(`/api/paths/${pathSlug}`, {
+      const response = await fetch(`/api/creator/paths/${pathSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -335,7 +335,7 @@ export default function PathDetailPage() {
   // State change handler
   const handleStateChange = async (newState: string) => {
     try {
-      const response = await fetch(`/api/paths/${pathSlug}`, {
+      const response = await fetch(`/api/creator/paths/${pathSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -376,7 +376,7 @@ export default function PathDetailPage() {
     
     try {
       // Step 1: Create the course
-      const courseResponse = await fetch('/api/courses', {
+      const courseResponse = await fetch('/api/creator/courses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -397,7 +397,7 @@ export default function PathDetailPage() {
       const currentCourseIds = path?.courses?.map(c => typeof c === 'string' ? c : c._id) || [];
       const updatedCourseIds = [...currentCourseIds, newCourse._id];
 
-      const pathUpdateResponse = await fetch(`/api/paths/${pathSlug}`, {
+      const pathUpdateResponse = await fetch(`/api/creator/paths/${pathSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -436,7 +436,7 @@ export default function PathDetailPage() {
 
     try {
       // Step 1: Delete the course
-      const courseResponse = await fetch(`/api/courses/${course.slug}`, {
+      const courseResponse = await fetch(`/api/creator/courses/${course.slug}`, {
         method: 'DELETE',
       });
 
@@ -450,7 +450,7 @@ export default function PathDetailPage() {
       const currentCourseIds = path?.courses?.map(c => typeof c === 'string' ? c : c._id) || [];
       const updatedCourseIds = currentCourseIds.filter(id => id !== course._id);
 
-      const pathUpdateResponse = await fetch(`/api/paths/${pathSlug}`, {
+      const pathUpdateResponse = await fetch(`/api/creator/paths/${pathSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -502,7 +502,7 @@ export default function PathDetailPage() {
     }
     
     try {
-      const response = await fetch('/api/courses/bulk', {
+      const response = await fetch('/api/creator/courses/bulk', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -540,7 +540,7 @@ export default function PathDetailPage() {
     }
     
     try {
-      const response = await fetch('/api/courses/bulk', {
+      const response = await fetch('/api/creator/courses/bulk', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -1054,7 +1054,7 @@ export default function PathDetailPage() {
                       onImageUrlChange={(url) => setEditForm({ ...editForm, image: url })}
                       onUploadComplete={async (url) => {
                         try {
-                          const resp = await fetch(`/api/paths/${pathSlug}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: url }) });
+                          const resp = await fetch(`/api/creator/paths/${pathSlug}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: url }) });
                           if (!resp.ok) throw new Error((await resp.json()).error || 'Failed to save image');
                         } catch (e) { throw e; }
                       }}

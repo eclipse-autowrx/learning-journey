@@ -18,12 +18,7 @@ export default async function handler(req, res) {
   switch (method) {
     case "GET":
       try {
-        const filter = {};
-        if (query.manage && user_id) {
-          filter.owner_id = user_id;
-        } else {
-          filter.state = 'published';
-        }
+        const filter = { state: 'published' };
         const dbPaths = await PathService.getAll(filter);
         const transformedPaths = [];
         for (const p of dbPaths) {
@@ -47,25 +42,9 @@ export default async function handler(req, res) {
         res.status(400).json({ success: false, error: error.message });
       }
       break;
-    case "POST":
-      try {
-        if (!user_id) {
-          return res.status(401).json({ success: false, error: "Unauthorized" });
-        }
-        const DEFAULT_BG = '/imgs/green_bg.png';
-        const pathData = { ...req.body, owner_id: user_id };
-        if (!pathData.background_img) {
-          pathData.background_img = DEFAULT_BG;
-        }
-        const newPath = await PathService.create(pathData);
-        res.status(201).json({ success: true, data: newPath });
-      } catch (error) {
-        console.error('Error creating path:', error);
-        res.status(400).json({ success: false, error: error.message });
-      }
-      break;
     default:
-      res.status(405).json({ success: false, error: 'Method not allowed' });
+      res.setHeader('Allow', ['GET']);
+      res.status(405).json({ success: false, error: 'Method not allowed. Use /api/creator/paths for management.' });
       break;
   }
 }

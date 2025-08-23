@@ -12,13 +12,13 @@ import { notFound } from 'next/navigation'
 import { fetchPathBySlug } from "@/lib/utils/consume_apis/api_path"
 import { fetchCourseBySlug } from "@/lib/utils/consume_apis/api_course"
 import CourseScreen from "@/app/components/screen/CourseScreen"
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { LessonService } from '@/lib/services/dataService';
 
 const Page = async ({ params }) => {
   const cookieStore = await cookies();
 
-  const { path_slug, course_slug } = await params;
+  const { path_slug, course_slug } = params;
   if (!path_slug || !course_slug) notFound()
 
   let dbPath = null
@@ -27,8 +27,13 @@ const Page = async ({ params }) => {
   try {
     const user_id = cookieStore.get('user_id')?.value || "";
     const token = cookieStore.get('token')?.value || "";
-    const hostHeader = cookieStore.get('host')?.value || process.env.APP_DOMAIN || process.env.NEXT_PUBLIC_API_URL || process.env.HOST || '';
-    const origin = hostHeader && hostHeader.startsWith('http') ? hostHeader : (hostHeader ? `http://${hostHeader}` : undefined);
+
+    // Build absolute origin for server-side fetches (mirrors implementation in path page)
+    const hdrs = await headers();
+    const host = hdrs.get('x-forwarded-host') || hdrs.get('host') || '';
+    const proto = hdrs.get('x-forwarded-proto') || 'http';
+    const origin = host ? `${proto}://${host}` : (process.env.APP_DOMAIN || process.env.NEXT_PUBLIC_API_URL || process.env.HOST || undefined);
+
     dbPath = await fetchPathBySlug(path_slug, user_id, token, origin);
     dbCourse = await fetchCourseBySlug(course_slug, `user_id=${user_id}&token=${token}`, origin);
     

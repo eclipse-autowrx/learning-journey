@@ -190,25 +190,25 @@ function ManagePageInner() {
       
       // Fetch each API separately to identify which one is failing
       console.log('Fetching collections...');
-      const collectionsRes = await fetch('/api/collections?manage=true');
+      const collectionsRes = await fetch('/api/creator/collections');
       console.log('Collections response status:', collectionsRes.status);
       const collectionsData = await collectionsRes.json();
       console.log('Collections data:', collectionsData);
       
       console.log('Fetching paths...');
-      const pathsRes = await fetch('/api/paths?manage=true');
+      const pathsRes = await fetch('/api/creator/paths');
       console.log('Paths response status:', pathsRes.status);
       const pathsData = await pathsRes.json();
       console.log('Paths data:', pathsData);
       
       console.log('Fetching courses...');
-      const coursesRes = await fetch('/api/courses?manage=true');
+      const coursesRes = await fetch('/api/creator/courses');
       console.log('Courses response status:', coursesRes.status);
       const coursesData = await coursesRes.json();
       console.log('Courses data:', coursesData);
       
       console.log('Fetching lessons...');
-      const lessonsRes = await fetch('/api/lessons');
+      const lessonsRes = await fetch('/api/creator/lessons');
       console.log('Lessons response status:', lessonsRes.status);
       const lessonsData = await lessonsRes.json();
       console.log('Lessons data:', lessonsData);
@@ -274,8 +274,8 @@ function ManagePageInner() {
     }
     try {
       const url = editingCollection 
-        ? `/api/collections/${editingCollection.slug}`
-        : '/api/collections';
+        ? `/api/creator/collections/${editingCollection.slug}`
+        : '/api/creator/collections';
       
       const method = editingCollection ? 'PUT' : 'POST';
       
@@ -308,7 +308,7 @@ function ManagePageInner() {
     }
 
     try {
-      const response = await fetch(`/api/collections/${collection.slug}`, {
+      const response = await fetch(`/api/creator/collections/${collection.slug}`, {
         method: 'DELETE',
       });
 
@@ -358,7 +358,7 @@ function ManagePageInner() {
       return;
     }
     try {
-      const url = editingPath ? `/api/paths/${editingPath.slug}` : '/api/paths';
+      const url = editingPath ? `/api/creator/paths/${editingPath.slug}` : '/api/creator/paths';
       const method = editingPath ? 'PUT' : 'POST';
       const response = await fetch(url, {
         method,
@@ -397,7 +397,7 @@ function ManagePageInner() {
     e.preventDefault();
     
     try {
-      const response = await fetch('/api/courses', {
+      const response = await fetch('/api/creator/courses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -426,7 +426,7 @@ function ManagePageInner() {
     }
 
     try {
-      const response = await fetch(`/api/paths/${path.slug}`, {
+      const response = await fetch(`/api/creator/paths/${path.slug}`, {
         method: 'DELETE',
       });
 
@@ -458,7 +458,7 @@ function ManagePageInner() {
     e.preventDefault();
     
     try {
-      const response = await fetch('/api/lessons', {
+      const response = await fetch('/api/creator/lessons', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -527,7 +527,7 @@ function ManagePageInner() {
     }
     
     try {
-      const response = await fetch(`/api/${itemType}/bulk`, {
+      const response = await fetch(`/api/creator/${itemType}/bulk`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -569,7 +569,7 @@ function ManagePageInner() {
     }
     
     try {
-      const response = await fetch(`/api/${itemType}/bulk`, {
+      const response = await fetch(`/api/creator/${itemType}/bulk`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

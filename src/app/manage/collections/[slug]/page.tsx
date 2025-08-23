@@ -172,7 +172,7 @@ export default function CollectionDetailPage() {
   const fetchCollectionData = async () => {
     if (!collectionSlug) return;
     try {
-    const response = await fetch(`/api/collections/${collectionSlug}?manage=true`);
+    const response = await fetch(`/api/creator/collections/${collectionSlug}`);
       if (response.ok) {
         const data = await response.json();
         setCollection(data.data);
@@ -200,7 +200,7 @@ export default function CollectionDetailPage() {
 
   const fetchAllPaths = async () => {
     try {
-    const response = await fetch('/api/paths?manage=true');
+    const response = await fetch('/api/creator/paths');
       if (response.ok) {
         const data = await response.json();
         setAllPaths(data.data || []);
@@ -216,7 +216,7 @@ export default function CollectionDetailPage() {
         showToast.error('Collection name cannot be empty');
         return;
       }
-      const response = await fetch(`/api/collections/${collectionSlug}`, {
+      const response = await fetch(`/api/creator/collections/${collectionSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -254,7 +254,7 @@ export default function CollectionDetailPage() {
   // State change handler
   const handleStateChange = async (newState: string) => {
     try {
-      const response = await fetch(`/api/collections/${collectionSlug}`, {
+      const response = await fetch(`/api/creator/collections/${collectionSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -285,7 +285,7 @@ export default function CollectionDetailPage() {
       if (!pathToAdd) return;
 
       const updatedPaths = [...collection.paths, pathToAdd];
-      const response = await fetch(`/api/collections/${collectionSlug}`, {
+      const response = await fetch(`/api/creator/collections/${collectionSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -333,7 +333,7 @@ export default function CollectionDetailPage() {
     
     try {
       const updatedPaths = collection.paths.filter(p => p._id !== pathId);
-      const response = await fetch(`/api/collections/${collectionSlug}`, {
+      const response = await fetch(`/api/creator/collections/${collectionSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -385,7 +385,7 @@ export default function CollectionDetailPage() {
     }
     
     try {
-      const response = await fetch('/api/paths/bulk', {
+      const response = await fetch('/api/creator/paths/bulk', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -426,7 +426,7 @@ export default function CollectionDetailPage() {
     
     try {
       const updatedPaths = collection.paths.filter(p => !selectedPaths.includes(p._id));
-      const response = await fetch(`/api/collections/${collectionSlug}`, {
+      const response = await fetch(`/api/creator/collections/${collectionSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

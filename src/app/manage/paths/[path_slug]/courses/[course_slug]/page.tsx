@@ -177,13 +177,13 @@ export default function CourseDetailPage() {
   const fetchCourseData = async () => {
     try {
       // Fetch path data first
-      const pathRes = await fetch(`/api/paths/${pathSlug}?manage=true`);
+      const pathRes = await fetch(`/api/creator/paths/${pathSlug}`);
       const pathData = await pathRes.json();
       if (pathData.success) {
         setPath(pathData.data);
       }
 
-      const courseRes = await fetch(`/api/courses/${courseSlug}?manage=true`);
+      const courseRes = await fetch(`/api/creator/courses/${courseSlug}`);
       const courseData = await courseRes.json();
 
       if (courseData.success) {
@@ -387,7 +387,7 @@ export default function CourseDetailPage() {
         showToast.error('Course name cannot be empty');
         return;
       }
-      const response = await fetch(`/api/courses/${courseSlug}`, {
+      const response = await fetch(`/api/creator/courses/${courseSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -461,7 +461,7 @@ Start writing your lesson content here.`;
 
     try {
       // 1. Create lesson
-      const lessonRes = await fetch('/api/lessons', {
+      const lessonRes = await fetch('/api/creator/lessons', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(submissionData)
@@ -471,7 +471,7 @@ Start writing your lesson content here.`;
       const newLesson = lessonData.data;
       // 2. Add lesson to course
       const updatedLessons = [...lessons.map(l => l._id), newLesson._id];
-      await fetch(`/api/courses/${courseSlug}`, {
+      await fetch(`/api/creator/courses/${courseSlug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lessons: updatedLessons })
@@ -500,7 +500,7 @@ Start writing your lesson content here.`;
       const lessonIndexToDelete = lessons.findIndex(l => l._id === lessonId);
 
       const updatedLessons = lessons.filter(l => l._id !== lessonId).map(l => l._id);
-      await fetch(`/api/courses/${courseSlug}`, {
+      await fetch(`/api/creator/courses/${courseSlug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lessons: updatedLessons })
@@ -542,7 +542,7 @@ Start writing your lesson content here.`;
     }
 
     try {
-      await fetch(`/api/courses/${courseSlug}`, {
+      await fetch(`/api/creator/courses/${courseSlug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lessons: newLessons.map(l => l._id) })
@@ -574,7 +574,7 @@ Start writing your lesson content here.`;
 
   const updateLessonOrder = async (lessonIds: string[]) => {
     try {
-      await fetch(`/api/courses/${courseSlug}`, {
+      await fetch(`/api/creator/courses/${courseSlug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lessons: lessonIds })
@@ -647,7 +647,7 @@ Start writing your lesson content here.`;
                     label: s.label,
                     onClick: async () => {
                       try {
-                        const res = await fetch(`/api/courses/${courseSlug}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ state: s.value }) });
+                        const res = await fetch(`/api/creator/courses/${courseSlug}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ state: s.value }) });
                         const data = await res.json();
                         if (data.success) {
                           setCourse(prev => prev ? { ...prev, state: s.value } : null);
@@ -782,7 +782,7 @@ Start writing your lesson content here.`;
                         onImageUrlChange={(url) => setEditForm({ ...editForm, image: url })}
                         onUploadComplete={async (url) => {
                           try {
-                            const resp = await fetch(`/api/courses/${courseSlug}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: url }) });
+                            const resp = await fetch(`/api/creator/courses/${courseSlug}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: url }) });
                             if (!resp.ok) throw new Error((await resp.json()).error || 'Failed to save image');
                           } catch (e) { throw e; }
                         }}
@@ -913,7 +913,7 @@ Start writing your lesson content here.`;
                                   try {
                                     const originalSlug = selectedLesson?.slug;
                                     if (!editableLesson) return;
-                                    const res = await fetch(`/api/lessons/${originalSlug}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editableLesson) });
+                                    const res = await fetch(`/api/creator/lessons/${originalSlug}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editableLesson) });
                                     const data = await res.json();
                                     if (data.success) {
                                       // Manually update the lesson in the list to avoid re-fetch

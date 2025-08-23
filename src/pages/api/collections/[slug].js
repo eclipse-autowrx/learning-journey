@@ -97,18 +97,8 @@ export default async function handler(req, res) {
           });
         }
 
-        // If this is a manage request, enforce ownership
-        if (query.manage === 'true') {
-          if (!user_id) {
-            return res.status(401).json({ success: false, error: 'Unauthorized' });
-          }
-          if (collection.owner_id !== user_id) {
-            return res.status(403).json({ success: false, error: 'Forbidden' });
-          }
-        }
-
-        // Check if this is a management request (admin user)
-        const isManagementRequest = query.manage === 'true' && user_id;
+        // Always sanitize for learners
+        const isManagementRequest = false;
         
         // Sanitize quiz questions to remove correct answer flags for regular users
         const sanitizedCollection = sanitizeCollectionData(collection, isManagementRequest);
@@ -143,173 +133,13 @@ export default async function handler(req, res) {
       }
       break;
 
-    case "PUT":
-      try {
-        if (!user_id) {
-          return res.status(401).json({ success: false, error: 'Unauthorized' });
-        }
-        // Verify ownership
-        const existing = await Collection.findOne({ slug }).lean();
-        if (!existing) {
-          return res.status(404).json({ success: false, error: 'Collection not found' });
-        }
-        if (existing.owner_id !== user_id) {
-          return res.status(403).json({ success: false, error: 'Forbidden' });
-        }
-
-        const collectionData = req.body;
-        
-        // Build update object with only provided fields
-        const updateData = {};
-        
-        // Only validate required fields if they are being updated
-        if (collectionData.hasOwnProperty('name')) {
-          if (!collectionData.name || collectionData.name.trim() === '') {
-            return res.status(400).json({
-              success: false,
-              error: 'Name cannot be empty'
-            });
-          }
-          updateData.name = collectionData.name;
-        }
-
-        // Handle slug logic only if name is being updated or slug is explicitly provided
-        if (collectionData.hasOwnProperty('slug')) {
-          updateData.slug = collectionData.slug;
-        } else if (collectionData.hasOwnProperty('name')) {
-          // Generate slug only if name is being updated and slug is not provided
-          const existingCollection = await Collection.findOne({ slug });
-          if (existingCollection && !collectionData.slug) {
-            // For updates without explicit slug, preserve the existing slug
-            updateData.slug = existingCollection.slug;
-          } else if (!existingCollection) {
-            // For new collections, generate slug from name
-            updateData.slug = collectionData.name
-              .toLowerCase()
-              .replace(/[^a-z0-9\s-]/g, '')
-              .replace(/\s+/g, '-')
-              .replace(/-+/g, '-')
-              .trim('-');
-          }
-        }
-
-        // Add other fields if they are provided
-        if (collectionData.hasOwnProperty('description')) {
-          updateData.description = collectionData.description;
-        }
-        if (collectionData.hasOwnProperty('category')) {
-          updateData.category = collectionData.category;
-        }
-        if (collectionData.hasOwnProperty('tags')) {
-          updateData.tags = collectionData.tags;
-        }
-        if (collectionData.hasOwnProperty('state')) {
-          updateData.state = collectionData.state;
-        }
-        if (collectionData.hasOwnProperty('paths')) {
-          updateData.paths = collectionData.paths;
-        }
-        if (collectionData.hasOwnProperty('path_order')) {
-          updateData.path_order = collectionData.path_order;
-        }
-        if (collectionData.hasOwnProperty('valid_from')) {
-          updateData.valid_from = collectionData.valid_from;
-        }
-        if (collectionData.hasOwnProperty('valid_to')) {
-          updateData.valid_to = collectionData.valid_to;
-        }
-        if (collectionData.hasOwnProperty('configs')) {
-          updateData.configs = collectionData.configs;
-        }
-        if (collectionData.hasOwnProperty('extends')) {
-          updateData.extends = collectionData.extends;
-        }
-        if (collectionData.hasOwnProperty('hiddenContent')) {
-          updateData.hiddenContent = collectionData.hiddenContent;
-        }
-        if (collectionData.hasOwnProperty('meta_title')) {
-          updateData.meta_title = collectionData.meta_title;
-        }
-        if (collectionData.hasOwnProperty('meta_description')) {
-          updateData.meta_description = collectionData.meta_description;
-        }
-        if (collectionData.hasOwnProperty('accessibility_notes')) {
-          updateData.accessibility_notes = collectionData.accessibility_notes;
-        }
-
-        const updatedCollection = await Collection.findOneAndUpdate(
-          { slug },
-          updateData,
-          { new: true, runValidators: true }
-        );
-
-        if (!updatedCollection) {
-          return res.status(404).json({
-            success: false,
-            error: 'Collection not found'
-          });
-        }
-
-        res.status(200).json({
-          success: true,
-          data: updatedCollection
-        });
-      } catch (error) {
-        console.error('Error updating collection:', error);
-        
-        if (error.code === 11000) {
-          res.status(400).json({
-            success: false,
-            error: 'A collection with this slug already exists'
-          });
-        } else {
-          res.status(500).json({
-            success: false,
-            error: 'Failed to update collection'
-          });
-        }
-      }
-      break;
-
-    case "DELETE":
-      try {
-        if (!user_id) {
-          return res.status(401).json({ success: false, error: 'Unauthorized' });
-        }
-        const existing = await Collection.findOne({ slug }).lean();
-        if (!existing) {
-          return res.status(404).json({ success: false, error: 'Collection not found' });
-        }
-        if (existing.owner_id !== user_id) {
-          return res.status(403).json({ success: false, error: 'Forbidden' });
-        }
-        const deletedCollection = await Collection.findOneAndDelete({ slug });
-
-        if (!deletedCollection) {
-          return res.status(404).json({
-            success: false,
-            error: 'Collection not found'
-          });
-        }
-
-        res.status(200).json({
-          success: true,
-          message: 'Collection deleted successfully'
-        });
-      } catch (error) {
-        console.error('Error deleting collection:', error);
-        res.status(500).json({
-          success: false,
-          error: 'Failed to delete collection'
-        });
-      }
-      break;
-
+    // No PUT/DELETE in learner endpoint
+ 
     default:
-      res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);
+      res.setHeader('Allow', ['GET']);
       res.status(405).json({
         success: false,
-        error: `Method ${req.method} Not Allowed`
+        error: `Method ${req.method} Not Allowed. Use /api/creator/collections for management.`
       });
   }
 } 
