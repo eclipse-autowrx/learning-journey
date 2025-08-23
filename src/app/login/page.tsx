@@ -36,14 +36,10 @@ export default function LoginPage() {
     setErrorMessage(null)
 
     try {
-      const baseUrl = getServerBaseUrl()
-
-      // 1) POST /auth/login -> get access token
-      const loginRes = await fetch(`${baseUrl}/auth/login`, {
+      // 1) POST to our proxy API to avoid CORS and hide external service
+      const loginRes = await fetch(`/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // External backend may set cookies; not required for our local session
-        credentials: 'include',
         body: JSON.stringify({ email, password })
       })
       if (!loginRes.ok) {
@@ -53,19 +49,7 @@ export default function LoginPage() {
       const loginData = await loginRes.json() as any
       const token: string | undefined = extractAccessToken(loginData)
       if (!token) throw new Error('No access token returned from server')
-
-      // 2) GET /users/self to get user id
-      const selfRes = await fetch(`${baseUrl}/users/self`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` },
-        credentials: 'include'
-      })
-      if (!selfRes.ok) {
-        const err = await safeJson(selfRes)
-        throw new Error(err?.error || err?.message || `Failed to fetch profile (${selfRes.status})`)
-      }
-      const selfData = await selfRes.json() as any
-      const id = selfData?.id || selfData?.user?.id || selfData?.data?.id
+      const id = loginData?.user?.id
       if (!id) throw new Error('Could not determine user id from profile')
 
       // 3) POST to our API to establish app cookies
