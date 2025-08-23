@@ -177,13 +177,13 @@ export default function CourseDetailPage() {
   const fetchCourseData = async () => {
     try {
       // Fetch path data first
-      const pathRes = await fetch(`/api/paths/${pathSlug}`);
+      const pathRes = await fetch(`/api/paths/${pathSlug}?manage=true`);
       const pathData = await pathRes.json();
       if (pathData.success) {
         setPath(pathData.data);
       }
 
-      const courseRes = await fetch(`/api/courses/${courseSlug}`);
+      const courseRes = await fetch(`/api/courses/${courseSlug}?manage=true`);
       const courseData = await courseRes.json();
 
       if (courseData.success) {

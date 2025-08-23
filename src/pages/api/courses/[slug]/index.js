@@ -47,6 +47,16 @@ export default async function handler(req, res) {
         const dbCourse = await CourseService.getBySlug(slug);
         if (!dbCourse) return res.status(404).json({ success: false, error: "Course not found" });
 
+        // If this is a manage request, enforce ownership
+        if (req.query.manage === 'true') {
+          if (!user_id) {
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+          }
+          if (dbCourse.owner_id !== user_id) {
+            return res.status(403).json({ success: false, error: 'Forbidden' });
+          }
+        }
+
         let courseProgress;
         if (user_id) {
           courseProgress = await getProgressForCourse(user_id, dbCourse._id);
@@ -69,6 +79,18 @@ export default async function handler(req, res) {
       }
     case "PUT":
       try {
+        if (!user_id) {
+          return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+        // Verify ownership
+        const existing = await CourseService.getBySlug(slug);
+        if (!existing) {
+          return res.status(404).json({ success: false, error: 'Course not found' });
+        }
+        if (existing.owner_id !== user_id) {
+          return res.status(403).json({ success: false, error: 'Forbidden' });
+        }
+
         const updateData = req.body;
         const updatedCourse = await CourseService.updateCourse(slug, updateData);
         if (!updatedCourse) {
@@ -82,6 +104,16 @@ export default async function handler(req, res) {
       break;
     case "DELETE":
       try {
+        if (!user_id) {
+          return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+        const existing = await CourseService.getBySlug(slug);
+        if (!existing) {
+          return res.status(404).json({ success: false, error: 'Course not found' });
+        }
+        if (existing.owner_id !== user_id) {
+          return res.status(403).json({ success: false, error: 'Forbidden' });
+        }
         const deletedCourse = await CourseService.deleteCourse(slug);
         if (!deletedCourse) {
           return res.status(404).json({ success: false, error: "Course not found" });

@@ -8,6 +8,8 @@
 
 import { PathService } from '../../../lib/services/dataService.js';
 import { check_auth } from '../../../lib/backend/check_auth.js';
+import connectToDatabase from '../../../lib/mongodb.js';
+import { Path } from '../../../lib/models/index.js';
 
 export default async function handler(req, res) {
   const { method } = req;
@@ -40,10 +42,23 @@ export default async function handler(req, res) {
           return res.status(403).json({ success: false, error: 'Only admin may set published/locked for paths' });
         }
 
+        if (!user_id) {
+          return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+
+        // Only allow updating assets owned by current user for non-admin endpoints
+        let allowedIds = ids;
+        if (!isAdminApi) {
+          await connectToDatabase();
+          const ownedDocs = await Path.find({ _id: { $in: ids }, owner_id: user_id }).select('_id').lean();
+          const ownedIdSet = new Set(ownedDocs.map(d => d._id.toString()));
+          allowedIds = ids.filter(id => ownedIdSet.has(id.toString()));
+        }
+
         const results = [];
         const errors = [];
 
-        for (const id of ids) {
+        for (const id of allowedIds) {
           try {
             const updated = await PathService.update(id, { state });
             if (updated) {
@@ -55,6 +70,10 @@ export default async function handler(req, res) {
             errors.push({ id, error: error.message });
           }
         }
+
+        // Report forbidden ids
+        const forbiddenIds = ids.filter(id => !allowedIds.includes(id));
+        forbiddenIds.forEach(id => errors.push({ id, error: 'Forbidden' }));
 
         res.status(200).json({ 
           success: true, 
@@ -80,10 +99,23 @@ export default async function handler(req, res) {
           });
         }
 
+        if (!user_id) {
+          return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+
+        // Only allow deleting assets owned by current user for non-admin endpoints
+        let allowedIds = ids;
+        if (!isAdminApi) {
+          await connectToDatabase();
+          const ownedDocs = await Path.find({ _id: { $in: ids }, owner_id: user_id }).select('_id').lean();
+          const ownedIdSet = new Set(ownedDocs.map(d => d._id.toString()));
+          allowedIds = ids.filter(id => ownedIdSet.has(id.toString()));
+        }
+
         const results = [];
         const errors = [];
 
-        for (const id of ids) {
+        for (const id of allowedIds) {
           try {
             const deleted = await PathService.delete(id);
             if (deleted) {
@@ -95,6 +127,10 @@ export default async function handler(req, res) {
             errors.push({ id, error: error.message });
           }
         }
+
+        // Report forbidden ids
+        const forbiddenIds = ids.filter(id => !allowedIds.includes(id));
+        forbiddenIds.forEach(id => errors.push({ id, error: 'Forbidden' }));
 
         res.status(200).json({ 
           success: true, 

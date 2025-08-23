@@ -172,7 +172,7 @@ export default function CollectionDetailPage() {
   const fetchCollectionData = async () => {
     if (!collectionSlug) return;
     try {
-      const response = await fetch(`/api/collections/${collectionSlug}`);
+    const response = await fetch(`/api/collections/${collectionSlug}?manage=true`);
       if (response.ok) {
         const data = await response.json();
         setCollection(data.data);
@@ -200,7 +200,7 @@ export default function CollectionDetailPage() {
 
   const fetchAllPaths = async () => {
     try {
-      const response = await fetch('/api/paths');
+    const response = await fetch('/api/paths?manage=true');
       if (response.ok) {
         const data = await response.json();
         setAllPaths(data.data || []);

@@ -196,13 +196,13 @@ function ManagePageInner() {
       console.log('Collections data:', collectionsData);
       
       console.log('Fetching paths...');
-      const pathsRes = await fetch('/api/paths');
+      const pathsRes = await fetch('/api/paths?manage=true');
       console.log('Paths response status:', pathsRes.status);
       const pathsData = await pathsRes.json();
       console.log('Paths data:', pathsData);
       
       console.log('Fetching courses...');
-      const coursesRes = await fetch('/api/courses');
+      const coursesRes = await fetch('/api/courses?manage=true');
       console.log('Courses response status:', coursesRes.status);
       const coursesData = await coursesRes.json();
       console.log('Courses data:', coursesData);

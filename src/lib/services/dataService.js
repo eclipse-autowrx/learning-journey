@@ -116,9 +116,9 @@ export const CollectionService = {
 
 // Path Service
 export const PathService = {
-  async getAll() {
+  async getAll(filter = {}) {
     await connectToDatabase();
-    return await Path.find({})
+    return await Path.find(filter || {})
       .populate('courses', 'name slug description category state total_lessons duration created_at')
       .sort({ created_at: -1 })
       .lean();
@@ -208,9 +208,9 @@ export const PathService = {
 
 // Course Service
 export const CourseService = {
-  async getAll() {
+  async getAll(filter = {}) {
     await connectToDatabase();
-    return await Course.find({})
+    return await Course.find(filter || {})
       .populate('lessons', 'name slug')
       .sort({ created_at: -1 });
   },

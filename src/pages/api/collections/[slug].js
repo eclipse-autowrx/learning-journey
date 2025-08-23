@@ -97,6 +97,16 @@ export default async function handler(req, res) {
           });
         }
 
+        // If this is a manage request, enforce ownership
+        if (query.manage === 'true') {
+          if (!user_id) {
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+          }
+          if (collection.owner_id !== user_id) {
+            return res.status(403).json({ success: false, error: 'Forbidden' });
+          }
+        }
+
         // Check if this is a management request (admin user)
         const isManagementRequest = query.manage === 'true' && user_id;
         
@@ -135,6 +145,18 @@ export default async function handler(req, res) {
 
     case "PUT":
       try {
+        if (!user_id) {
+          return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+        // Verify ownership
+        const existing = await Collection.findOne({ slug }).lean();
+        if (!existing) {
+          return res.status(404).json({ success: false, error: 'Collection not found' });
+        }
+        if (existing.owner_id !== user_id) {
+          return res.status(403).json({ success: false, error: 'Forbidden' });
+        }
+
         const collectionData = req.body;
         
         // Build update object with only provided fields
@@ -251,6 +273,16 @@ export default async function handler(req, res) {
 
     case "DELETE":
       try {
+        if (!user_id) {
+          return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+        const existing = await Collection.findOne({ slug }).lean();
+        if (!existing) {
+          return res.status(404).json({ success: false, error: 'Collection not found' });
+        }
+        if (existing.owner_id !== user_id) {
+          return res.status(403).json({ success: false, error: 'Forbidden' });
+        }
         const deletedCollection = await Collection.findOneAndDelete({ slug });
 
         if (!deletedCollection) {

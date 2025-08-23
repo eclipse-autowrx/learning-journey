@@ -13,7 +13,7 @@ import { check_auth } from "../../../lib/backend/check_auth.js";
 
 export default async function handler(req, res) {
   const { method, query } = req;
-  const { user_id } = check_auth(req, res);
+  const { user_id, token } = check_auth(req, res);
 
   switch (method) {
     case "GET":

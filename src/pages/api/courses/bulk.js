@@ -7,6 +7,8 @@
 // SPDX-License-Identifier: MIT
 import { CourseService } from "@/lib/services/dataService";
 import { check_auth } from "@/lib/backend/check_auth";
+import connectToDatabase from "@/lib/mongodb";
+import { Course } from "@/lib/models";
 
 export default async function handler(req, res) {
   const { method } = req;
@@ -20,11 +22,21 @@ export default async function handler(req, res) {
       if (!Array.isArray(ids) || !state) {
         return res.status(400).json({ success: false, error: "Missing ids or state" });
       }
+      if (!user_id) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+      }
       if (["published", "locked"].includes(state) && !isAdminApi) {
         return res.status(403).json({ success: false, error: "Only admin may set published/locked for courses" });
       }
       try {
-        const result = await CourseService.bulkUpdateState(ids, state);
+        let allowedIds = ids;
+        if (!isAdminApi) {
+          await connectToDatabase();
+          const ownedDocs = await Course.find({ _id: { $in: ids }, owner_id: user_id }).select('_id').lean();
+          const ownedIdSet = new Set(ownedDocs.map(d => d._id.toString()));
+          allowedIds = ids.filter(id => ownedIdSet.has(id.toString()));
+        }
+        const result = await CourseService.bulkUpdateState(allowedIds, state);
         return res.status(200).json({ success: true, result });
       } catch (error) {
         return res.status(400).json({ success: false, error: error.message });
@@ -36,8 +48,18 @@ export default async function handler(req, res) {
       if (!Array.isArray(ids)) {
         return res.status(400).json({ success: false, error: "Missing ids" });
       }
+      if (!user_id) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+      }
       try {
-        const result = await CourseService.bulkDelete(ids);
+        let allowedIds = ids;
+        if (!isAdminApi) {
+          await connectToDatabase();
+          const ownedDocs = await Course.find({ _id: { $in: ids }, owner_id: user_id }).select('_id').lean();
+          const ownedIdSet = new Set(ownedDocs.map(d => d._id.toString()));
+          allowedIds = ids.filter(id => ownedIdSet.has(id.toString()));
+        }
+        const result = await CourseService.bulkDelete(allowedIds);
         return res.status(200).json({ success: true, result });
       } catch (error) {
         return res.status(400).json({ success: false, error: error.message });

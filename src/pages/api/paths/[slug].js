@@ -61,6 +61,16 @@ export default async function handler(req, res) {
           return res.status(404).json({ success: false, error: "Path not found" });
         }
 
+        // If this is a manage request, enforce ownership
+        if (req.query.manage === 'true') {
+          if (!user_id) {
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+          }
+          if (dbPath.owner_id !== user_id) {
+            return res.status(403).json({ success: false, error: 'Forbidden' });
+          }
+        }
+
         try {
           // Normalize and populate courses
           const hasCoursesArray = Array.isArray(dbPath.courses) && dbPath.courses.length > 0;
@@ -91,6 +101,18 @@ export default async function handler(req, res) {
       break;
     case "PUT":
       try {
+        if (!user_id) {
+          return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+        // Verify ownership
+        const existing = await PathService.getBySlug(slug);
+        if (!existing) {
+          return res.status(404).json({ success: false, error: 'Path not found' });
+        }
+        if (existing.owner_id !== user_id) {
+          return res.status(403).json({ success: false, error: 'Forbidden' });
+        }
+
         const updateData = req.body;
         const updatedPath = await PathService.updatePath(slug, updateData);
         res.status(200).json({ success: true, data: updatedPath });
@@ -101,6 +123,16 @@ export default async function handler(req, res) {
       break;
     case "DELETE":
       try {
+        if (!user_id) {
+          return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+        const existing = await PathService.getBySlug(slug);
+        if (!existing) {
+          return res.status(404).json({ success: false, error: 'Path not found' });
+        }
+        if (existing.owner_id !== user_id) {
+          return res.status(403).json({ success: false, error: 'Forbidden' });
+        }
         await PathService.deletePath(slug);
         res.status(200).json({ success: true, message: "Path deleted successfully" });
       } catch (error) {

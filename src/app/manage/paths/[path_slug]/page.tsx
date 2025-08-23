@@ -185,7 +185,7 @@ export default function PathDetailPage() {
 
   const fetchPathData = async () => {
     try {
-      const pathRes = await fetch(`/api/paths/${pathSlug}`);
+    const pathRes = await fetch(`/api/paths/${pathSlug}?manage=true`);
       const pathData = await pathRes.json();
 
       if (pathData.success) {
