@@ -15,7 +15,7 @@ import { SlNotebook } from "react-icons/sl";
 import QuizLesson from '../lessons/QuizLesson';
 import VideoLesson from '../lessons/VideoLesson';
 import TextMarkdownLesson from '../lessons/TextMarkdownLesson';
-import { STATE_COMPLETED, STATE_IN_PROGRESS } from "@/lib/const";
+import { STATE_COMPLETED, STATE_IN_PROGRESS, STATE_NOT_STARTED } from "@/lib/const";
 import { FaCheckCircle } from "react-icons/fa";
 import BtnFullRounded from '../atom/BtnFullRounded';
 import { useRouter } from "next/navigation";
@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 import { genQueryParamsForRequest } from '@/lib/frontend/utils';
 import InteractiveLesson from '../lessons/InteractiveLesson';
 import { showToast } from "@/lib/utils/notifications";
+import { saveStateCourseStarted } from "@/lib/frontend/course";
 
 const saveStateLessonFinish = async (course, lesson_slug, data) => {
     if (!course || !course._id || !lesson_slug) return null
@@ -40,15 +41,6 @@ const saveStateLessonFinish = async (course, lesson_slug, data) => {
             }
         }
 
-        if (payload.lessons) {
-            let lessonProgress = payload.lessons[lesson_id] || { started_at: new Date(), records: [] }
-            lessonProgress.records.push({
-                at: new Date(),
-                action: 'complete_lesson',
-            })
-            lessonProgress.updated_at = new Date()
-            lessonProgress.progress = "completed"
-        }
         // console.log("Set Lesson Finished", lesson_slug)
         const res = await fetch(`/api/progress/courses/${course._id}/lessons/${lesson_slug}?${genQueryParamsForRequest()}`, {
             method: "PUT",
@@ -64,6 +56,35 @@ const saveStateLessonFinish = async (course, lesson_slug, data) => {
         return await res.json();
     } catch (err) {
         console.error("Error saving lesson finish state:", err);
+        return null;
+    }
+}
+
+const saveStateLessonStart = async (course, lesson_slug, data) => {
+    if (!course || !course._id || !lesson_slug) return null
+    try {
+        let payload = {
+            course_id: course._id,
+            state: STATE_IN_PROGRESS,
+            record: {
+                action: 'Start lesson',
+                data: data || {},
+                refId: '',
+                refType: '',
+            }
+        }
+        const res = await fetch(`/api/progress/courses/${course._id}/lessons/${lesson_slug}?${genQueryParamsForRequest()}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || "Failed to update lesson state");
+        }
+        return await res.json();
+    } catch (err) {
+        console.error("Error saving lesson start state:", err);
         return null;
     }
 }
@@ -134,6 +155,16 @@ const CourseScreen = ({ course, path_slug }) => {
     
     useEffect(() => {
         console.log('activeLesson', activeLesson)
+        // When switching to a lesson that has not started, mark as in_progress
+        try {
+            if (course && activeLesson && activeLesson?.context?.state === STATE_NOT_STARTED) {
+                saveStateLessonStart(course, activeLesson.slug).then((res) => {
+                    if (res && res.success) {
+                        applyNewProgressToCourse(res.data)
+                    }
+                }).catch(() => {})
+            }
+        } catch(_) {}
     }, [activeLesson])
 
     useEffect(() => {
@@ -142,6 +173,14 @@ const CourseScreen = ({ course, path_slug }) => {
             setActiveLessonIndex(0);
         }
     }, [course.lessons]);
+
+    // Mark course as started when entering if not started yet
+    useEffect(() => {
+        if (!course) return;
+        if (course?.context?.state === STATE_NOT_STARTED) {
+            try { saveStateCourseStarted(course); } catch(_) {}
+        }
+    }, [course?._id]);
 
     const gotoNextLesson = () => {
         if (activeLessonIndex < lessonsTable.length - 1) {

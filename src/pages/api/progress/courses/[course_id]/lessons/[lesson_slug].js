@@ -7,9 +7,11 @@
 // SPDX-License-Identifier: MIT
 
 import connectToDatabase from "@/lib/mongodb";
-import { CourseProgress } from "@/lib/models/index.js";
+import { CourseProgress, Course, Lesson } from "@/lib/models/index.js";
 import { check_auth } from "@/lib/backend/check_auth";
 import { STATE_IN_PROGRESS, STATE_NOT_STARTED, STATE_COMPLETED, STATE_LOCKED } from "@/lib/const";
+import { buildNextLessonProgress, isAllRequiredLessonsCompleted, nextCourseStateAfterActivity } from "@/pages/api/progress/courses/helpers";
+import { updatePathsForCourse } from "@/pages/api/progress/paths/utils";
 // Removed mock data usage; database is the single source of truth
 
 export default async function handler(req, res) {
@@ -28,26 +30,28 @@ export default async function handler(req, res) {
     switch (method) {
         case "GET":
             try {
-
                 await connectToDatabase();
 
-                return res.status(501).json({
-                    success: false,
-                    error: "This method is not implemented yet"
-                });
-
-                const dbProgress = await LessonProgress.findOne({
+                const dbProgress = await CourseProgress.findOne({
                     user_id: user_id,
                     course_id: course_id
-                });
+                }).lean();
 
-                if (!dbProgress) {
+                if (!dbProgress || !dbProgress.lessons) {
                     return res.status(404).json({ success: false, error: "Lesson progress not found" });
                 }
 
-                res.status(200).json({ success: true, data: dbProgress });
+                // Support Map or plain object
+                const lessons = dbProgress.lessons;
+                const lessonProgress = lessons[lesson_slug] || (typeof lessons.get === 'function' ? lessons.get(lesson_slug) : undefined);
+
+                if (!lessonProgress) {
+                    return res.status(404).json({ success: false, error: "Lesson progress not found" });
+                }
+
+                return res.status(200).json({ success: true, data: lessonProgress });
             } catch (error) {
-                res.status(400).json({ success: false, error: error.message });
+                return res.status(400).json({ success: false, error: error.message });
             }
             break;
         case "PUT":
@@ -59,117 +63,116 @@ export default async function handler(req, res) {
 
                 await connectToDatabase();
 
-                let existingProgress = await CourseProgress.findOne({
+                // Fetch existing progress doc
+                const existingProgress = await CourseProgress.findOne({
                     user_id: user_id,
                     course_id: course_id
-                });
+                }).lean();
 
-                if (!existingProgress) {
-                    existingProgress = {
-                        user_id: user_id,
-                        course_id: course_id,
-                        state: STATE_IN_PROGRESS
-                    };
-                }
+                // Prepare current lesson progress snapshot
+                const now = new Date();
+                const currentLesson = (existingProgress && existingProgress.lessons && (existingProgress.lessons[lesson_slug] || (typeof existingProgress.lessons.get === 'function' ? existingProgress.lessons.get(lesson_slug) : undefined))) || {
+                    state: STATE_NOT_STARTED,
+                    started_at: null,
+                    finished_at: null,
+                    data: {},
+                    records: []
+                };
 
-                let existLesson
-                if (!existingProgress.lessons) {
-                    existingProgress.lessons = new Map()
-                } else {
-                    existLesson = existingProgress.lessons.get(lesson_slug)
-                }
+                // Transition handling
+                const nextLesson = buildNextLessonProgress(currentLesson, updateData.state, updateData.record, now);
 
-                if (!existLesson) {
-                    existLesson = {
-                        state: STATE_NOT_STARTED,
-                        finished_at: null,
-                        data: {},
-                        records: []
+                // Guard: disallow regression from completed -> in_progress unless explicitly reopening
+                if (currentLesson.state === STATE_COMPLETED && updateData.state === STATE_IN_PROGRESS) {
+                    const action = updateData.record?.action || '';
+                    if (action.toLowerCase() !== 'reopen_lesson') {
+                        return res.status(400).json({ success: false, error: "Cannot regress a completed lesson without 'reopen_lesson' action" });
                     }
                 }
-                existLesson.state = updateData.state
-                existLesson.updated_at = new Date()
-
                 switch (updateData.state) {
                     case STATE_NOT_STARTED:
-                        existLesson.started_at = null;
-                        existLesson.finished_at = null;
-                        existLesson.records.push({
-                            at: new Date(),
-                            action: updateData.record?.action || "Withdraw lesson",
+                        nextLesson.started_at = null;
+                        nextLesson.finished_at = null;
+                        nextLesson.records = [...(nextLesson.records || []), {
+                            at: now,
+                            action: updateData.record?.action || 'reset_lesson',
                             refId: updateData.record?.refId || '',
                             refType: updateData.record?.refType || '',
                             data: updateData.record?.data || {}
-                        })
+                        }];
                         break;
                     case STATE_IN_PROGRESS:
-                        if (!existLesson.started_at) {
-                            existLesson.started_at = new Date();
+                        if (!nextLesson.started_at) {
+                            nextLesson.started_at = now;
                         }
-                        existLesson.finished_at = null;
-                        existLesson.records.push({
-                            at: new Date(),
-                            action: updateData.record?.action || "Do learning",
+                        nextLesson.finished_at = null;
+                        nextLesson.records = [...(nextLesson.records || []), {
+                            at: now,
+                            action: updateData.record?.action || 'start_lesson',
                             refId: updateData.record?.refId || '',
                             refType: updateData.record?.refType || '',
                             data: updateData.record?.data || {}
-                        })
+                        }];
                         break;
                     case STATE_COMPLETED:
-                        if (!existLesson.started_at) {
-                            existLesson.started_at = new Date();
+                        if (!nextLesson.started_at) {
+                            nextLesson.started_at = now;
                         }
-                        existLesson.finished_at = new Date();
-                        existLesson.records.push({
-                            at: new Date(),
-                            action: updateData.record?.action || "Finish lesson",
+                        nextLesson.finished_at = now;
+                        nextLesson.records = [...(nextLesson.records || []), {
+                            at: now,
+                            action: updateData.record?.action || 'finish_lesson',
                             refId: updateData.record?.refId || '',
                             refType: updateData.record?.refType || '',
                             data: updateData.record?.data || {}
-                        })
-
-                        // for this course, check that is all lesson finished
-                        // If all lesson progresses are completed, mark course as completed
-                        if (existingProgress.state !== STATE_COMPLETED) {
-                            let allLessonsCompleted = true;
-                            if (existingProgress.lessons && existingProgress.lessons.size > 0) {
-                                for (const [, lp] of existingProgress.lessons) {
-                                    if (!lp || lp.state !== STATE_COMPLETED) {
-                                        allLessonsCompleted = false;
-                                        break;
-                                    }
-                                }
-                            } else {
-                                allLessonsCompleted = false;
-                            }
-                            if (allLessonsCompleted) {
-                                existingProgress.state = STATE_COMPLETED;
-                                existingProgress.finished_at = new Date();
-                            }
-                        }
-
+                        }];
                         break;
                     default:
                         break;
                 }
 
-                existingProgress.lessons.set(lesson_slug, existLesson)
+                // Build $set for atomic update
+                const setFields = {};
+                setFields[`lessons.${lesson_slug}`] = nextLesson;
 
-                // when I do start or finish lesson, make sure auto set course to started
-                if ([STATE_IN_PROGRESS, STATE_COMPLETED].includes(updateData.state)) {
-                    if (existingProgress.state == STATE_NOT_STARTED) {
-                        existingProgress.state = STATE_IN_PROGRESS
-                        existingProgress.started_at = new Date()
-                    }
+                // Ensure course state reflects activity
+                let nextCourseState = nextCourseStateAfterActivity(existingProgress?.state, updateData.state);
+                let setStartedAt = undefined;
+                if (existingProgress?.state === STATE_NOT_STARTED && [STATE_IN_PROGRESS, STATE_COMPLETED].includes(updateData.state)) {
+                    setStartedAt = now;
                 }
 
-                // console.log(`existingProgress`, existingProgress)
+                // Compute course completion using canonical lesson list
+                try {
+                    const course = await Course.findById(course_id).select('lessons').lean();
+                    if (course && Array.isArray(course.lessons) && course.lessons.length > 0) {
+                        const lessonsDocs = await Lesson.find({ _id: { $in: course.lessons } }).select('slug').lean();
+                        const requiredSlugs = lessonsDocs.map(l => l.slug).filter(Boolean);
 
+                        const allCompleted = isAllRequiredLessonsCompleted(requiredSlugs, existingProgress?.lessons, lesson_slug, nextLesson);
 
+                        if (allCompleted) {
+                            nextCourseState = STATE_COMPLETED;
+                            setFields['finished_at'] = now;
+                        }
+                    }
+                } catch (_) {
+                    // best-effort; do not fail request on course lookup error
+                }
+
+                if (nextCourseState !== (existingProgress?.state || STATE_NOT_STARTED)) {
+                    setFields['state'] = nextCourseState;
+                }
+                if (setStartedAt) {
+                    setFields['started_at'] = setStartedAt;
+                }
 
                 const updatedProgress = await CourseProgress.findOneAndUpdate(
                     { user_id: user_id, course_id: course_id },
-                    existingProgress,
+                    {
+                        $set: setFields,
+                        $setOnInsert: { user_id: user_id, course_id: course_id }
+                    },
                     { new: true, upsert: true }
                 );
 
@@ -177,9 +180,11 @@ export default async function handler(req, res) {
                     return res.status(404).json({ success: false, error: "Lesson progress not found" });
                 }
 
-                res.status(200).json({ success: true, data: updatedProgress });
+                // fan-out update path progress for any paths containing this course
+                try { await updatePathsForCourse({ user_id, course_id }); } catch(_) {}
+                return res.status(200).json({ success: true, data: updatedProgress });
             } catch (error) {
-                res.status(400).json({ success: false, error: error.message });
+                return res.status(400).json({ success: false, error: error.message });
             }
             break;
         default:

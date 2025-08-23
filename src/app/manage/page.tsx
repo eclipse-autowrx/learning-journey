@@ -851,11 +851,16 @@ function ManagePageInner() {
                 Overview of all content in the platform.
               </p>
             </div>
-            <div>
+            <div className="flex items-center space-x-2">
               <Link href="/admin">
                 <Btn>
                   <FaUserShield className="mr-2 h-4 w-4" />
                   Admin
+                </Btn>
+              </Link>
+              <Link href="/manage/progress">
+                <Btn variant="outlined">
+                  View Progress
                 </Btn>
               </Link>
             </div>

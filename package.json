@@ -27,7 +27,10 @@
     "restore": "node scripts/restore-db.js",
     "restore:sh": "bash scripts/restore-db.sh",
     "populate-lessons": "node scripts/populate-lesson-content.js",
-    "populate-lessons:dry": "node scripts/populate-lesson-content.js --dry-run"
+    "populate-lessons:dry": "node scripts/populate-lesson-content.js --dry-run",
+    "progress:normalize": "node scripts/normalize-course-progress.js",
+    "progress:normalize:dry": "node scripts/normalize-course-progress.js --dry-run",
+    "test": "node --test"
   },
   "dependencies": {
     "@ckeditor/ckeditor5-react": "^9.5.0",

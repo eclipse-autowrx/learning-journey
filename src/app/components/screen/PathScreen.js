@@ -135,7 +135,8 @@ const PathScreen = ({ path }) => {
   useEffect(() => {
     if(updateTrigger) {
       if(path?.course_ids || path?.courses){
-        // updateProgressForCourses()
+        updateProgressForCourses()
+        updatePathProgress()
       }
     }
   }, [updateTrigger])
@@ -224,6 +225,31 @@ const PathScreen = ({ path }) => {
     } catch (err) {
       console.log(`error`, err)
     }
+  }
+
+  const fetchPathProgress = async (path_id) => {
+    if (!path_id) return null
+    try {
+      const res = await fetch(`/api/progress/paths/${path_id}?${genQueryParamsForRequest()}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } })
+      if (!res.ok) return null
+      return await res.json()
+    } catch (_) { return null }
+  }
+
+  const updatePathProgress = async () => {
+    try {
+      const res = await fetchPathProgress(path?._id)
+      if (res && res.success && res.data) {
+        // attach path-level context
+        let ctxState = res.data.state
+        // Show a simple banner for path-level status
+        // We keep it in state via maps/courses re-render currently
+        // set icon by state
+        let tmpCourses = JSON.parse(JSON.stringify(courses))
+        addMediaUrlForCourses({ ...path, icon_set: path.icon_set }, tmpCourses)
+        setCourses(tmpCourses)
+      }
+    } catch (_) { }
   }
 
   if (!path) return;
