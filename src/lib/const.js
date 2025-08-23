@@ -25,33 +25,20 @@ export const LESSON_PROGRESS_STATES = {
     COMPLETED: STATE_COMPLETED
 };
 
-export const COURSE_STATES = [
+// Unified content state options for Collection, Path, Course, Lesson
+export const STATE_OPTIONS = [
   { value: 'draft', label: 'Draft' },
-  { value: 'reviewed', label: 'Reviewed' },
-  { value: 'released', label: 'Released' },
-  { value: 'archived', label: 'Archived' }
-];
-
-export const COLLECTION_STATES = [
-  { value: 'draft', label: 'Draft' },
+  { value: 'reviewing', label: 'Reviewing' },
   { value: 'published', label: 'Published' },
-  { value: 'archived', label: 'Archived' }
-];
-
-export const PATH_STATES = [
-  { value: 'draft', label: 'Draft' },
-  { value: 'reviewed', label: 'Reviewed' },
-  { value: 'published', label: 'Published' },
-  { value: 'archived', label: 'Archived' },
   { value: 'locked', label: 'Locked' },
+  { value: 'archived', label: 'Archived' }
 ];
 
-export const LESSON_STATES = [
-  { value: 'draft', label: 'Draft' },
-  { value: 'reviewed', label: 'Reviewed' },
-  { value: 'published', label: 'Published' },
-  { value: 'archived', label: 'Archived' },
-];
+// Backwards-compatible aliases used throughout the app
+export const COURSE_STATES = STATE_OPTIONS;
+export const COLLECTION_STATES = STATE_OPTIONS;
+export const PATH_STATES = STATE_OPTIONS;
+export const LESSON_STATES = STATE_OPTIONS;
 
 export const MEDIA_TYPES = {
     IMAGE: 'image',

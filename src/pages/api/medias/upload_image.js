@@ -28,6 +28,21 @@ async function handler(req, res) {
         return;
     }
 
+    // Basic request diagnostics
+    try {
+        console.log('[upload_image] request start', {
+            method: req.method,
+            url: req.url,
+            contentType: req.headers['content-type'],
+        });
+        console.log('[upload_image] config', {
+            MEDIA_STORE_PATH,
+            TMP_DIR: path.join(process.cwd(), '.tmp_uploads'),
+            THUMBNAIL_SIZE,
+            MAX_IMG_SIZE,
+        });
+    } catch (_) {}
+
     // Ensure media store directory exists and is writable
     if (!fs.existsSync(MEDIA_STORE_PATH)) {
         try {
@@ -48,24 +63,55 @@ async function handler(req, res) {
         return;
     }
 
+    // Ensure temp upload directory exists BEFORE parsing, since formidable writes files there
+    const TMP_DIR = path.join(process.cwd(), '.tmp_uploads');
+    try {
+        if (!fs.existsSync(TMP_DIR)) {
+            fs.mkdirSync(TMP_DIR, { recursive: true });
+        }
+    } catch (tmpInitErr) {
+        console.error('[upload_image] Failed to init temp dir:', tmpInitErr);
+        return res.status(500).json({ error: 'Failed to initialize temp directory' });
+    }
+
     const form = formidable({
         multiples: false,
         // Always stream to a temp directory to avoid locking in the final destination on Windows
-        uploadDir: path.join(process.cwd(), '.tmp_uploads'),
+        uploadDir: TMP_DIR,
         keepExtensions: true,
     });
 
     form.parse(req, async (err, fields, files) => {
+        console.log('[upload_image] formidable.parse callback');
         if (err) {
-            res.status(500).json({ error: 'Error parsing the file' });
+            console.error('[upload_image] formidable error:', err);
+            res.status(500).json({ error: 'Error parsing the file', details: err?.message });
             return;
         }
+
+        try {
+            console.log('[upload_image] fields =', fields);
+            const fileKeys = Object.keys(files || {});
+            console.log('[upload_image] files keys =', fileKeys);
+            for (const key of fileKeys) {
+                const val = files[key];
+                const f = Array.isArray(val) ? val[0] : val;
+                console.log(`[upload_image] file[${key}]`, {
+                    originalFilename: f?.originalFilename || f?.name,
+                    filepath: f?.filepath,
+                    path: f?.path,
+                    size: f?.size,
+                    mimetype: f?.mimetype,
+                });
+            }
+        } catch (_) {}
 
         let file = files.image || files.file || Object.values(files)[0];
         if (Array.isArray(file)) {
             file = file[0]
         }
         if (!file) {
+            console.error('[upload_image] No file found in parsed form-data');
             res.status(400).json({ error: 'No file uploaded' });
             return;
         }
@@ -114,6 +160,10 @@ async function handler(req, res) {
             
             // For Windows compatibility, always use copy+unlink instead of rename
             const fromPath = file.filepath || file.path;
+            if (!fromPath) {
+                console.error('[upload_image] Missing temp path from formidable file object');
+                return res.status(400).json({ error: 'Invalid upload: missing temp file path' });
+            }
             try {
                 await fs.promises.copyFile(fromPath, destPath);
                 // Clean up temp file
@@ -221,6 +271,12 @@ async function handler(req, res) {
                     details: process.env.NODE_ENV === 'development' ? moveErr.message : undefined
                 });
             }
+        }
+
+        // Fallback: ensure a response is always sent to avoid stalled requests while debugging
+        if (!res.headersSent) {
+            console.error('[upload_image] Fallback: no response sent, returning 500');
+            res.status(500).json({ error: 'Unexpected error: no response sent' });
         }
     });
 }

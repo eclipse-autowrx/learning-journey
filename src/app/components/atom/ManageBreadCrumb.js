@@ -6,8 +6,9 @@
 //
 // SPDX-License-Identifier: MIT
 import Link from "next/link";
+import UserBadge from '@/app/components/atom/UserBadge';
 
-const ManageBreadCrumb = ({ items }) => {
+const ManageBreadCrumb = ({ items, rightSlot }) => {
     const processLabel = (label) => {
         if (!label) return 'unname';
         const max_char = 50;
@@ -18,7 +19,7 @@ const ManageBreadCrumb = ({ items }) => {
     };
 
     return (
-        <div className="px-4 py-2 w-full flex flex-row items-center text-white text-sm font-semibold bg-blue-600">
+        <div className="px-6 py-2 w-full flex flex-row items-center text-white text-sm font-semibold bg-green-600">
             <div className="flex flex-row items-center">
                 <Link href="/" className="hover:underline">Home</Link>
                 <span className="mx-2">/</span>
@@ -33,6 +34,9 @@ const ManageBreadCrumb = ({ items }) => {
                         )}
                     </div>
                 ))}
+            </div>
+            <div className="ml-auto">
+                {rightSlot ?? (<UserBadge align="right" variant="transparent" />)}
             </div>
         </div>
     );

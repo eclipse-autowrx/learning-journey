@@ -52,7 +52,11 @@ export default async function handler(req, res) {
         if (!user_id) {
           return res.status(401).json({ success: false, error: "Unauthorized" });
         }
+        const DEFAULT_BG = '/imgs/green_bg.png';
         const pathData = { ...req.body, owner_id: user_id };
+        if (!pathData.background_img) {
+          pathData.background_img = DEFAULT_BG;
+        }
         const newPath = await PathService.create(pathData);
         res.status(201).json({ success: true, data: newPath });
       } catch (error) {

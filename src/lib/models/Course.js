@@ -82,7 +82,7 @@ const CourseSchema = new mongoose.Schema(
       type: String, 
       limit: 255, 
       default: 'draft',
-      enum: ['draft', 'reviewed', 'released', 'archived']
+      enum: ['draft', 'reviewing', 'published', 'locked', 'archived']
     },
     
     // Configuration and extensions
@@ -141,7 +141,7 @@ CourseSchema.virtual('durationText').get(function() {
 // Method to check if course is accessible
 CourseSchema.methods.isAccessible = function() {
   const now = new Date();
-  return this.state === 'released' && 
+  return this.state === 'published' && 
          (!this.valid_from || this.valid_from <= now) &&
          (!this.valid_to || this.valid_to >= now);
 };
@@ -168,17 +168,17 @@ CourseSchema.methods.calculateStats = async function() {
 
 // Static method to get courses by difficulty
 CourseSchema.statics.getByDifficulty = function(difficulty) {
-  return this.find({ difficulty, state: 'released' });
+  return this.find({ difficulty, state: 'published' });
 };
 
 // Static method to get free courses
 CourseSchema.statics.getFreeCourses = function() {
-  return this.find({ is_free: true, state: 'released' });
+  return this.find({ is_free: true, state: 'published' });
 };
 
 // Static method to get courses with certificates
 CourseSchema.statics.getCertificationCourses = function() {
-  return this.find({ offers_certificate: true, state: 'released' });
+  return this.find({ offers_certificate: true, state: 'published' });
 };
 
 // Pre-save middleware to update total lessons and duration

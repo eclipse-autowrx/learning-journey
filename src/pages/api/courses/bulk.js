@@ -20,8 +20,8 @@ export default async function handler(req, res) {
       if (!Array.isArray(ids) || !state) {
         return res.status(400).json({ success: false, error: "Missing ids or state" });
       }
-      if (["released", "published"].includes(state) && !isAdminApi) {
-        return res.status(403).json({ success: false, error: "Only admin may set released/published for courses" });
+      if (["published", "locked"].includes(state) && !isAdminApi) {
+        return res.status(403).json({ success: false, error: "Only admin may set published/locked for courses" });
       }
       try {
         const result = await CourseService.bulkUpdateState(ids, state);

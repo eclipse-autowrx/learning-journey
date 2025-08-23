@@ -1,8 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { FaPlus, FaTrash, FaUserShield, FaCheckCircle } from 'react-icons/fa';
+import UserBadge from '@/app/components/atom/UserBadge';
 import { COLLECTION_STATES, PATH_STATES, COURSE_STATES } from '@/lib/const';
+import { useAuth } from '@/lib/frontend/auth';
 
 interface Content {
   _id: string;
@@ -37,6 +41,9 @@ interface Admin {
 }
 
 export default function AdminPage() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'collections' | 'admins'>('collections');
   const [collections, setCollections] = useState<Content[]>([]);
   const [ownerNames, setOwnerNames] = useState<Record<string, string>>({});
@@ -47,12 +54,13 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     if (activeTab === 'collections') {
       fetchCollections();
     } else {
       fetchAdmins();
     }
-  }, [activeTab]);
+  }, [activeTab, isAuthenticated]);
 
   const fetchCollections = async () => {
     try {
@@ -205,6 +213,37 @@ export default function AdminPage() {
     }
   };
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    const qs = searchParams?.toString();
+    const returnTo = encodeURIComponent(`${pathname}${qs ? `?${qs}` : ''}`);
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h3 className="mt-2 text-lg font-medium text-gray-900">Authentication Required</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            You must be logged in to access this page.
+          </p>
+          <div className="mt-6">
+            <Link href={`/login?returnTo=${returnTo}`} className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+              Go to Login
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b">
@@ -216,6 +255,7 @@ export default function AdminPage() {
                 Manage users and view all content in the platform.
               </p>
             </div>
+            <UserBadge align="right" />
           </div>
         </div>
       </div>
@@ -248,6 +288,7 @@ export default function AdminPage() {
           </div>
 
           <div className="p-6">
+            {/* Unauthorized state handled by API responses; show CTA if needed */}
             {activeTab === 'collections' && (
               <div>
                 <div className="overflow-x-auto">

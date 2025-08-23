@@ -15,8 +15,9 @@
 */
 
 import Link from "next/link";
+import UserBadge from '@/app/components/atom/UserBadge';
 
-const BreadCrumb = ({ items }) => {
+const BreadCrumb = ({ items, rightSlot }) => {
 
     let config = {
         "HOME_LABEL": "Home"
@@ -48,6 +49,9 @@ const BreadCrumb = ({ items }) => {
                         <Link href={item.link || ''} className="hover:underline">{processLabel(item.label)}</Link>
                     </div>
                 ))}
+            </div>
+            <div className="ml-auto">
+                {rightSlot ?? (<UserBadge align="right" variant="transparent" />)}
             </div>
         </div>
     );

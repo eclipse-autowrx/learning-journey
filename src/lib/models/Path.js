@@ -24,7 +24,7 @@ const PathSchema = new mongoose.Schema(
     tags: { type: [String] },
     valid_from: { type: Date },
     valid_to: { type: Date },
-    state: { type: String, limit: 255, default: 'draft' },   // draft, reviewed, released
+    state: { type: String, limit: 255, default: 'draft', enum: ['draft', 'reviewing', 'published', 'locked', 'archived'] },
     configs: { type: Schema.Types.Mixed },
     extends: { type: Schema.Types.Mixed },
     hiddenContent: { type: Schema.Types.Mixed },

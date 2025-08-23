@@ -11,7 +11,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { saveAs } from 'file-saver';
 import { 
   FaFolder, 
@@ -40,6 +40,7 @@ import StateFilter from '@/app/components/atom/StateFilter';
 import Btn from '@/app/components/atom/Btn';
 import TagEditor from '@/app/components/atom/TagEditor';
 import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
+import UserBadge from '@/app/components/atom/UserBadge';
 import ImportTreeView from '@/app/components/atom/ImportTreeView';
 import ImportContentViewer from '@/app/components/atom/ImportContentViewer';
 import { 
@@ -106,6 +107,7 @@ interface Lesson {
 function ManagePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   
   const [collections, setCollections] = useState<Collection[]>([]);
   const [paths, setPaths] = useState<Path[]>([]);
@@ -226,8 +228,8 @@ function ManagePageInner() {
     switch (state) {
       case 'published':
         return 'bg-green-100 text-green-800';
-      case 'released':
-        return 'bg-green-100 text-green-800';
+      case 'reviewing':
+        return 'bg-yellow-100 text-yellow-800';
       case 'draft':
         return 'bg-blue-100 text-blue-800';
       case 'archived':
@@ -801,6 +803,8 @@ function ManagePageInner() {
   }
 
   if (!isAuthenticated) {
+    const qs = searchParams?.toString();
+    const returnTo = encodeURIComponent(`${pathname}${qs ? `?${qs}` : ''}`);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -808,6 +812,14 @@ function ManagePageInner() {
           <p className="mt-1 text-sm text-gray-500">
             You must be logged in to access this page.
           </p>
+          <div className="mt-6">
+            <Link
+              href={`/login?returnTo=${returnTo}`}
+              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+            >
+              Go to Login
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -826,7 +838,9 @@ function ManagePageInner() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ManageBreadCrumb items={[]} />
+      <div className="flex items-center justify-between">
+        <ManageBreadCrumb items={[]} rightSlot={<UserBadge align="right" variant="transparent" />} />
+      </div>
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1499,45 +1513,51 @@ function ManagePageInner() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Category
-                  </label>
-                  <input
-                    type="text"
-                    value={collectionForm.category}
-                    onChange={(e) => setCollectionForm({...collectionForm, category: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., fundamentals, hands-on"
-                  />
-                </div>
+                {editingCollection && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Category
+                    </label>
+                    <input
+                      type="text"
+                      value={collectionForm.category}
+                      onChange={(e) => setCollectionForm({...collectionForm, category: e.target.value})}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="e.g., fundamentals, hands-on"
+                    />
+                  </div>
+                )}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Tags
-                  </label>
-                  <TagEditor
-                    tags={collectionForm.tags}
-                    onChange={(newTags) => setCollectionForm({...collectionForm, tags: newTags})}
-                    placeholder="Type and press Enter to add tags..."
-                    className="mt-1"
-                  />
-                </div>
+                {editingCollection && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Tags
+                    </label>
+                    <TagEditor
+                      tags={collectionForm.tags}
+                      onChange={(newTags) => setCollectionForm({...collectionForm, tags: newTags})}
+                      placeholder="Type and press Enter to add tags..."
+                      className="mt-1"
+                    />
+                  </div>
+                )}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    State
-                  </label>
-                  <select
-                    value={collectionForm.state}
-                    onChange={(e) => setCollectionForm({...collectionForm, state: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="draft">Draft</option>
-                    <option value="published">Published</option>
-                    <option value="archived">Archived</option>
-                  </select>
-                </div>
+                {editingCollection && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      State
+                    </label>
+                    <select
+                      value={collectionForm.state}
+                      onChange={(e) => setCollectionForm({...collectionForm, state: e.target.value})}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="published">Published</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                  </div>
+                )}
 
                 <div className="flex justify-end space-x-3 pt-4">
                   <Btn
@@ -1595,21 +1615,23 @@ function ManagePageInner() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    State
-                  </label>
-                  <select
-                    value={pathForm.state}
-                    onChange={(e) => setPathForm({...pathForm, state: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="draft">Draft</option>
-                    <option value="published">Published</option>
-                    <option value="archived">Archived</option>
-                    <option value="locked">Locked</option>
-                  </select>
-                </div>
+                {editingPath && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      State
+                    </label>
+                    <select
+                      value={pathForm.state}
+                      onChange={(e) => setPathForm({...pathForm, state: e.target.value})}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="published">Published</option>
+                      <option value="archived">Archived</option>
+                      <option value="locked">Locked</option>
+                    </select>
+                  </div>
+                )}
 
                 <div className="flex justify-end space-x-3 pt-4">
                   <Btn

@@ -9,7 +9,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { showToast, showDeleteConfirm } from '@/lib/utils/notifications';
 import Btn from '@/app/components/atom/Btn';
@@ -43,6 +43,7 @@ import {
   FaGripVertical
 } from 'react-icons/fa';
 import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
+import UserBadge from '@/app/components/atom/UserBadge';
 import DropdownMenu, { DropdownItem } from '@/app/components/atom/DropdownMenu';
 import { COURSE_STATES, LESSON_STATES } from '@/lib/const';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -122,6 +123,8 @@ export default function CourseDetailPage() {
   const pathSlug = params?.path_slug as string;
   const courseSlug = params?.course_slug as string;
   const { isAuthenticated, loading: authLoading } = useAuth();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   
   const [course, setCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -275,6 +278,8 @@ export default function CourseDetailPage() {
    }
 
    if (!isAuthenticated) {
+    const qs = searchParams?.toString();
+    const returnTo = encodeURIComponent(`${pathname}${qs ? `?${qs}` : ''}`);
      return (
          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
              <div className="text-center">
@@ -282,6 +287,11 @@ export default function CourseDetailPage() {
                  <p className="mt-1 text-sm text-gray-500">
                      You must be logged in to access this page.
                  </p>
+                <div className="mt-6">
+                  <Link href={`/login?returnTo=${returnTo}`} className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                    Go to Login
+                  </Link>
+                </div>
              </div>
          </div>
      );
@@ -334,7 +344,9 @@ export default function CourseDetailPage() {
   const getStateColor = (state: string) => {
     switch (state) {
       case 'published':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-green-100 text-green-800';
+      case 'reviewing':
+        return 'bg-yellow-100 text-yellow-800';
       case 'draft':
         return 'bg-blue-100 text-blue-800';
       case 'archived':
@@ -615,7 +627,7 @@ Start writing your lesson content here.`;
         { label: path.name, link: `/manage/paths/${path.slug}` },
         { label: 'Courses', link: `/manage/paths/${path.slug}` },
         { label: course.name }
-      ]} />
+      ]} rightSlot={<UserBadge align="right" variant="transparent" />} />
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -768,6 +780,12 @@ Start writing your lesson content here.`;
                         label="Course Image"
                         imageUrl={editForm.image}
                         onImageUrlChange={(url) => setEditForm({ ...editForm, image: url })}
+                        onUploadComplete={async (url) => {
+                          try {
+                            const resp = await fetch(`/api/courses/${courseSlug}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: url }) });
+                            if (!resp.ok) throw new Error((await resp.json()).error || 'Failed to save image');
+                          } catch (e) { throw e; }
+                        }}
                         allowDelete={false}
                         mode="avatar"
                       />

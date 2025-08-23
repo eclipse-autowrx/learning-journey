@@ -72,7 +72,7 @@ const LessonSchema = new mongoose.Schema(
       type: String, 
       limit: 255, 
       default: 'draft',
-      enum: ['draft', 'reviewed', 'released', 'archived']
+      enum: ['draft', 'reviewing', 'published', 'locked', 'archived']
     },
     
     // Configuration and extensions
@@ -103,7 +103,7 @@ LessonSchema.virtual('url').get(function() {
 
 // Method to check if lesson is accessible
 LessonSchema.methods.isAccessible = function() {
-  return this.state === 'released';
+  return this.state === 'published';
 };
 
 // Method to get lesson duration in human readable format
@@ -121,7 +121,7 @@ LessonSchema.methods.getDurationText = function() {
 
 // Static method to get lessons by type
 LessonSchema.statics.getByType = function(type) {
-  return this.find({ lesson_type: type, state: 'released' });
+  return this.find({ lesson_type: type, state: 'published' });
 };
 
 // Static method to get lessons with prerequisites

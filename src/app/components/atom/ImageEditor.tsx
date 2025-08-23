@@ -18,9 +18,10 @@ interface ImageEditorProps {
   onImageUrlChange: (url: string | null) => void;
   allowDelete?: boolean;
   mode?: 'avatar' | 'landscape' | 'cover';
+  onUploadComplete?: (url: string) => Promise<void> | void;
 }
 
-export default function ImageEditor({ label, imageUrl, onImageUrlChange, allowDelete = false, mode = 'avatar' }: ImageEditorProps) {
+export default function ImageEditor({ label, imageUrl, onImageUrlChange, allowDelete = false, mode = 'avatar', onUploadComplete }: ImageEditorProps) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -42,7 +43,14 @@ export default function ImageEditor({ label, imageUrl, onImageUrlChange, allowDe
 
       if (data.success) {
         onImageUrlChange(data.url);
-        showToast.success('Image uploaded successfully');
+        try {
+          if (onUploadComplete) {
+            await onUploadComplete(data.url);
+          }
+          showToast.success('Image uploaded successfully');
+        } catch (e: any) {
+          showToast.error(e?.message || 'Failed to save image');
+        }
       } else {
         throw new Error(data.error || 'Failed to upload image');
       }

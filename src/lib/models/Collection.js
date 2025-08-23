@@ -62,7 +62,7 @@ const collectionSchema = new Schema({
   }],
   state: {
     type: String,
-    enum: ['draft', 'published', 'archived'],
+    enum: ['draft', 'reviewing', 'published', 'locked', 'archived'],
     default: 'draft'
   },
   valid_from: {

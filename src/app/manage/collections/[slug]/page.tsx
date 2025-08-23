@@ -9,7 +9,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { showToast, showDeleteConfirm, showBulkDeleteConfirm, showStateChangeConfirm, showBulkOperationResult } from '@/lib/utils/notifications';
 import StateFilter from '@/app/components/atom/StateFilter';
@@ -30,6 +30,7 @@ import {
   FaArrowRight
 } from 'react-icons/fa';
 import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
+import UserBadge from '@/app/components/atom/UserBadge';
 import DropdownMenu, { DropdownItem } from '@/app/components/atom/DropdownMenu';
 import { PATH_STATES, COLLECTION_STATES } from '@/lib/const';
 import { useAuth } from '@/lib/frontend/auth';
@@ -63,6 +64,8 @@ interface Path {
 export default function CollectionDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const collectionSlug = params?.slug as string;
   const { isAuthenticated, loading: authLoading } = useAuth();
   
@@ -147,6 +150,8 @@ export default function CollectionDetailPage() {
   }
 
   if (!isAuthenticated) {
+    const qs = searchParams?.toString();
+    const returnTo = encodeURIComponent(`${pathname}${qs ? `?${qs}` : ''}`);
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
             <div className="text-center">
@@ -154,6 +159,11 @@ export default function CollectionDetailPage() {
                 <p className="mt-1 text-sm text-gray-500">
                     You must be logged in to access this page.
                 </p>
+                <div className="mt-6">
+                  <Link href={`/login?returnTo=${returnTo}`} className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                    Go to Login
+                  </Link>
+                </div>
             </div>
         </div>
     );
@@ -486,7 +496,7 @@ export default function CollectionDetailPage() {
       <ManageBreadCrumb items={[
         { label: 'Collections', link: '/manage?tab=collections' },
         { label: collection.name }
-      ]} />
+      ]} rightSlot={<UserBadge align="right" variant="transparent" />} />
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
