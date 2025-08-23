@@ -6,6 +6,8 @@
   --text-primary: #13161A;
   --bg-primary-light: #DBE9D1;
   --color-content-disabled: #9FA8B4;
+  /* Force light theme regardless of user/browser preference */
+  color-scheme: light;
 }
 
 @theme inline {
@@ -15,18 +17,25 @@
   --font-content: var(--font-content);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Remove dark-mode overrides so we always serve light theme */
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family:  var(--font-content), Helvetica, sans-serif;
   /* Arial, 'Courier New', Georgia, Tahoma, 'Times New Roman', Verdana, sans-serif */
+}
+
+/* Ensure form controls stay light in Chrome/Safari */
+:where(input, textarea, select) {
+  background-color: #ffffff;
+  color: var(--text-primary);
+  border-color: #d1d5db; /* gray-300 */
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af; /* gray-400 */
 }
 
 /* color */

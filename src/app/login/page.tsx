@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/frontend/auth'
 
 const DEFAULT_SERVER_BASE_URL = 'https://backend-core-dev.digital.auto/v2'
 
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { isAuthenticated, loading: authLoading } = useAuth()
@@ -254,6 +254,14 @@ export default function LoginPage() {
       </div>
     </div>
   )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center text-gray-600">Loading…</div>}>
+      <LoginPageInner />
+    </Suspense>
+  );
 }
 
 async function safeJson(res: Response) {
