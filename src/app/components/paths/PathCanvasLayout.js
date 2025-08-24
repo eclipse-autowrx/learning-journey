@@ -14,7 +14,7 @@ import { useState } from "react"
 import Popup from "../atom/Popup";
 import { IoClose } from "react-icons/io5";
 import BtnFullRounded from "../atom/BtnFullRounded";
-import { FaLock } from "react-icons/fa";
+import { FaLock, FaGraduationCap} from "react-icons/fa";
 
 import { saveStateCourseStarted, saveStateCourseCompleted } from "@/lib/frontend/course"
 import { showToast } from "@/lib/utils/notifications";
@@ -133,22 +133,23 @@ const CourseNode = ({ path, item, onRequestUpdateProgress, maps }) => {
       }}
     >
 
-      <div className="relative" style={{
+      <div className="relative p-2" style={{
         width: "6.5vw",
         height: "6.5vw",
       }}>
         {isCertificate ? (
           // Certificate item
-          <div className="h-full w-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center relative">
+          <div className={`h-full w-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full 
+          flex items-center justify-center relative ${pathCompleted ? "" : "opacity-30"}`}>
             <div className="text-white text-3xl">
-              🎓
+              {pathCompleted ? <FaGraduationCap className="text-white text-3xl" /> : <FaLock className="text-white text-2xl" />}
             </div>
             {/* Lock icon overlay when path is not completed */}
-            {!pathCompleted && (
-              <div className="absolute inset-0 bg-black bg-opacity-60 rounded-full flex items-center justify-center">
+            {/* {!pathCompleted && (
+              <div className="absolute inset-0 g-gradient-to-br from-yellow-400 to-orange-500 bg-opacity-60 rounded-full flex items-center justify-center">
                 <FaLock className="text-white text-2xl" />
               </div>
-            )}
+            )} */}
           </div>
         ) : (
           // Course item

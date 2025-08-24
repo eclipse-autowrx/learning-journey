@@ -248,7 +248,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
                                 key={`course-${item.course_id}`}
                                 draggable
                                 onDragStart={(e) => handleDragStart(e, item)}
-                                className="absolute flex flex-col items-center cursor-pointer group hover:scale-110 z-20"
+                                className="absolute flex flex-col items-center cursor-pointer group hover:scale-110 transform transition-transform origin-center z-20"
                                 style={{
                                     top: item.y,
                                     left: item.x,
@@ -290,7 +290,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
                                 key={`certificate-${item.certificate_id}`}
                                 draggable
                                 onDragStart={(e) => handleDragStart(e, item)}
-                                className="absolute flex flex-col items-center cursor-pointer group hover:scale-110 z-20"
+                                className="absolute flex flex-col items-center cursor-pointer group hover:scale-110 transform transition-transform origin-center z-20"
                                 style={{
                                     top: item.y,
                                     left: item.x,
@@ -298,7 +298,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
                                     transform: 'translate(-50%, -50%)',
                                 }}
                             >
-                                <div className="relative" style={{
+                                <div className="relative p-2" style={{
                                     width: "6.5vw",
                                     height: "6.5vw",
                                 }}>
