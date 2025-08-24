@@ -18,7 +18,7 @@ import { LessonService } from '@/lib/services/dataService';
 const Page = async ({ params }) => {
   const cookieStore = await cookies();
 
-  const { path_slug, course_slug } = params;
+  const { path_slug, course_slug } = await params;
   if (!path_slug || !course_slug) notFound()
 
   let dbPath = null
@@ -37,20 +37,10 @@ const Page = async ({ params }) => {
     dbPath = await fetchPathBySlug(path_slug, user_id, token, origin);
     dbCourse = await fetchCourseBySlug(course_slug, `user_id=${user_id}&token=${token}`, origin);
     
-    if (dbCourse && dbCourse.lessons) {
-      const lessonPromises = dbCourse.lessons.map(lesson => {
-        if (typeof lesson === 'string') {
-          return LessonService.getById(lesson); // Assuming getById fetches full lesson
-        }
-        // If it's already an object, but maybe not fully populated
-        return LessonService.getById(lesson._id);
-      });
-      const populatedLessons = await Promise.all(lessonPromises);
-      dbCourse.lessons = populatedLessons.filter(l => l); // Filter out any nulls
-    }
+    console.log(`dbCourse`, dbCourse)
 
   } catch (err) {
-    console.log(err)
+    console.error('Error fetching path or course:', err);
   }
 
 

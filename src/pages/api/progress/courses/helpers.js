@@ -59,7 +59,7 @@ export function buildNextLessonProgress(currentLesson, nextState, record = {}, n
  * - existingLessons can be a plain object or a Map
  */
 export function isAllRequiredLessonsCompleted(requiredSlugs, existingLessons, nextSlug, nextLesson) {
-  if (!Array.isArray(requiredSlugs) || requiredSlugs.length === 0) return false;
+  if (!Array.isArray(requiredSlugs) || requiredSlugs.length === 0) return true;
 
   const view = new Map();
   if (existingLessons) {

@@ -40,6 +40,13 @@ export const COLLECTION_STATES = STATE_OPTIONS;
 export const PATH_STATES = STATE_OPTIONS;
 export const LESSON_STATES = STATE_OPTIONS;
 
+export const PATH_LEVELS = [
+  { value: '1', label: 'Level 1 - Beginner' },
+  { value: '2', label: 'Level 2 - Intermediate' },
+  { value: '3', label: 'Level 3 - Advanced' },
+  { value: '4', label: 'Level 4 - Expert' }
+];
+
 export const MEDIA_TYPES = {
     IMAGE: 'image',
     VIDEO: 'video',

@@ -10,6 +10,7 @@ import { PathService, CourseService } from "@/lib/services/dataService";
 import { ICONs } from "@/lib/mock_data/media";
 import { check_auth } from "@/lib/backend/check_auth";
 import { STATE_NOT_STARTED, STATE_IN_PROGRESS, STATE_COMPLETED, STATE_LOCKED } from "@/lib/const";
+import { CourseProgress } from "@/lib/models/index.js";
 
 const ICON_SET = {
   not_started: 'https://bewebstudio.digitalauto.tech/data/projects/zb1Shh3qkfNG/course-notyet.png',
@@ -70,6 +71,24 @@ export default async function handler(req, res) {
             if (!looksPopulated) {
               const ids = dbPath.courses;
               dbPath.courses = await CourseService.getCoursesByPath({ courses: ids });
+            }
+            
+            if (user_id) {
+              console.log("User ID found, fetching progress:", user_id);
+              const courseIds = dbPath.courses.map(c => c._id);
+              console.log("Fetching progress for course IDs:", courseIds);
+              const progresses = await CourseProgress.find({ user_id: user_id, course_id: { $in: courseIds } });
+              console.log("Fetched progresses:", JSON.stringify(progresses, null, 2));
+              dbPath.courses.forEach(course => {
+                const progress = progresses.find(p => p.course_id.toString() === course._id.toString());
+                if (progress) {
+                  console.log(`Match found for course ${course._id}:`, JSON.stringify(progress, null, 2));
+                  course.context = {
+                    state: progress.state,
+                    progress: progress
+                  };
+                }
+              });
             }
           }
 

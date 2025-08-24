@@ -13,6 +13,7 @@ async function fetchCourseBySlug(slug, queryParams, origin) {
         const baseUrl = origin || (isServer
             ? (process.env.APP_DOMAIN || process.env.NEXT_PUBLIC_API_URL || process.env.HOST || 'http://localhost:3000')
             : '');
+        console.log(`fetchCourseBySlug ${baseUrl}/api/courses/${slug}?${queryParams}`)
         const response = await fetch(`${baseUrl}/api/courses/${slug}?${queryParams}`)
         const data = await response.json();
         if (data && data.success) {

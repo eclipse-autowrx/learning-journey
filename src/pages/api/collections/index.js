@@ -108,6 +108,8 @@ export default async function handler(req, res) {
               time_to_complete: p.time_to_complete,
               background_img: p.background_img,
               category: p.category,
+              courses: p.courses || [],
+              course_ids: p.course_ids || [],
               created_at: p.created_at,
               updated_at: p.updated_at,
             })),

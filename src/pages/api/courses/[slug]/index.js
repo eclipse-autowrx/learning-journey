@@ -51,7 +51,16 @@ export default async function handler(req, res) {
         if (user_id) {
           courseProgress = await getProgressForCourse(user_id, dbCourse._id);
         }
-        dbCourse.progress = courseProgress;
+        if (courseProgress) {
+          // Attach progress at root for downstream processing
+          dbCourse.progress = courseProgress;
+          // Also mirror into context for clients expecting it there
+          dbCourse.context = {
+            ...(dbCourse.context || {}),
+            state: courseProgress.state,
+            progress: courseProgress
+          };
+        }
         await processCourseContext(dbCourse);
 
         // Sanitize quiz questions to remove correct answer flags for regular users

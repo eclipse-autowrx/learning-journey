@@ -107,6 +107,13 @@ const PathScreen = ({ path }) => {
 
   useEffect(() => {
     console.log(`path`, path)
+    if (path && path.courses) {
+      console.log("Courses with progress context:", JSON.stringify(path.courses.map(c => ({
+        _id: c._id,
+        name: c.name,
+        context: c.context
+      })), null, 2));
+    }
   }, [path])
 
   useEffect(() => {
@@ -135,7 +142,7 @@ const PathScreen = ({ path }) => {
   useEffect(() => {
     if(updateTrigger) {
       if(path?.course_ids || path?.courses){
-        updateProgressForCourses()
+        // updateProgressForCourses() // No need this anymore
         updatePathProgress()
       }
     }

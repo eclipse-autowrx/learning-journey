@@ -6,6 +6,8 @@ import { useParams, useRouter, useSearchParams, usePathname } from 'next/navigat
 import Link from 'next/link';
 import { FaArrowLeft, FaPlus, FaTrash, FaGripVertical, FaSave } from 'react-icons/fa';
 import { useAuth } from '@/lib/frontend/auth';
+import StateFilter from '@/app/components/atom/StateFilter';
+import { PATH_STATES } from '@/lib/const';
 
 interface PathItem {
   _id: string;
@@ -40,6 +42,7 @@ function AdminCollectionEditorInner() {
   const [activeTab, setActiveTab] = useState<'info' | 'paths'>('info');
   const [infoForm, setInfoForm] = useState({ name: '', description: '' });
   const [infoSaving, setInfoSaving] = useState(false);
+  const [selectedPathStates, setSelectedPathStates] = useState<string[]>(PATH_STATES.map(s => s.value));
 
   const fetchCollection = async () => {
     const res = await fetch(`/api/admin/collections/${id}`);
@@ -51,7 +54,8 @@ function AdminCollectionEditorInner() {
   };
 
   const fetchAllPaths = async () => {
-    const res = await fetch('/api/paths');
+    // Admin should see all paths (any state)
+    const res = await fetch('/api/admin/paths');
     const data = await res.json();
     if (data.success) setAllPaths(data.data || []);
   };
@@ -142,6 +146,7 @@ function AdminCollectionEditorInner() {
   };
 
   const availablePaths = allPaths.filter(p => !currentOrder.includes(p._id));
+  const filteredAvailablePaths = availablePaths.filter(p => selectedPathStates.includes(p.state));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -273,12 +278,19 @@ function AdminCollectionEditorInner() {
                 </div>
 
                 <div className="bg-white border rounded-lg p-6">
-                  <h2 className="text-lg font-medium mb-4">Add Paths</h2>
-                  {availablePaths.length === 0 ? (
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-medium">Add Paths</h2>
+                    <StateFilter
+                      states={PATH_STATES}
+                      selectedStates={selectedPathStates}
+                      onStatesChange={setSelectedPathStates}
+                    />
+                  </div>
+                  {filteredAvailablePaths.length === 0 ? (
                     <p className="text-sm text-gray-500">No more paths to add.</p>
                   ) : (
                     <ul className="divide-y">
-                      {availablePaths.map((p) => (
+                      {filteredAvailablePaths.map((p) => (
                         <li key={p._id} className="py-3 flex items-center justify-between">
                           <div>
                             <div className="font-medium">{p.name}</div>

@@ -222,6 +222,7 @@ The **Software-Defined Vehicle (SDV) Approach** relies on several technical buil
 -   **Continuous Homologation**: Ensuring faster regulatory approvals for new features and updates.
 
 ![](https://www.sdv.guide/~gitbook/image?url=https%3A%2F%2F392531723-files.gitbook.io%2F%7E%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252FRqBHYU6DD895ydQm5PcS%252Fuploads%252FpWlHCBUf2dayb2zWovAQ%252Fimage.png%3Falt%3Dmedia%26token%3D8023cf89-b829-41dd-b490-538a7ccbf242&width=768&dpr=4&quality=100&sign=e04a829b&sv=2)
+
 `
     },
     {

@@ -128,6 +128,35 @@ const CourseScreen = ({ course, path_slug }) => {
     const scrollContainerRef = useRef(null)
 
     useEffect(() => {
+        // console.log("[CourseScreen] Course prop updated:", course);
+        if (!course || !course.lessons) {
+            // console.log("[CourseScreen] No course or lessons, setting empty table.");
+            setLessonsTable([]);
+            return;
+        }
+
+        const lessonsWithProgress = course.lessons.map(lesson => {
+            const progress = course.context?.progress?.lessons?.[lesson.slug];
+            if (progress) {
+                return {
+                    ...lesson,
+                    context: {
+                        state: progress.state,
+                        progress: progress
+                    }
+                };
+            } else {
+                console.log(`lesson ${lesson.slug} has no progress`)
+            }
+            return lesson;
+        });
+        
+        console.log("[CourseScreen] lessonsWithProgress", lessonsWithProgress);
+        setLessonsTable(lessonsWithProgress);
+
+    }, [course]);
+
+    useEffect(() => {
         if (!lessonsTable || lessonsTable.length === 0) return;
         try {
             const lesson = lessonsTable[activeLessonIndex];
@@ -168,11 +197,10 @@ const CourseScreen = ({ course, path_slug }) => {
     }, [activeLesson])
 
     useEffect(() => {
-        if (course.lessons && course.lessons.length > 0) {
-            setLessonsTable(course.lessons);
-            setActiveLessonIndex(0);
+        if (lessonsTable && lessonsTable.length > 0) {
+            setActiveLessonIndex(0)
         }
-    }, [course.lessons]);
+    }, [lessonsTable])
 
     // Mark course as started when entering if not started yet
     useEffect(() => {
@@ -193,18 +221,23 @@ const CourseScreen = ({ course, path_slug }) => {
     }
 
     const applyNewProgressToCourse = async (progress) => {
-        if (!progress || !progress.lessons || !lessonsTable) return
-        let tmpLessons = JSON.parse(JSON.stringify(lessonsTable))
-        tmpLessons.forEach(lesson => {
-            let matchProgress = progress.lessons[lesson.slug]
+        if (!progress || !progress.lessons) return;
+    
+        const updatedLessons = lessonsTable.map(lesson => {
+            const matchProgress = progress.lessons[lesson.slug];
             if (matchProgress) {
-                lesson.context = {
-                    state: matchProgress.state,
-                    progress: matchProgress
-                }
+                return {
+                    ...lesson,
+                    context: {
+                        state: matchProgress.state,
+                        progress: matchProgress
+                    }
+                };
             }
-        })
-        setLessonsTable(tmpLessons)
+            return lesson;
+        });
+    
+        setLessonsTable(updatedLessons);
     }
 
 

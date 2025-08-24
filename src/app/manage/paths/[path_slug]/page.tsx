@@ -32,7 +32,7 @@ import {
   FaTimes,
   FaThLarge
 } from 'react-icons/fa';
-import { COURSE_STATES, PATH_STATES } from '@/lib/const';
+import { COURSE_STATES, PATH_STATES, PATH_LEVELS } from '@/lib/const';
 import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
 import UserBadge from '@/app/components/atom/UserBadge';
 import DropdownMenu, { DropdownItem } from '@/app/components/atom/DropdownMenu';
@@ -65,6 +65,7 @@ interface Path {
   hiddenContent: any;
   created_by?: string;
   time_to_complete?: number;
+  level?: string;
   created_at: string;
   updated_at: string;
   courses: Course[]; // Added courses to the Path interface
@@ -110,6 +111,7 @@ export default function PathDetailPage() {
     state: '',
     created_by: '',
     time_to_complete: 0 as number,
+    level: '1',
     display_type: 'list',
     tags: [] as string[],
     valid_from: '',
@@ -202,6 +204,7 @@ export default function PathDetailPage() {
           state: pathData.data.state || 'draft',
           created_by: pathData.data.created_by || '',
           time_to_complete: typeof pathData.data.time_to_complete === 'number' ? pathData.data.time_to_complete : 0,
+          level: pathData.data.level || '1',
           display_type: pathData.data.configs?.display_type || 'canvas',
           tags: pathData.data.tags || [],
           valid_from: pathData.data.valid_from ? pathData.data.valid_from.split('T')[0] : '',
@@ -319,6 +322,7 @@ export default function PathDetailPage() {
         state: path.state || 'draft',
         created_by: path.created_by || '',
         time_to_complete: typeof path.time_to_complete === 'number' ? path.time_to_complete : 0,
+        level: path.level || '1',
         display_type: path.configs?.display_type || 'canvas',
         tags: path.tags || [],
         valid_from: path.valid_from ? path.valid_from.split('T')[0] : '',
@@ -770,7 +774,48 @@ export default function PathDetailPage() {
                         </div>
                       </div>
 
-                      {/* Row 2: Valid From and Valid To */}
+                      {/* Row 2: Level and Time to Complete */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <dt className="text-sm font-semibold text-gray-900 mb-2">Level</dt>
+                          {isEditing ? (
+                            <select
+                              value={editForm.level}
+                              onChange={(e) => setEditForm({...editForm, level: e.target.value})}
+                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            >
+                              {PATH_LEVELS.map((level) => (
+                                <option key={level.value} value={level.value}>
+                                  {level.label}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <dd className="text-sm text-gray-900">
+                              {PATH_LEVELS.find(l => l.value === (path.level || '1'))?.label || 'Level 1 - Beginner'}
+                            </dd>
+                          )}
+                        </div>
+
+                        <div>
+                          <dt className="text-sm font-semibold text-gray-900 mb-2">Time to complete (hours)</dt>
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              min={0}
+                              step="0.5"
+                              value={editForm.time_to_complete ?? 0}
+                              onChange={(e) => setEditForm({ ...editForm, time_to_complete: Number(e.target.value) })}
+                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="e.g. 2"
+                            />
+                          ) : (
+                            <dd className="text-sm text-gray-700">{typeof path.time_to_complete === 'number' ? path.time_to_complete : 0}</dd>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Row 4: Valid From and Valid To */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <dt className="text-sm font-semibold text-gray-900 mb-2">Valid From</dt>
@@ -805,7 +850,7 @@ export default function PathDetailPage() {
                         </div>
                       </div>
 
-                      {/* Row 3: Display Type and Time to Complete */}
+                      {/* Row 3: Display Type */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <dt className="text-sm font-semibold text-gray-900 mb-2">Display Type</dt>
@@ -830,20 +875,7 @@ export default function PathDetailPage() {
                           )}
                         </div>
                         <div>
-                          <dt className="text-sm font-semibold text-gray-900 mb-2">Time to complete (hours)</dt>
-                          {isEditing ? (
-                            <input
-                              type="number"
-                              min={0}
-                              step="0.5"
-                              value={editForm.time_to_complete ?? 0}
-                              onChange={(e) => setEditForm({ ...editForm, time_to_complete: Number(e.target.value) })}
-                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="e.g. 2"
-                            />
-                          ) : (
-                            <dd className="text-sm text-gray-700">{typeof path.time_to_complete === 'number' ? path.time_to_complete : 0}</dd>
-                          )}
+                          {/* Empty div to maintain grid layout */}
                         </div>
                       </div>
 

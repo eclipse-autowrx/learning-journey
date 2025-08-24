@@ -17,7 +17,7 @@ export const getProgressForCourse = async (user_id, course_id) => {
     try {
         console.log(`getProgressForCourse user_id ${user_id}`)
         await connectToDatabase();
-        const dbProgress = await CourseProgress.findOne({ user_id: user_id, course_id: course_id });
+        const dbProgress = await CourseProgress.findOne({ user_id: user_id, course_id: course_id }).lean();
         return dbProgress
     } catch (err) {
         console.log(err)
@@ -58,6 +58,7 @@ export const processCourseContext = async (course) => {
 
 
         if (course.lessons) {
+            let allCompleted = true;
             course.lessons.forEach(lesson => {
                 lesson.context = {
                     state: STATE_NOT_STARTED
@@ -65,7 +66,7 @@ export const processCourseContext = async (course) => {
 
                 if (course.progress?.lessons && lesson.slug) {
                     let lessonProgress = course.progress.lessons[lesson.slug]
-                    if(!lessonProgress) {
+                    if(!lessonProgress && typeof course.progress.lessons.get === 'function') {
                         lessonProgress = course.progress.lessons.get(lesson.slug)
                     }
                     // console.log(`course.progress.lessons`, course.progress.lessons)
@@ -73,9 +74,18 @@ export const processCourseContext = async (course) => {
                     if (lessonProgress) {
                         lesson.context.state = lessonProgress.state || STATE_NOT_STARTED
                         lesson.context.progress = lessonProgress
+                        if (lesson.context.state !== STATE_COMPLETED) {
+                            allCompleted = false;
+                        }
+                    } else {
+                        allCompleted = false;
                     }
                 }
             })
+            // If every lesson is completed, reflect that in course context
+            if (allCompleted && course.lessons.length > 0) {
+                course.context.state = STATE_COMPLETED;
+            }
         }
     }
 }

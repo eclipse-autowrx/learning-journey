@@ -64,8 +64,14 @@ const HomeContent = ({ }) => {
             const allCourseIds = collections.reduce((acc, collection) => {
                 if (collection.paths) {
                     collection.paths.forEach(path => {
+                        // Extract course IDs from both course_ids array and courses array
                         if (path.course_ids) {
                             acc.push(...path.course_ids);
+                        }
+                        if (path.courses) {
+                            path.courses.forEach(course => {
+                                acc.push(course._id);
+                            });
                         }
                     });
                 }

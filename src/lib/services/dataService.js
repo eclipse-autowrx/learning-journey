@@ -38,7 +38,14 @@ export const CollectionService = {
   async getAll(filter = {}) {
     await connectToDatabase();
     return await Collection.find(filter)
-      .populate('paths', 'name slug description image thumb tags level path_type state created_at')
+      .populate({
+        path: 'paths',
+        select: 'name slug description image thumb tags level path_type state created_at courses course_ids',
+        populate: {
+          path: 'courses',
+          select: 'name slug description state'
+        }
+      })
       .sort({ created_at: -1 });
   },
 
