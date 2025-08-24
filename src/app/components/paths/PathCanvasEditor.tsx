@@ -170,8 +170,8 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
                             width: "5vw",
                             height: "5vw",
                         }}>
-                            <div className="h-full w-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
-                                <FaGraduationCap className="text-white text-2xl" />
+                            <div className="h-full w-full bg-gray-200 rounded-full flex items-center justify-center border-2 border-gray-300">
+                                <FaGraduationCap className="text-gray-600 text-2xl" />
                             </div>
                         </div>
                         <div
@@ -302,8 +302,8 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
                                     width: "6.5vw",
                                     height: "6.5vw",
                                 }}>
-                                    <div className="h-full w-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
-                                        <FaGraduationCap className="text-white text-3xl" />
+                                    <div className="h-full w-full bg-gray-200 rounded-full flex items-center justify-center border-2 border-gray-300">
+                                        <FaGraduationCap className="text-gray-600 text-3xl" />
                                     </div>
                                     <button
                                         onClick={() => handleRemove(item.certificate_id!, true)}
