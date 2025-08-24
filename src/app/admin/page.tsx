@@ -2,8 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { FaPlus, FaTrash, FaUserShield, FaCheckCircle } from 'react-icons/fa';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { FaPlus, FaTrash, FaUserShield, FaCheckCircle, FaArrowRight } from 'react-icons/fa';
 import UserBadge from '@/app/components/atom/UserBadge';
 import { COLLECTION_STATES, PATH_STATES, COURSE_STATES } from '@/lib/const';
 import { useAuth } from '@/lib/frontend/auth';
@@ -16,6 +16,9 @@ interface Content {
   owner_id?: string;
   owner_name?: string;
   paths?: Path[];
+  description?: string;
+  category?: string;
+  tags?: string[];
 }
 
 interface Path {
@@ -43,6 +46,7 @@ interface Admin {
 function AdminPageInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'collections' | 'admins'>('collections');
   const [collections, setCollections] = useState<Content[]>([]);
@@ -50,6 +54,9 @@ function AdminPageInner() {
   const [selectedCollection, setSelectedCollection] = useState<Content | null>(null);
   const [selectedPath, setSelectedPath] = useState<Path | null>(null);
   const [admins, setAdmins] = useState<Admin[]>([]);
+  const [showCollectionModal, setShowCollectionModal] = useState(false);
+  const [editingCollection, setEditingCollection] = useState<Content | null>(null);
+  const [collectionForm, setCollectionForm] = useState({ name: '', description: '', category: '', tags: [] as string[], state: 'draft' });
   const [newAdminId, setNewAdminId] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -109,6 +116,40 @@ function AdminPageInner() {
       console.error('Error fetching collections:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openCreateCollection = () => {
+    setEditingCollection(null);
+    setCollectionForm({ name: '', description: '', category: '', tags: [], state: 'draft' });
+    setShowCollectionModal(true);
+  };
+
+  // Editing moved to deep editor page
+
+  const handleCollectionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (!collectionForm.name) return;
+      const url = editingCollection ? `/api/admin/collections/${editingCollection._id}` : '/api/admin/collections';
+      const method = editingCollection ? 'PUT' : 'POST';
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(collectionForm) });
+      if (res.ok) {
+        setShowCollectionModal(false);
+        setEditingCollection(null);
+        fetchCollections();
+      }
+    } catch (e) {
+      console.error('Error saving collection', e);
+    }
+  };
+
+  const handleDeleteCollection = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/collections/${id}`, { method: 'DELETE' });
+      if (res.ok) fetchCollections();
+    } catch (e) {
+      console.error('Error deleting collection', e);
     }
   };
 
@@ -181,6 +222,10 @@ function AdminPageInner() {
     } catch (error) {
       console.error('Error updating collection state:', error);
     }
+  };
+
+  const goToCollectionEditor = (id: string) => {
+    router.push(`/admin/collections/${id}`);
   };
 
   const handlePathStateChange = async (id: string, state: string) => {
@@ -291,6 +336,12 @@ function AdminPageInner() {
             {/* Unauthorized state handled by API responses; show CTA if needed */}
             {activeTab === 'collections' && (
               <div>
+                <div className="flex justify-between items-center mb-4">
+                  <div />
+                  <button onClick={openCreateCollection} className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                    <FaPlus className="mr-2 h-4 w-4" /> Create Collection
+                  </button>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -299,6 +350,7 @@ function AdminPageInner() {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -326,6 +378,16 @@ function AdminPageInner() {
                                 </option>
                               ))}
                             </select>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right">
+                            <div className="flex items-center gap-3 justify-end">
+                              <button onClick={(e) => { e.stopPropagation(); goToCollectionEditor(collection._id); }} className="text-gray-600 hover:text-gray-900" title="Open editor">
+                                <FaArrowRight />
+                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); handleDeleteCollection(collection._id); }} className="text-red-600 hover:text-red-900" title="Delete collection">
+                                <FaTrash />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -451,6 +513,41 @@ function AdminPageInner() {
           </div>
         </div>
       </div>
+      {showCollectionModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Create Collection</h3>
+              <form onSubmit={handleCollectionSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Name *</label>
+                  <input type="text" required value={collectionForm.name} onChange={(e) => setCollectionForm({ ...collectionForm, name: e.target.value })} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <textarea value={collectionForm.description} onChange={(e) => setCollectionForm({ ...collectionForm, description: e.target.value })} rows={3} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Category</label>
+                  <input type="text" value={collectionForm.category} onChange={(e) => setCollectionForm({ ...collectionForm, category: e.target.value })} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">State</label>
+                  <select value={collectionForm.state} onChange={(e) => setCollectionForm({ ...collectionForm, state: e.target.value })} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    {COLLECTION_STATES.map((s) => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex justify-end gap-3 pt-2">
+                  <button type="button" onClick={() => setShowCollectionModal(false)} className="px-4 py-2 bg-gray-200 rounded-md">Cancel</button>
+                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md">Create</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

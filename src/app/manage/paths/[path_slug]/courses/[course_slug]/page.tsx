@@ -643,7 +643,7 @@ Start writing your lesson content here.`;
                 <span className="text-sm text-gray-500">State:</span>
                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(course.state)}`}>{course.state}</span>
                 <DropdownMenu
-                  items={COURSE_STATES.filter(s => s.value !== 'released' && s.value !== 'published').map((s) => ({
+                  items={COURSE_STATES.filter(s => s.value !== 'released').map((s) => ({
                     label: s.label,
                     onClick: async () => {
                       try {

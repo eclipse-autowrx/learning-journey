@@ -86,20 +86,8 @@ export default async function handler(req, res) {
       }
     }
     case 'POST': {
-      try {
-        const collectionData = { ...req.body, owner_id: user_id };
-        if (!collectionData.name) {
-          return res.status(400).json({ success: false, error: 'Name is required' });
-        }
-        const created = await CollectionService.create(collectionData);
-        return res.status(201).json({ success: true, data: created });
-      } catch (error) {
-        console.error('Error creating creator collection:', error);
-        if (error.code === 11000) {
-          return res.status(400).json({ success: false, error: 'A collection with this slug already exists' });
-        }
-        return res.status(500).json({ success: false, error: 'Failed to create collection' });
-      }
+      // Disabled: only admins can create collections
+      return res.status(403).json({ success: false, error: 'Collections can only be created by admin' });
     }
     default: {
       res.setHeader('Allow', ['GET', 'POST']);

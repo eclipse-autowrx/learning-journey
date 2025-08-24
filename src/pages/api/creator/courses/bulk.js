@@ -24,8 +24,9 @@ export default async function handler(req, res) {
       if (!Array.isArray(ids) || !state) {
         return res.status(400).json({ success: false, error: 'Missing ids or state' });
       }
-      if (["published", "locked"].includes(state)) {
-        return res.status(403).json({ success: false, error: 'Only admin may set published/locked for courses' });
+      // Creators may publish their own courses. Locked remains admin-only.
+      if (state === 'locked') {
+        return res.status(403).json({ success: false, error: 'Only admin may set locked for courses' });
       }
       try {
         await connectToDatabase();

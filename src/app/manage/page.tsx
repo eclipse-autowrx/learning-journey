@@ -30,7 +30,7 @@ import {
   FaFileImport,
   FaTimes,
   FaSave,
-  FaUserShield
+  
 } from 'react-icons/fa';
 import { VscJson } from 'react-icons/vsc';
 import Tippy from '@tippyjs/react';
@@ -112,7 +112,7 @@ function ManagePageInner() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [paths, setPaths] = useState<Path[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'collections' | 'paths' | 'studio'>(searchParams?.get('tab') === 'paths' ? 'paths' : (searchParams?.get('tab') === 'studio' ? 'studio' : 'collections'));
+  const [activeTab, setActiveTab] = useState<'paths' | 'studio'>(searchParams?.get('tab') === 'studio' ? 'studio' : 'paths');
 
   // Filter states
   const [selectedCollectionStates, setSelectedCollectionStates] = useState<string[]>(COLLECTION_STATES.map(s => s.value));
@@ -189,12 +189,6 @@ function ManagePageInner() {
       console.log('Starting to fetch data...');
       
       // Fetch each API separately to identify which one is failing
-      console.log('Fetching collections...');
-      const collectionsRes = await fetch('/api/creator/collections');
-      console.log('Collections response status:', collectionsRes.status);
-      const collectionsData = await collectionsRes.json();
-      console.log('Collections data:', collectionsData);
-      
       console.log('Fetching paths...');
       const pathsRes = await fetch('/api/creator/paths');
       console.log('Paths response status:', pathsRes.status);
@@ -213,7 +207,7 @@ function ManagePageInner() {
       const lessonsData = await lessonsRes.json();
       console.log('Lessons data:', lessonsData);
 
-      setCollections(collectionsData.success ? collectionsData.data : []);
+      // Collections are managed by admin; do not load here
       setPaths(pathsData.success ? pathsData.data : []);
       
       console.log('Data fetching completed successfully');
@@ -242,92 +236,21 @@ function ManagePageInner() {
   };
 
   // Collection functions
-  const openCreateCollection = () => {
-    setEditingCollection(null);
-    setCollectionForm({
-      name: '',
-      description: '',
-      category: '',
-      tags: [],
-      state: 'draft'
-    });
-    setShowCollectionModal(true);
-  };
+  // Collections are managed in the admin area; creation disabled here
 
-  const openEditCollection = (collection: Collection) => {
-    setEditingCollection(collection);
-    setCollectionForm({
-      name: collection.name,
-      description: collection.description || '',
-      category: collection.category || '',
-      tags: collection.tags || [],
-      state: collection.state
-    });
-    setShowCollectionModal(true);
-  };
+  // Collections are managed in the admin area; editing disabled here
 
   const handleCollectionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!collectionForm.name) {
-      showToast.error('Collection name cannot be empty');
-      return;
-    }
-    try {
-      const url = editingCollection 
-        ? `/api/creator/collections/${editingCollection.slug}`
-        : '/api/creator/collections';
-      
-      const method = editingCollection ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(collectionForm),
-      });
-
-      if (response.ok) {
-        showToast.success(editingCollection ? 'Collection updated successfully' : 'Collection created successfully');
-        setShowCollectionModal(false);
-        fetchData(); // Refresh data
-      } else {
-        const error = await response.json();
-        showToast.error(`Error: ${error.error || 'Failed to save collection'}`);
-      }
-    } catch (error) {
-      console.error('Error saving collection:', error);
-      showToast.error('Failed to save collection');
-    }
+    showToast.error('Only admins can create or edit collections');
   };
 
-  const handleDeleteCollection = async (collection: Collection) => {
-    const result = await showDeleteConfirm(collection.name);
-    if (!result.isConfirmed) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/creator/collections/${collection.slug}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        showToast.success(`Collection "${collection.name}" deleted successfully`);
-        fetchData(); // Refresh data
-      } else {
-        const error = await response.json();
-        showToast.error(`Error: ${error.error || 'Failed to delete collection'}`);
-      }
-    } catch (error) {
-      console.error('Error deleting collection:', error);
-      showToast.error('Failed to delete collection');
-    }
+  const handleDeleteCollection = async (_collection: Collection) => {
+    showToast.error('Only admins can delete collections');
   };
 
   const handleViewCollection = (collection: Collection) => {
-    // Navigate to collection detail page
-    router.push(`/manage/collections/${collection.slug}`);
+    router.push(`/admin?select=${encodeURIComponent(collection._id)}`);
   };
 
   // Path functions
@@ -517,8 +440,8 @@ function ManagePageInner() {
 
   // Bulk action handlers
   const handleBulkStateChange = async () => {
-    const itemType = activeTab === 'collections' ? 'collections' : 'paths';
-    const selectedItems = activeTab === 'collections' ? selectedCollections : selectedPaths;
+    const itemType = 'paths';
+    const selectedItems = selectedPaths;
     
     // Show confirmation dialog
     const result = await showStateChangeConfirm(itemType, selectedItems.length, bulkNewState);
@@ -559,8 +482,8 @@ function ManagePageInner() {
   };
 
   const handleBulkDelete = async () => {
-    const itemType = activeTab === 'collections' ? 'collections' : 'paths';
-    const selectedItems = activeTab === 'collections' ? selectedCollections : selectedPaths;
+    const itemType = 'paths';
+    const selectedItems = selectedPaths;
     
     // Show confirmation dialog
     const result = await showBulkDeleteConfirm(itemType, selectedItems.length);
@@ -852,12 +775,6 @@ function ManagePageInner() {
               </p>
             </div>
             <div className="flex items-center space-x-2">
-              <Link href="/admin">
-                <Btn>
-                  <FaUserShield className="mr-2 h-4 w-4" />
-                  Admin
-                </Btn>
-              </Link>
               <Link href="/manage/progress">
                 <Btn variant="outlined">
                   View Progress
@@ -875,16 +792,6 @@ function ManagePageInner() {
         <div className="bg-white shadow rounded-lg">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8 px-6">
-              <button
-                onClick={() => setActiveTab('collections')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'collections'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Collections ({collections.length})
-              </button>
               <button
                 onClick={() => setActiveTab('paths')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
@@ -909,229 +816,7 @@ function ManagePageInner() {
           </div>
 
           <div className="p-6">
-            {activeTab === 'collections' && (
-              <div>
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    Collections
-                  </h3>
-                  <div className="flex items-center space-x-3">
-                    <StateFilter
-                      states={COLLECTION_STATES}
-                      selectedStates={selectedCollectionStates}
-                      onStatesChange={setSelectedCollectionStates}
-                    />
-                    <button 
-                      onClick={openCreateCollection}
-                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-                    >
-                      <FaPlus className="mr-2 h-4 w-4" />
-                      Create Collection
-                    </button>
-                  </div>
-                </div>
-
-                {collections.length === 0 ? (
-                  <div className="text-center py-12">
-                    <FaFolder className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">No collections</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Get started by creating a new collection.
-                    </p>
-                  </div>
-                ) : (
-                  (() => {
-                    const filteredCollections = collections.filter(collection => selectedCollectionStates.includes(collection.state));
-                    return (
-                      <div>
-                        {/* Bulk Actions Bar */}
-                        {selectedCollections.length > 0 && (
-                          <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 mb-4 rounded-t-lg">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm text-blue-700">
-                                {selectedCollections.length} item{selectedCollections.length > 1 ? 's' : ''} selected
-                              </span>
-                              <div className="flex items-center space-x-3">
-                                <Btn
-                                  variant="outlined"
-                                  onClick={() => setSelectedCollections([])}
-                                >
-                                  Clear Selection
-                                </Btn>
-                                <Btn
-                                  variant="outlined"
-                                  onClick={() => {
-                                    setBulkActionType('state');
-                                    setShowBulkActionModal(true);
-                                  }}
-                                >
-                                  Change State
-                                </Btn>
-                                <Btn
-                                  onClick={() => {
-                                    setBulkActionType('delete');
-                                    handleBulkDelete();
-                                  }}
-                                >
-                                  <FaTrash className="mr-2 h-3.5 w-3.5" />
-                                  Delete
-                                </Btn>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        
-                        <div className="overflow-x-auto">
-                          <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                              <tr>
-                                <th className="px-6 py-3 w-12">
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedCollections.length > 0 && 
-                                      filteredCollections.every(c => selectedCollections.includes(c._id))}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setSelectedCollections(filteredCollections.map(c => c._id));
-                                      } else {
-                                        setSelectedCollections([]);
-                                      }
-                                    }}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                  />
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                  Collection
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                  Category
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                  Paths
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                  State
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                  Created
-                                </th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                  Actions
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                              {filteredCollections.map((collection) => (
-                                <tr key={collection._id} className={`hover:bg-gray-50 ${selectedCollections.includes(collection._id) ? 'bg-blue-50' : ''}`}>
-                                  <td className="px-6 py-3">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedCollections.includes(collection._id)}
-                                      onChange={() => {
-                                        setSelectedCollections(prev => 
-                                          prev.includes(collection._id) ? prev.filter(id => id !== collection._id) : [...prev, collection._id]
-                                        );
-                                      }}
-                                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                    />
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex items-center">
-                                      <div className="flex-shrink-0 h-10 w-10">
-                                        <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center">
-                                          <FaFolder className="h-6 w-6 text-white" />
-                                        </div>
-                                      </div>
-                                      <div className="ml-4">
-                                        <Link 
-                                          href={`/manage/collections/${collection.slug}`}
-                                          className="text-sm font-medium text-gray-900 hover:text-blue-600"
-                                        >
-                                          {collection.name}
-                                        </Link>
-                                        <div className="text-sm text-gray-500">
-                                          {collection.slug}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {collection.category || '-'}
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {collection.total_paths || 0}
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(collection.state)}`}>
-                                      {COLLECTION_STATES.find(s => s.value === collection.state)?.label || collection.state}
-                                    </span>
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {new Date(collection.created_at).toLocaleDateString()}
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <div className="flex items-center justify-end space-x-2">
-                                      <Link 
-                                        href={`/manage/collections/${collection.slug}`}
-                                        className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200"
-                                        title="View Collection"
-                                      >
-                                        <FaArrowRight className="h-4 w-4" />
-                                      </Link>
-                                      <div className="relative dropdown-container">
-                                        <Tippy
-                                          content={
-                                            <div className="py-1 min-w-max">
-                                                <button
-                                                  onClick={() => {
-                                                    openEditCollection(collection);
-                                                  }}
-                                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                                                >
-                                                  <FaEdit className="h-4 w-4 mr-2" />
-                                                  Edit Collection
-                                                </button>
-                                                <button
-                                                  onClick={() => {
-                                                    handleDeleteCollection(collection);
-                                                  }}
-                                                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
-                                                >
-                                                  <FaTrash className="h-4 w-4 mr-2 text-red-600" />
-                                                  Delete Collection
-                                                </button>
-                                            </div>
-                                          }
-                                          interactive={true}
-                                          arrow={true}
-                                          placement="bottom-end"
-                                          trigger="click"
-                                          theme="light"
-                                          // Ensure overlay does not get clipped and stays above all
-                                          appendTo={() => document.body}
-                                          zIndex={9999}
-                                        >
-                                          <button
-                                            className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
-                                            title="More options"
-                                          >
-                                            <FaEllipsisV className="h-4 w-4" />
-                                          </button>
-                                        </Tippy>
-                                      </div>
-                                    </div>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    )
-                  })()
-                )}
-              </div>
-            )}
+            {/* Collections tab removed; moved to Admin */}
 
             {activeTab === 'paths' && (
               <div>
@@ -1436,15 +1121,10 @@ function ManagePageInner() {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Change State for {selectedCollections.length > 0 ? `${selectedCollections.length} collections` : `${selectedPaths.length} paths`}
-              </h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Change State for {`${selectedPaths.length} paths`}</h3>
               
               <div className="space-y-2">
-                {(activeTab === 'collections'
-                  ? COLLECTION_STATES.filter(s => s.value !== 'published')
-                  : PATH_STATES.filter(s => s.value !== 'published')
-                ).map((state) => (
+                {PATH_STATES.filter(s => s.value !== 'published').map((state) => (
                   <label key={state.value} className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
                     <input
                       type="radio"
@@ -1481,107 +1161,7 @@ function ManagePageInner() {
         </div>
       )}
 
-      {/* Collection Modal */}
-      {showCollectionModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                {editingCollection ? 'Edit Collection' : 'Create Collection'}
-              </h3>
-              
-              <form onSubmit={handleCollectionSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={collectionForm.name}
-                    onChange={(e) => setCollectionForm({...collectionForm, name: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Collection name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Description
-                  </label>
-                  <textarea
-                    value={collectionForm.description}
-                    onChange={(e) => setCollectionForm({...collectionForm, description: e.target.value})}
-                    rows={3}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Collection description"
-                  />
-                </div>
-
-                {editingCollection && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Category
-                    </label>
-                    <input
-                      type="text"
-                      value={collectionForm.category}
-                      onChange={(e) => setCollectionForm({...collectionForm, category: e.target.value})}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="e.g., fundamentals, hands-on"
-                    />
-                  </div>
-                )}
-
-                {editingCollection && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Tags
-                    </label>
-                    <TagEditor
-                      tags={collectionForm.tags}
-                      onChange={(newTags) => setCollectionForm({...collectionForm, tags: newTags})}
-                      placeholder="Type and press Enter to add tags..."
-                      className="mt-1"
-                    />
-                  </div>
-                )}
-
-                {editingCollection && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      State
-                    </label>
-                    <select
-                      value={collectionForm.state}
-                      onChange={(e) => setCollectionForm({...collectionForm, state: e.target.value})}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="draft">Draft</option>
-                      <option value="published">Published</option>
-                      <option value="archived">Archived</option>
-                    </select>
-                  </div>
-                )}
-
-                <div className="flex justify-end space-x-3 pt-4">
-                  <Btn
-                    variant="outlined"
-                    onClick={() => setShowCollectionModal(false)}
-                  >
-                    Cancel
-                  </Btn>
-                  <Btn
-                    type="submit"
-                  >
-                    {editingCollection ? 'Update' : 'Create'}
-                  </Btn>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Collection Modal removed in creator manage area */}
 
       {/* Path Modal */}
       {showPathModal && (

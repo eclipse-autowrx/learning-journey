@@ -38,40 +38,12 @@ export default async function handler(req, res) {
       }
     }
     case 'PUT': {
-      try {
-        const existing = await Collection.findOne({ slug }).lean();
-        if (!existing) {
-          return res.status(404).json({ success: false, error: 'Collection not found' });
-        }
-        if (existing.owner_id !== user_id) {
-          return res.status(403).json({ success: false, error: 'Forbidden' });
-        }
-        const updateData = req.body || {};
-        const updated = await Collection.findOneAndUpdate({ slug }, updateData, { new: true, runValidators: true });
-        return res.status(200).json({ success: true, data: updated });
-      } catch (error) {
-        console.error('Error updating creator collection:', error);
-        if (error.code === 11000) {
-          return res.status(400).json({ success: false, error: 'Duplicate slug' });
-        }
-        return res.status(500).json({ success: false, error: 'Failed to update collection' });
-      }
+      // Disabled: only admins can update collections
+      return res.status(403).json({ success: false, error: 'Collections can only be updated by admin' });
     }
     case 'DELETE': {
-      try {
-        const existing = await Collection.findOne({ slug }).lean();
-        if (!existing) {
-          return res.status(404).json({ success: false, error: 'Collection not found' });
-        }
-        if (existing.owner_id !== user_id) {
-          return res.status(403).json({ success: false, error: 'Forbidden' });
-        }
-        await Collection.findOneAndDelete({ slug });
-        return res.status(200).json({ success: true, message: 'Collection deleted successfully' });
-      } catch (error) {
-        console.error('Error deleting creator collection:', error);
-        return res.status(500).json({ success: false, error: 'Failed to delete collection' });
-      }
+      // Disabled: only admins can delete collections
+      return res.status(403).json({ success: false, error: 'Collections can only be deleted by admin' });
     }
     default: {
       res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);

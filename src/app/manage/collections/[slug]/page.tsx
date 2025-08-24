@@ -118,8 +118,8 @@ export default function CollectionDetailPage() {
 
   useEffect(() => {
     if (isAuthenticated && collectionSlug) {
-      fetchCollectionData();
-      fetchAllPaths();
+      // Redirect creators away; collections managed by admin only
+      router.push(`/admin?collection=${encodeURIComponent(collectionSlug)}`);
     }
   }, [isAuthenticated, collectionSlug]);
 
@@ -483,9 +483,7 @@ export default function CollectionDetailPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Collection not found</h2>
-          <Link href="/manage" className="text-blue-600 hover:text-blue-800">
-            ← Back to Management
-          </Link>
+          <Link href="/admin" className="text-blue-600 hover:text-blue-800">← Go to Admin</Link>
         </div>
       </div>
     );
