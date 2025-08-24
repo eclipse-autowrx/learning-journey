@@ -48,6 +48,7 @@ export default async function handler(req, res) {
         const existing = await PathService.getBySlug(slug);
         if (!existing) return res.status(404).json({ success: false, error: 'Path not found' });
         if (existing.owner_id !== user_id) return res.status(403).json({ success: false, error: 'Forbidden' });
+        
         const updated = await PathService.updatePath(slug, req.body || {});
         return res.status(200).json({ success: true, data: updated });
       } catch (error) {

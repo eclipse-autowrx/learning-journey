@@ -31,6 +31,7 @@ const PathSchema = new mongoose.Schema(
     maps: { type: Schema.Types.Mixed },
     course_ids: { type: [String] },  // Array of course ID strings
     courses: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
+    required_course_ids: { type: [String] },  // Array of course IDs required for certification
     owner_id: { type: String, required: true },
     icon_set: { type: Schema.Types.Mixed },
     created_by: { type: String },

@@ -162,9 +162,16 @@ export const PathService = {
 
   async updatePath(slug, data) {
     await connectToDatabase();
-    return await Path.findOneAndUpdate({ slug }, data, { new: true })
+    
+    // First update without lean to ensure the update works
+    const updatedPath = await Path.findOneAndUpdate({ slug }, data, { new: true });
+    
+    // Then populate and convert to lean for response
+    const result = await Path.findById(updatedPath._id)
       .populate('courses', 'name slug description category state total_lessons duration created_at')
       .lean();
+    
+    return result;
   },
 
   async delete(id) {

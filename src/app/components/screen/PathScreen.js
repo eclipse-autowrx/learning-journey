@@ -104,6 +104,7 @@ const PathScreen = ({ path }) => {
   const [courses, setCourses] = useState([])
   const [maps, setMaps] = useState([])
   const [updateTrigger, setUpdateTrigger] = useState(0)
+  const [pathStats, setPathStats] = useState({ num_learners: 0, num_certified_learners: 0 })
 
   useEffect(() => {
     console.log(`path`, path)
@@ -144,6 +145,7 @@ const PathScreen = ({ path }) => {
       if(path?.course_ids || path?.courses){
         // updateProgressForCourses() // No need this anymore
         updatePathProgress()
+        updatePathStats()
       }
     }
   }, [updateTrigger])
@@ -243,6 +245,15 @@ const PathScreen = ({ path }) => {
     } catch (_) { return null }
   }
 
+  const fetchPathStats = async (path_id) => {
+    if (!path_id) return null
+    try {
+      const res = await fetch(`/api/paths/stats?path_id=${path_id}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } })
+      if (!res.ok) return null
+      return await res.json()
+    } catch (_) { return null }
+  }
+
   const updatePathProgress = async () => {
     try {
       const res = await fetchPathProgress(path?._id)
@@ -255,6 +266,15 @@ const PathScreen = ({ path }) => {
         let tmpCourses = JSON.parse(JSON.stringify(courses))
         addMediaUrlForCourses({ ...path, icon_set: path.icon_set }, tmpCourses)
         setCourses(tmpCourses)
+      }
+    } catch (_) { }
+  }
+
+  const updatePathStats = async () => {
+    try {
+      const res = await fetchPathStats(path?._id)
+      if (res && res.success && res.data) {
+        setPathStats(res.data)
       }
     } catch (_) { }
   }
@@ -294,15 +314,15 @@ const PathScreen = ({ path }) => {
               <div className='ml-1'><b>{path.created_by}</b></div>
             </div>
 
-            {/* Statictics */}
+            {/* Statistics */}
             <div className='text-slate-500 text-sm italic my-2 flex flex-row items-center space-x-4'>
               <div className='flex flex-row items-center w-[120px]'>
                 <FaUsersBetweenLines size={24} className="mr-2 text-slate-400" />
-                <span className="mr-1 text-black"><b>{path.num_learners}</b></span> learners  </div>
+                <span className="mr-1 text-black"><b>{pathStats.num_learners || 0}</b></span> learners  </div>
 
               <div className='flex flex-row items-center'>
                 <PiCertificateBold size={24} className="mr-2 text-slate-400" />
-                <span className="mr-1 text-black"><b>{path.num_certified_learners}</b></span> learners got certification  </div>
+                <span className="mr-1 text-black"><b>{pathStats.num_certified_learners || 0}</b></span> learners got certification  </div>
             </div>
 
           </div>

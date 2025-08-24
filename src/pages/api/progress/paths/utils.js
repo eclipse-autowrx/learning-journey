@@ -6,7 +6,12 @@ import { STATE_NOT_STARTED, STATE_IN_PROGRESS, STATE_COMPLETED } from "@/lib/con
 import { evaluatePathCompletion } from "./rules.js";
 
 export const getPathRuleConfig = (path) => {
-  const required = Array.isArray(path?.extends?.required_course_ids) ? path.extends.required_course_ids : [];
+  // Prioritize top-level required_course_ids over extends configuration
+  const required = Array.isArray(path?.required_course_ids) 
+    ? path.required_course_ids 
+    : Array.isArray(path?.extends?.required_course_ids) 
+      ? path.extends.required_course_ids 
+      : [];
   const electiveGroups = Array.isArray(path?.extends?.elective_groups) ? path.extends.elective_groups : [];
   const minCourses = typeof path?.extends?.min_courses_to_complete === 'number' ? path.extends.min_courses_to_complete : undefined;
   return { required, electiveGroups, minCourses };
@@ -15,7 +20,7 @@ export const getPathRuleConfig = (path) => {
 
 export const upsertPathProgressForUser = async ({ user_id, path_id }) => {
   await connectToDatabase();
-  const path = await Path.findById(path_id).select('course_ids extends').lean();
+  const path = await Path.findById(path_id).select('course_ids extends required_course_ids').lean();
   if (!path) return null;
   const rule = getPathRuleConfig(path);
 

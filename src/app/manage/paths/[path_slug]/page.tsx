@@ -71,6 +71,7 @@ interface Path {
   courses: Course[]; // Added courses to the Path interface
   maps: MapItem[];
   key_points?: { title: string; content: string }[];
+  required_course_ids?: string[]; // Added for certificate requirements
 }
 
 interface Course {
@@ -95,7 +96,7 @@ export default function PathDetailPage() {
   const [path, setPath] = useState<Path | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'info' | 'courses' | 'canvas'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'courses' | 'certificate' | 'canvas'>('info');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
   // Edit mode states
@@ -138,6 +139,10 @@ export default function PathDetailPage() {
     description: '',
     state: 'draft'
   });
+
+  // Certificate configuration states
+  const [requiredCourseIds, setRequiredCourseIds] = useState<string[]>([]);
+  const [isCertificateModified, setIsCertificateModified] = useState(false);
 
   const handleSaveCanvas = async (maps: MapItem[]) => {
     try {
@@ -219,6 +224,9 @@ export default function PathDetailPage() {
         if (pathData.data.courses && Array.isArray(pathData.data.courses)) {
           setCourses(pathData.data.courses);
         }
+        // Set required course IDs for certificate
+        setRequiredCourseIds(pathData.data.required_course_ids || []);
+        setIsCertificateModified(false);
       } else {
         console.error('Failed to fetch path:', pathData.error);
       }
@@ -479,6 +487,46 @@ export default function PathDetailPage() {
     }
   };
 
+  // Certificate configuration handlers
+  const handleRequiredCourseToggle = (courseId: string) => {
+    setRequiredCourseIds(prev => {
+      const updated = prev.includes(courseId) 
+        ? prev.filter(id => id !== courseId)
+        : [...prev, courseId];
+      setIsCertificateModified(true);
+      return updated;
+    });
+  };
+
+  const handleSaveCertificateConfig = async () => {
+    try {
+      const response = await fetch(`/api/creator/paths/${pathSlug}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ required_course_ids: requiredCourseIds }),
+      });
+
+      if (response.ok) {
+        showToast.success('Certificate requirements updated successfully');
+        setIsCertificateModified(false);
+        fetchPathData(); // Refresh data
+      } else {
+        const error = await response.json();
+        showToast.error(`Error: ${error.error || 'Failed to update certificate requirements'}`);
+      }
+    } catch (error) {
+      console.error('Error updating certificate requirements:', error);
+      showToast.error('Failed to update certificate requirements');
+    }
+  };
+
+  const handleCancelCertificateEdit = () => {
+    setRequiredCourseIds(path?.required_course_ids || []);
+    setIsCertificateModified(false);
+  };
+
   // Bulk selection handlers
   const handleSelectAllCourses = (checked: boolean) => {
     if (checked) {
@@ -692,6 +740,17 @@ export default function PathDetailPage() {
               >
                 <FaList className="inline mr-2 h-4 w-4" />
                 Courses ({courses.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('certificate')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'certificate'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <FaGraduationCap className="inline mr-2 h-4 w-4" />
+                Certificate
               </button>
               <button
                 onClick={() => setActiveTab('canvas')}
@@ -1316,6 +1375,132 @@ export default function PathDetailPage() {
                         </tbody>
                       </table>
                     </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'certificate' && (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">Certificate Requirements</h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Select which courses must be completed to earn a certificate for this path.
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    {isCertificateModified && (
+                      <>
+                        <Btn onClick={handleSaveCertificateConfig}>
+                          <FaSave className="mr-2 h-4 w-4" />
+                          Save Changes
+                        </Btn>
+                        <Btn variant="outlined" onClick={handleCancelCertificateEdit}>
+                          <FaTimes className="mr-2 h-4 w-4" />
+                          Cancel
+                        </Btn>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {courses.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FaGraduationCap className="mx-auto h-12 w-12 text-gray-400" />
+                    <h3 className="mt-2 text-sm font-medium text-gray-900">No courses available</h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Add courses to this path before configuring certificate requirements.
+                    </p>
+                    <div className="mt-6">
+                      <button 
+                        onClick={() => setActiveTab('courses')}
+                        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                      >
+                        <FaPlus className="mr-2 h-4 w-4" />
+                        Go to Courses Tab
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+
+                    <div className="grid gap-4">
+                      {courses.map((course) => (
+                        <div 
+                          key={course._id} 
+                          className={`border rounded-lg p-4 transition-colors ${
+                            requiredCourseIds.includes(course._id) 
+                              ? 'border-green-200 bg-green-50' 
+                              : 'border-gray-200 bg-white hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <div className="flex-shrink-0">
+                                <input
+                                  type="checkbox"
+                                  id={`course-${course._id}`}
+                                  checked={requiredCourseIds.includes(course._id)}
+                                  onChange={() => handleRequiredCourseToggle(course._id)}
+                                  className="h-5 w-5 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                                />
+                              </div>
+                              <div className="flex-shrink-0 h-12 w-12">
+                                <div className="h-12 w-12 rounded-lg bg-blue-500 flex items-center justify-center">
+                                  <FaGraduationCap className="h-6 w-6 text-white" />
+                                </div>
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <label 
+                                  htmlFor={`course-${course._id}`}
+                                  className="block text-sm font-medium text-gray-900 cursor-pointer"
+                                >
+                                  {course.name}
+                                </label>
+                                <p className="text-sm text-gray-500">{course.slug}</p>
+                                {course.description && (
+                                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">{course.description}</p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-4">
+                              <div className="text-right">
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(course.state)}`}>
+                                  {COURSE_STATES.find(s => s.value === course.state)?.label || course.state}
+                                </span>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {course.total_lessons || 0} lessons
+                                  {course.duration ? ` • ${formatDuration(course.duration)}` : ''}
+                                </div>
+                              </div>
+                              {/* {requiredCourseIds.includes(course._id) && (
+                                <div className="flex-shrink-0">
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Required
+                                  </span>
+                                </div>
+                              )} */}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {isCertificateModified && (
+                      <div className="border-t border-gray-200 pt-6">
+                        <div className="flex justify-end space-x-3">
+                          <Btn variant="outlined" onClick={handleCancelCertificateEdit}>
+                            <FaTimes className="mr-2 h-4 w-4" />
+                            Cancel Changes
+                          </Btn>
+                          <Btn onClick={handleSaveCertificateConfig}>
+                            <FaSave className="mr-2 h-4 w-4" />
+                            Save Certificate Requirements
+                          </Btn>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
