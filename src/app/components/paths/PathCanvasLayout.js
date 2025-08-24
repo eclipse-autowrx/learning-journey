@@ -139,14 +139,14 @@ const CourseNode = ({ path, item, onRequestUpdateProgress, maps }) => {
       }}>
         {isCertificate ? (
           // Certificate item
-          <div className="h-full w-full bg-gray-200 rounded-full flex items-center justify-center relative border-2 border-gray-300">
-            <div className="text-gray-600 text-3xl">
+          <div className="h-full w-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center relative">
+            <div className="text-white text-3xl">
               🎓
             </div>
             {/* Lock icon overlay when path is not completed */}
             {!pathCompleted && (
-              <div className="absolute inset-0 bg-gray-400 bg-opacity-70 rounded-full flex items-center justify-center">
-                <FaLock className="text-gray-700 text-2xl" />
+              <div className="absolute inset-0 bg-black bg-opacity-60 rounded-full flex items-center justify-center">
+                <FaLock className="text-white text-2xl" />
               </div>
             )}
           </div>
