@@ -131,7 +131,13 @@ const PathScreen = ({ path }) => {
       let maps = path?.maps || []
       if(courses.length > 0 && maps.length > 0) {
         maps.forEach(map => {
-          map.course = courses.find(c => c._id === map.course_id)
+          if (map.course_id) {
+            // Course item
+            map.course = courses.find(c => c._id === map.course_id)
+          } else if (map.certificate_id) {
+            // Certificate item - no course needed
+            map.course = null
+          }
         })
       }
       setMaps(maps)
@@ -212,12 +218,15 @@ const PathScreen = ({ path }) => {
           let hasChanged = false
           let tmpMaps = JSON.parse(JSON.stringify(maps))
           tmpMaps.forEach(map => {
-            let matchCourse = tmpCourses.find(c => c._id === map.course_id)
-            // console.log(matchCourse.icon)
-            if (matchCourse != map.course) {
-              map.course = matchCourse
-              hasChanged = true
+            if (map.course_id) {
+              // Course item
+              let matchCourse = tmpCourses.find(c => c._id === map.course_id)
+              if (matchCourse != map.course) {
+                map.course = matchCourse
+                hasChanged = true
+              }
             }
+            // Certificate items don't need course updates
           })
           if (hasChanged) {
             setMaps(tmpMaps)

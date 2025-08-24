@@ -19,7 +19,8 @@ interface Course {
 }
 
 interface MapItem {
-  course_id: string;
+  course_id?: string; // Optional for course items
+  certificate_id?: string; // Optional for certificate items
   x: string;
   y: string;
 }
@@ -72,19 +73,28 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const courseId = e.dataTransfer.getData('courseId');
+    const certificateId = e.dataTransfer.getData('certificateId');
 
-    if (courseId && canvasRef.current) {
+    if (canvasRef.current) {
       const canvasRect = canvasRef.current.getBoundingClientRect();
       const x = ((e.clientX - canvasRect.left) / canvasRect.width) * 100;
       const y = ((e.clientY - canvasRect.top) / canvasRect.height) * 100;
 
-      const newMapItem: MapItem = {
-        course_id: courseId,
-        x: `${x.toFixed(2)}%`,
-        y: `${y.toFixed(2)}%`,
-      };
-
-      setMaps(prev => [...prev.filter(item => item.course_id !== courseId), newMapItem]);
+      if (courseId) {
+        const newMapItem: MapItem = {
+          course_id: courseId,
+          x: `${x.toFixed(2)}%`,
+          y: `${y.toFixed(2)}%`,
+        };
+        setMaps(prev => [...prev.filter(item => item.course_id !== courseId), newMapItem]);
+      } else if (certificateId) {
+        const newMapItem: MapItem = {
+          certificate_id: certificateId,
+          x: `${x.toFixed(2)}%`,
+          y: `${y.toFixed(2)}%`,
+        };
+        setMaps(prev => [...prev.filter(item => item.certificate_id !== certificateId), newMapItem]);
+      }
     }
     setDraggingItem(null);
   };
@@ -93,18 +103,29 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
     e.preventDefault();
   };
 
-  const handleRemove = (courseId: string) => {
-    setMaps(prev => prev.filter(item => item.course_id !== courseId));
+  const handleRemove = (itemId: string, isCertificate: boolean = false) => {
+    if (isCertificate) {
+      setMaps(prev => prev.filter(item => item.certificate_id !== itemId));
+    } else {
+      setMaps(prev => prev.filter(item => item.course_id !== itemId));
+    }
   };
   
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, item: MapItem) => {
     setDraggingItem(item);
-    e.dataTransfer.setData('courseId', item.course_id);
+    if (item.course_id) {
+      e.dataTransfer.setData('courseId', item.course_id);
+    } else if (item.certificate_id) {
+      e.dataTransfer.setData('certificateId', item.certificate_id);
+    }
   };
 
   const availableCourses = path.courses.filter(
     (course) => !maps.some((mapItem) => mapItem.course_id === course._id)
   );
+  
+  // Check if certificate is already placed on canvas
+  const isCertificatePlaced = maps.some((mapItem) => mapItem.certificate_id === 'certificate');
 
   return (
     <div className="flex flex-col gap-4">
@@ -137,6 +158,34 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
 
         <div className="w-full bg-gray-50 rounded-lg px-4 py-1">
             <div className="flex gap-2 overflow-x-auto overflow-y-hidden h-[110px]">
+                {/* Certificate Item */}
+                {!isCertificatePlaced && (
+                    <div
+                        draggable
+                        onDragStart={(e) => e.dataTransfer.setData('certificateId', 'certificate')}
+                        className="flex flex-col items-center cursor-pointer flex-shrink-0"
+                        style={{ width: "11vw" }}
+                    >
+                        <div className="relative" style={{
+                            width: "5vw",
+                            height: "5vw",
+                        }}>
+                            <div className="h-full w-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
+                                <FaGraduationCap className="text-white text-2xl" />
+                            </div>
+                        </div>
+                        <div
+                            className="mt-0 text-slate-700 text-[12px] font-semibold text-center leading-none"
+                            style={{
+                                maxWidth: "11vw",
+                            }}
+                        >
+                            Certificate
+                        </div>
+                    </div>
+                )}
+                
+                {/* Available Courses */}
                 {path.courses.length === 0 ? (
                     <div className="w-full flex items-center justify-center">
                         <p className="text-gray-500 text-sm italic">There are no courses in this path. You can add them in the 'Courses' tab.</p>
@@ -191,47 +240,92 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
             >
                 <div className="absolute inset-0 bg-white opacity-50 z-0"></div>
                 {maps.map((item) => {
-                    const course = path.courses.find(c => c._id === item.course_id);
-                    return (
-                        <div
-                            key={item.course_id}
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, item)}
-                            className="absolute flex flex-col items-center cursor-pointer group hover:scale-110 z-20"
-                            style={{
-                                top: item.y,
-                                left: item.x,
-                                width: "11vw",
-                                transform: 'translate(-50%, -50%)',
-                            }}
-                        >
-                            <div className="relative" style={{
-                                width: "6.5vw",
-                                height: "6.5vw",
-                            }}>
-                                <img
-                                    src="/imgs/bare/course-notyet.png"
-                                    className="absolute h-full w-full top-0 left-0 z-0 object-contain"
-                                />
-                                <button
-                                    onClick={() => handleRemove(item.course_id)}
-                                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                    aria-label="Remove course"
-                                >
-                                    <FaTrash size={12} />
-                                </button>
-                            </div>
-                        
+                    if (item.course_id) {
+                        // Render course item
+                        const course = path.courses.find(c => c._id === item.course_id);
+                        return (
                             <div
-                                className="mt-0 text-slate-700 text-[10px] lg:text:[10px] xl:text-base font-semibold text-center leading-none"
+                                key={`course-${item.course_id}`}
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, item)}
+                                className="absolute flex flex-col items-center cursor-pointer group hover:scale-110 z-20"
                                 style={{
-                                    maxWidth: "11vw",
+                                    top: item.y,
+                                    left: item.x,
+                                    width: "11vw",
+                                    transform: 'translate(-50%, -50%)',
                                 }}
                             >
-                                {course?.name || 'Unknown Course'}
+                                <div className="relative" style={{
+                                    width: "6.5vw",
+                                    height: "6.5vw",
+                                }}>
+                                    <img
+                                        src="/imgs/bare/course-notyet.png"
+                                        className="absolute h-full w-full top-0 left-0 z-0 object-contain"
+                                    />
+                                    <button
+                                        onClick={() => handleRemove(item.course_id!, false)}
+                                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                        aria-label="Remove course"
+                                    >
+                                        <FaTrash size={12} />
+                                    </button>
+                                </div>
+                            
+                                <div
+                                    className="mt-0 text-slate-700 text-[10px] lg:text:[10px] xl:text-base font-semibold text-center leading-none"
+                                    style={{
+                                        maxWidth: "11vw",
+                                    }}
+                                >
+                                    {course?.name || 'Unknown Course'}
+                                </div>
                             </div>
-                        </div>
-                    );
+                        );
+                    } else if (item.certificate_id) {
+                        // Render certificate item
+                        return (
+                            <div
+                                key={`certificate-${item.certificate_id}`}
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, item)}
+                                className="absolute flex flex-col items-center cursor-pointer group hover:scale-110 z-20"
+                                style={{
+                                    top: item.y,
+                                    left: item.x,
+                                    width: "11vw",
+                                    transform: 'translate(-50%, -50%)',
+                                }}
+                            >
+                                <div className="relative" style={{
+                                    width: "6.5vw",
+                                    height: "6.5vw",
+                                }}>
+                                    <div className="h-full w-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
+                                        <FaGraduationCap className="text-white text-3xl" />
+                                    </div>
+                                    <button
+                                        onClick={() => handleRemove(item.certificate_id!, true)}
+                                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                        aria-label="Remove certificate"
+                                    >
+                                        <FaTrash size={12} />
+                                    </button>
+                                </div>
+                            
+                                <div
+                                    className="mt-0 text-slate-700 text-[10px] lg:text:[10px] xl:text-base font-semibold text-center leading-none"
+                                    style={{
+                                        maxWidth: "11vw",
+                                    }}
+                                >
+                                    Certificate
+                                </div>
+                            </div>
+                        );
+                    }
+                    return null;
                 })}
             </div>
         </div>

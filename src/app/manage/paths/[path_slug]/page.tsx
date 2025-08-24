@@ -41,7 +41,8 @@ import PathCanvasEditor from '@/app/components/paths/PathCanvasEditor';
 import { useAuth } from '@/lib/frontend/auth';
 
 interface MapItem {
-  course_id: string;
+  course_id?: string; // Optional for course items
+  certificate_id?: string; // Optional for certificate items
   x: string;
   y: string;
 }

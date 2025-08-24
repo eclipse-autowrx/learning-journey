@@ -14,16 +14,36 @@ import { useState } from "react"
 import Popup from "../atom/Popup";
 import { IoClose } from "react-icons/io5";
 import BtnFullRounded from "../atom/BtnFullRounded";
+import { FaLock } from "react-icons/fa";
 
 import { saveStateCourseStarted, saveStateCourseCompleted } from "@/lib/frontend/course"
 import { showToast } from "@/lib/utils/notifications";
 
-const CourseNode = ({ path, item, onRequestUpdateProgress }) => {
+// Helper function to determine if path is completed
+const isPathCompleted = (path, maps) => {
+  if (!path?.required_course_ids || path.required_course_ids.length === 0) {
+    return false;
+  }
+  
+  // Check if all required courses are completed
+  return path.required_course_ids.every(courseId => {
+    const mapItem = maps.find(map => map.course_id === courseId);
+    if (!mapItem?.course) return false;
+    return mapItem.course.context?.state === 'completed';
+  });
+};
+
+const CourseNode = ({ path, item, onRequestUpdateProgress, maps }) => {
   const router = useRouter();
   const [showCert, setShowCert] = useState(false)
   const [popupExternalLaunch, setPopupExternalLaunch] = useState(false)
 
   if (!path || !item) return <></>
+  
+  // Check if this is a certificate item
+  const isCertificate = item.certificate_id;
+  const pathCompleted = isPathCompleted(path, maps);
+  
   return <>
     {showCert && <CertificateScreen image={item.course?.image} requestClose={() => setShowCert(false)} />}
 
@@ -50,7 +70,7 @@ const CourseNode = ({ path, item, onRequestUpdateProgress }) => {
           if (onRequestUpdateProgress) onRequestUpdateProgress()
 
           if (item.course?.state != 'completed') {
-            await saveStateCourseCompleted(item.course)
+            await saveStateCourseStarted(item.course)
             showToast.success(`Course "${item.course?.name}" marked as completed!`)
           }
         }}>
@@ -71,6 +91,15 @@ const CourseNode = ({ path, item, onRequestUpdateProgress }) => {
         transform: "translate(-50%, -50%)",
       }}
       onClick={async () => {
+        // Handle certificate items
+        if (isCertificate) {
+          if (pathCompleted) {
+            setShowCert(true);
+          } else {
+            showToast.info("Complete all required courses to unlock the certificate!");
+          }
+          return;
+        }
 
         if (item.course?.state === "locked") {
           return;
@@ -87,8 +116,6 @@ const CourseNode = ({ path, item, onRequestUpdateProgress }) => {
           setPopupExternalLaunch(true)
           return;
         }
-
-        
 
         if (!item.course || !item.course?.slug) {
           showToast.warning("Course is not available now!");
@@ -110,13 +137,30 @@ const CourseNode = ({ path, item, onRequestUpdateProgress }) => {
         width: "6.5vw",
         height: "6.5vw",
       }}>
-
-        <img
-          src={item.course?.icon}
-          className="absolute h-full w-full top-0 left-0 z-0 object-contain"
-        />
-        {item.course?.top_icon && <img src={item.course?.top_icon}
-          className="absolute top-[32%] left-[35%] z-10 w-[30%] h-[30%]" />}
+        {isCertificate ? (
+          // Certificate item
+          <div className="h-full w-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center relative">
+            <div className="text-white text-3xl">
+              🎓
+            </div>
+            {/* Lock icon overlay when path is not completed */}
+            {!pathCompleted && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                <FaLock className="text-white text-2xl" />
+              </div>
+            )}
+          </div>
+        ) : (
+          // Course item
+          <>
+            <img
+              src={item.course?.icon}
+              className="absolute h-full w-full top-0 left-0 z-0 object-contain"
+            />
+            {item.course?.top_icon && <img src={item.course?.top_icon}
+              className="absolute top-[32%] left-[35%] z-10 w-[30%] h-[30%]" />}
+          </>
+        )}
       </div>
 
       <div
@@ -126,7 +170,7 @@ const CourseNode = ({ path, item, onRequestUpdateProgress }) => {
           maxWidth: "11vw",
         }}
       >
-        {item.course?.name}
+        {isCertificate ? "Certificate" : item.course?.name}
       </div>
     </div>
   </>
@@ -152,7 +196,7 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
       </div> */}
 
       <div className="absolute top-0 left-0 right-0 bottom-0 opacity-10 bg-white z-10"></div>
-      {maps && maps.map((item, index) => <CourseNode key={index} path={path} item={item} onRequestUpdateProgress={onRequestUpdateProgress} />)}
+      {maps && maps.map((item, index) => <CourseNode key={index} path={path} item={item} onRequestUpdateProgress={onRequestUpdateProgress} maps={maps} />)}
     </div>
   </div>
 }
