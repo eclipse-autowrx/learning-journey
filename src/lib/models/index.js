@@ -13,6 +13,7 @@ import './Lesson.js';
 import './Path.js';
 import './CourseProgress.js';
 import './PathProgress.js';
+import './SystemSettings.js';
 
 // Export models for convenience
 export { default as Collection } from './Collection.js';
@@ -21,3 +22,4 @@ export { default as Lesson } from './Lesson.js';
 export { default as Path } from './Path.js';
 export { default as CourseProgress } from './CourseProgress.js'; 
 export { default as PathProgress } from './PathProgress.js';
+export { default as SystemSettings } from './SystemSettings.js';

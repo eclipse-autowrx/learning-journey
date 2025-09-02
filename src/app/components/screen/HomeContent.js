@@ -112,11 +112,11 @@ const HomeContent = ({ }) => {
     const fetchPaths = async () => {
         try {
             setIsLoading(true);
-            const response = await fetch("/api/collections?state=published")
+            const response = await fetch("/api/collections/settings")
             const data = await response.json();
             if (data && data.success) {
                 let collections = data.data
-                console.log('collections', collections)
+                console.log('collections from settings', collections)
                 await applyProgressForCollections(collections)
                 setItems(collections)
             } else {

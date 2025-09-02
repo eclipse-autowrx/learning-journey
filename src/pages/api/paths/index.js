@@ -18,7 +18,16 @@ export default async function handler(req, res) {
   switch (method) {
     case "GET":
       try {
-        const filter = { state: 'published' };
+        let filter = { state: { $in: ['published', 'locked'] } };
+        
+        // Handle ids query parameter for filtering specific paths
+        if (query.ids) {
+          const ids = query.ids.split(',').map(id => id.trim()).filter(id => id);
+          if (ids.length > 0) {
+            filter._id = { $in: ids };
+          }
+        }
+        
         const dbPaths = await PathService.getAll(filter);
         const transformedPaths = [];
         for (const p of dbPaths) {
