@@ -29,8 +29,17 @@ export default async function handler(req, res) {
         }
         
         const dbPaths = await PathService.getAll(filter);
+        
+        // If specific IDs were requested, preserve their order
+        let orderedPaths = dbPaths;
+        if (query.ids) {
+          const ids = query.ids.split(',').map(id => id.trim()).filter(id => id);
+          const pathMap = new Map(dbPaths.map(p => [p._id.toString(), p]));
+          orderedPaths = ids.map(id => pathMap.get(id)).filter(Boolean);
+        }
+        
         const transformedPaths = [];
-        for (const p of dbPaths) {
+        for (const p of orderedPaths) {
           let owner_name = getCachedName(p.owner_id);
           if (!owner_name && p.owner_id && user_id) {
             try {
