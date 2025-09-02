@@ -89,5 +89,24 @@ export const ExternalUserService = {
       map[id] = name;
     }
     return map;
+  },
+
+  // Permission APIs
+  // permissions: string | string[]
+  async hasPermissions(permissions, token) {
+    if (!token) throw new Error('Missing token');
+    const list = Array.isArray(permissions) ? permissions : [permissions];
+    const query = encodeURIComponent(list.join(','));
+    const result = await doFetch(`/permissions/has-permission?permissions=${query}`, { token });
+    // Expecting an array of booleans per docs
+    if (Array.isArray(result)) return result;
+    // Some backends may wrap the array
+    if (Array.isArray(result?.data)) return result.data;
+    throw new Error('Unexpected response from permission service');
+  },
+
+  async hasPermission(permission, token) {
+    const arr = await this.hasPermissions([permission], token);
+    return Array.isArray(arr) ? Boolean(arr[0]) : false;
   }
 };

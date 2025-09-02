@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { FaPlus, FaTrash, FaUserShield, FaCheckCircle, FaArrowRight } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaCheckCircle, FaArrowRight } from 'react-icons/fa';
 import UserBadge from '@/app/components/atom/UserBadge';
 import { COLLECTION_STATES, PATH_STATES, COURSE_STATES } from '@/lib/const';
 import { useAuth } from '@/lib/frontend/auth';
@@ -38,36 +38,44 @@ interface Course {
   owner_name?: string;
 }
 
-interface Admin {
-  _id: string;
-  user_id: string;
-}
+
 
 function AdminPageInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
   const { isAuthenticated, loading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'collections' | 'admins'>('collections');
+  const [activeTab, setActiveTab] = useState<'collections'>('collections');
   const [collections, setCollections] = useState<Content[]>([]);
   const [ownerNames, setOwnerNames] = useState<Record<string, string>>({});
   const [selectedCollection, setSelectedCollection] = useState<Content | null>(null);
   const [selectedPath, setSelectedPath] = useState<Path | null>(null);
-  const [admins, setAdmins] = useState<Admin[]>([]);
   const [showCollectionModal, setShowCollectionModal] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Content | null>(null);
   const [collectionForm, setCollectionForm] = useState({ name: '', description: '', category: '', tags: [] as string[], state: 'draft' });
-  const [newAdminId, setNewAdminId] = useState('');
   const [loading, setLoading] = useState(true);
+  const [hasManageUsers, setHasManageUsers] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    if (activeTab === 'collections') {
-      fetchCollections();
-    } else {
-      fetchAdmins();
-    }
-  }, [activeTab, isAuthenticated]);
+    // Check permission once authenticated
+    (async () => {
+      try {
+        const res = await fetch('/api/permissions/has-permission?permissions=manageUsers');
+        if (!res.ok) throw new Error('Permission check failed');
+        const arr = await res.json();
+        const allowed = Array.isArray(arr) ? Boolean(arr[0]) : false;
+        setHasManageUsers(allowed);
+      } catch (e) {
+        setHasManageUsers(false);
+      }
+    })();
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !hasManageUsers) return;
+    fetchCollections();
+  }, [isAuthenticated, hasManageUsers]);
 
   const fetchCollections = async () => {
     try {
@@ -153,61 +161,11 @@ function AdminPageInner() {
     }
   };
 
-  const fetchAdmins = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/admin/admins');
-      const data = await res.json();
-      if (data.success) {
-        setAdmins(data.data);
-        // Resolve admin user names
-        const ids: string[] = (data.data || []).map((a: any) => a.user_id).filter(Boolean);
-        if (ids.length > 0) {
-          try {
-            const nameRes = await fetch(`/api/users/names?ids=${encodeURIComponent(ids.join(','))}`);
-            const nameData = await nameRes.json();
-            if (nameData.success) {
-              setOwnerNames((prev) => ({ ...(prev || {}), ...(nameData.data || {}) }));
-            }
-          } catch (_) {}
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching admins:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleAddAdmin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await fetch('/api/admin/admins', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id: newAdminId }),
-      });
-      if (res.ok) {
-        setNewAdminId('');
-        fetchAdmins();
-      }
-    } catch (error) {
-      console.error('Error adding admin:', error);
-    }
-  };
 
-  const handleDeleteAdmin = async (id: string) => {
-    try {
-      await fetch(`/api/admin/admins/${id}`, {
-        method: 'DELETE',
-      });
-      fetchAdmins();
-    } catch (error) {
-      console.error('Error deleting admin:', error);
-    }
-  };
+
+
+
 
   const handleStateChange = async (id: string, state: string) => {
     try {
@@ -289,6 +247,28 @@ function AdminPageInner() {
     );
   }
 
+  if (hasManageUsers === false) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h3 className="mt-2 text-lg font-medium text-gray-900">Access denied</h3>
+          <p className="mt-1 text-sm text-gray-500">You do not have permission to manage users.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (hasManageUsers === null) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Checking permissions...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b">
@@ -318,16 +298,6 @@ function AdminPageInner() {
                 }`}
               >
                 Collections
-              </button>
-              <button
-                onClick={() => setActiveTab('admins')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'admins'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Admin Users
               </button>
             </nav>
           </div>
@@ -477,39 +447,7 @@ function AdminPageInner() {
                 )}
               </div>
             )}
-            {activeTab === 'admins' && (
-              <div>
-                <form onSubmit={handleAddAdmin} className="mb-6 flex gap-4">
-                  <input
-                    type="text"
-                    value={newAdminId}
-                    onChange={(e) => setNewAdminId(e.target.value)}
-                    placeholder="Enter User ID to make admin"
-                    className="flex-grow border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <button
-                    type="submit"
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-                  >
-                    <FaPlus className="mr-2 h-4 w-4" />
-                    Add Admin
-                  </button>
-                </form>
-                <ul>
-                  {admins.map((admin) => (
-                    <li key={admin._id} className="flex items-center justify-between py-2 border-b">
-                      <span>{ownerNames[admin.user_id] || admin.user_id}</span>
-                      <button
-                        onClick={() => handleDeleteAdmin(admin._id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <FaTrash />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+
           </div>
         </div>
       </div>

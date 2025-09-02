@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+/test-certificates
+/temp
+
 # production
 /build
 

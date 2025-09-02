@@ -18,6 +18,46 @@ export function useAuth() {
     loading: true,
   });
 
+  const logout = async () => {
+    try {
+      // Call logout API to properly clear HttpOnly cookies
+      const response = await fetch('/api/user/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // Update auth state to logged out
+        setAuth({
+          isAuthenticated: false,
+          userId: null,
+          userName: null,
+          loading: false,
+        });
+      } else {
+        console.error('Logout API failed:', response.statusText);
+        // Still update the local state even if API call fails
+        setAuth({
+          isAuthenticated: false,
+          userId: null,
+          userName: null,
+          loading: false,
+        });
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Still update the local state even if API call fails
+      setAuth({
+        isAuthenticated: false,
+        userId: null,
+        userName: null,
+        loading: false,
+      });
+    }
+  };
+
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -52,5 +92,5 @@ export function useAuth() {
     checkUser();
   }, []);
 
-  return auth;
+  return { ...auth, logout };
 }

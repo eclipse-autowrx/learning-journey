@@ -24,6 +24,13 @@ const PathProgressSchema = new mongoose.Schema(
         state: { type: String, enum: Object.values(COURSE_PROGRESS_STATES), default: STATE_NOT_STARTED },
         finished_at: { type: Date },
       }
+    },
+    certificate: {
+      pdfUrl: { type: String },
+      pngUrl: { type: String },
+      fileName: { type: String },
+      generatedAt: { type: Date },
+      customUserName: { type: String }
     }
   },
   {

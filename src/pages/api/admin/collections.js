@@ -2,23 +2,21 @@ import connectToDatabase from '../../../lib/mongodb';
 import Collection from '../../../lib/models/Collection';
 import Admin from '../../../lib/models/Admin';
 import { check_auth } from '../../../lib/backend/check_auth';
+import { ExternalUserService } from '../../../lib/backend/user_service';
 import { CollectionService } from '../../../lib/services/dataService';
 
 export default async function handler(req, res) {
   await connectToDatabase();
 
-  // Simple admin guard
-  const { user_id } = check_auth(req, res);
-  if (!user_id) {
+  // Permission guard: require manageUsers
+  const { user_id, token } = check_auth(req, res);
+  if (!user_id || !token) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
-  // Ensure admin: if no admins exist, bootstrap current user as admin
-  const adminCount = await Admin.countDocuments({});
-  if (adminCount === 0) {
-    try { await Admin.create({ user_id }); } catch (_) {}
-  }
-  const isAdmin = await Admin.findOne({ user_id }).lean();
-  if (!isAdmin) {
+  try {
+    const allowed = await ExternalUserService.hasPermission('manageUsers', token);
+    if (!allowed) return res.status(403).json({ success: false, error: 'Forbidden' });
+  } catch (e) {
     return res.status(403).json({ success: false, error: 'Forbidden' });
   }
 
