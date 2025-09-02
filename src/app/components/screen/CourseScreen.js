@@ -247,10 +247,10 @@ const CourseScreen = ({ course, path_slug }) => {
         <div className='flex w-full h-full text-base space-x-4 overflow-auto'>
             <div className='w-1/4 min-w-[400px] px-0 rounded flex flex-col space-y-2'>
                 <div className='w-full flex flex-col pb-2'>
-                    <div className='text-xl leading-tight font-bold text-black'>
+                    <div className='text-xl leading-tight font-bold text-neutral-900'>
                         {course.name}
                     </div>
-                    { course.description && <div className='text-sm text-slate-600 leading-tight'>
+                    { course.description && <div className='text-sm text-neutral-600 leading-tight'>
                         {course.description}
                     </div> }
                 </div>
@@ -265,16 +265,16 @@ const CourseScreen = ({ course, path_slug }) => {
                     )}
             </div>
 
-            <div className='grow border border-slate-200 bg-white rounded flex flex-col relative' 
+            <div className='grow border border-neutral-200 bg-white rounded flex flex-col relative' 
                 style={{ maxHeight: 'calc(100vh - 40px)' }}>
                 <div ref={scrollContainerRef} className='absolue w-full h-full top-0 left-0 bottom-0 right-0 overflow-y-auto'>
                     {showCourseFinishAnnounce && <div className='w-full h-full grid place-items-center'>
                         <div className='flex flex-col px-4 py-4 w-fit h-fit'>
                             <div className="text-center">
-                                <h2 className="text-3xl font-bold text-green-600 mb-4">Congratulations! 🎉</h2>
-                                <p className="text-xl text-gray-700 mb-2">You have successfully completed course:</p>
-                                <p className="text-2xl font-semibold text-gray-800 mb-4">{course.name}</p>
-                                <p className="text-gray-600">Keep up the great work and continue your learning journey!</p>
+                                <h2 className="text-3xl font-bold text-primary-600 mb-4">Congratulations! 🎉</h2>
+                                <p className="text-xl text-neutral-700 mb-2">You have successfully completed course:</p>
+                                <p className="text-2xl font-semibold text-neutral-800 mb-4">{course.name}</p>
+                                <p className="text-neutral-600">Keep up the great work and continue your learning journey!</p>
                             </div>
                             <div className='mt-10 w-full flex items-center justify-center'>
                                 <BtnFullRounded onClick={() => {

@@ -26,7 +26,19 @@ export default function Input({ label, type, placeholder, value, onChange }: Inp
                 value={value}
                 onChange={onChange}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md
-                    shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                    shadow-sm focus:outline-none sm:text-sm"
+                style={{
+                    '--tw-ring-color': 'var(--primary)',
+                    '--tw-border-opacity': '1'
+                } as React.CSSProperties}
+                      onFocus={(e) => {
+        e.target.style.borderColor = 'var(--border-focus)';
+        e.target.style.boxShadow = '0 0 0 3px rgba(34, 197, 94, 0.1)';
+      }}
+      onBlur={(e) => {
+        e.target.style.borderColor = 'var(--border-primary)';
+        e.target.style.boxShadow = '';
+      }}
             />
         </div>
     );

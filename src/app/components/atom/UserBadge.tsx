@@ -50,13 +50,12 @@ export default function UserBadge({ align = 'right', variant = 'default' }: User
             // You can customize this to redirect to your login page or open a login modal
             window.location.href = '/login'; // or handle login logic here
           }}
-          className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+          className={`flex items-center gap-2 px-2 text-sm font-medium rounded-md transition-colors ${
             variant === 'transparent' 
-              ? 'text-white border border-white/30 hover:bg-white/10 hover:border-white/50' 
+              ? 'text-white hover:text-white/50 cursor-pointer' 
               : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400'
           }`}
         >
-          <FaSignInAlt className="h-4 w-4" />
           Sign In
         </button>
       </div>

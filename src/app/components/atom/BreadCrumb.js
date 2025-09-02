@@ -40,13 +40,13 @@ const BreadCrumb = ({ items, rightSlot }) => {
     }
 
     return (
-        <div className="px-4 py-1 w-full flex flex-row items-center text-white text-sm font-semibold bg-[#58823C]">
+        <div className="px-4 py-1 w-full flex flex-row items-center text-white text-sm font-semibold bg-primary-500">
             <div className="flex flex-row items-center">
-                <Link href="/" className="hover:underline">{(config && config["HOME_LABEL"]) || 'Home'}</Link>
+                <Link href="/" className="hover:underline hover:text-white/50">{(config && config["HOME_LABEL"]) || 'Home'}</Link>
                 {items && items.map((item, index) => (
                     <div key={index} className="flex flex-row items-center">
                         <span className="mx-2">/</span>
-                        <Link href={item.link || ''} className="hover:underline">{processLabel(item.label)}</Link>
+                        <Link href={item.link || ''} className="hover:underline hover:text-white/50">{processLabel(item.label)}</Link>
                     </div>
                 ))}
             </div>

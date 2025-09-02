@@ -52,7 +52,7 @@ const Page = async ({ params }) => {
 
   return (
     <div
-      className="w-full bg-[#FFF9EC] text-slate-600 text-2xl p-0 pb-1
+      className="w-full bg-accent-50 text-neutral-600 text-2xl p-0 pb-1
                 h-screen flex flex-col"
     >
       <BreadCrumb items={[

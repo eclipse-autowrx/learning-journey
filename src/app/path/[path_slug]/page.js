@@ -39,7 +39,7 @@ const Page = async ({ params }) => {
 
   return (
     <div
-      className="bg-slate-100 text-slate-600 text-2xl p-1
+      className="bg-neutral-100 text-neutral-600 text-2xl p-1
             h-full w-full flex flex-col"
     >
       <BreadCrumb items={[

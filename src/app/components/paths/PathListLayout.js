@@ -135,7 +135,7 @@ const CourseBlock = ({ path, course, index }) => {
     return <div className="flex flex-col items-center w-full">
 
         {index == 0 &&
-            <div className="rounded-full text-[20px] font-light flex items-center justify-center px-8 py-1 border-4 border-[#41B452] bg-white">
+            <div className="rounded-full text-[20px] font-light flex items-center justify-center px-8 py-1 border-4 bg-white" style={{borderColor: 'var(--color-primary-500)'}}>
                 <MdOutlineExplore size={32} />
                 <span className="ml-2 mr-1 text-[30px] font-bold">Explore</span> - get new skills
             </div>
