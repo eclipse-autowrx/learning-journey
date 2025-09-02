@@ -30,7 +30,9 @@ import {
   FaList,
   FaSave,
   FaTimes,
-  FaThLarge
+  FaThLarge,
+  FaCheck,
+  FaMinus
 } from 'react-icons/fa';
 import { COURSE_STATES, PATH_STATES, PATH_LEVELS } from '@/lib/const';
 import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
@@ -97,7 +99,7 @@ export default function PathDetailPage() {
   const [path, setPath] = useState<Path | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'info' | 'courses' | 'certificate' | 'canvas'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'courses' | 'canvas'>('info');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
   // Edit mode states
@@ -143,7 +145,6 @@ export default function PathDetailPage() {
 
   // Certificate configuration states
   const [requiredCourseIds, setRequiredCourseIds] = useState<string[]>([]);
-  const [isCertificateModified, setIsCertificateModified] = useState(false);
 
   const handleSaveCanvas = async (maps: MapItem[]) => {
     try {
@@ -227,7 +228,6 @@ export default function PathDetailPage() {
         }
         // Set required course IDs for certificate
         setRequiredCourseIds(pathData.data.required_course_ids || []);
-        setIsCertificateModified(false);
       } else {
         console.error('Failed to fetch path:', pathData.error);
       }
@@ -489,43 +489,40 @@ export default function PathDetailPage() {
   };
 
   // Certificate configuration handlers
-  const handleRequiredCourseToggle = (courseId: string) => {
-    setRequiredCourseIds(prev => {
-      const updated = prev.includes(courseId) 
-        ? prev.filter(id => id !== courseId)
-        : [...prev, courseId];
-      setIsCertificateModified(true);
-      return updated;
-    });
-  };
+  const handleRequiredCourseToggleWithSave = async (courseId: string) => {
+    // Update the state immediately for UI feedback
+    const updated = requiredCourseIds.includes(courseId) 
+      ? requiredCourseIds.filter(id => id !== courseId)
+      : [...requiredCourseIds, courseId];
+    
+    setRequiredCourseIds(updated);
 
-  const handleSaveCertificateConfig = async () => {
+    // Save to backend immediately
     try {
       const response = await fetch(`/api/creator/paths/${pathSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ required_course_ids: requiredCourseIds }),
+        body: JSON.stringify({ required_course_ids: updated }),
       });
 
       if (response.ok) {
-        showToast.success('Certificate requirements updated successfully');
-        setIsCertificateModified(false);
-        fetchPathData(); // Refresh data
+        const action = updated.includes(courseId) ? 'marked as mandatory' : 'removed from mandatory';
+        showToast.success(`Course ${action} successfully`);
+        fetchPathData(); // Refresh data to ensure consistency
       } else {
         const error = await response.json();
-        showToast.error(`Error: ${error.error || 'Failed to update certificate requirements'}`);
+        showToast.error(`Error: ${error.error || 'Failed to update course requirement'}`);
+        // Revert the state on error
+        setRequiredCourseIds(requiredCourseIds);
       }
     } catch (error) {
-      console.error('Error updating certificate requirements:', error);
-      showToast.error('Failed to update certificate requirements');
+      console.error('Error updating course requirement:', error);
+      showToast.error('Failed to update course requirement');
+      // Revert the state on error
+      setRequiredCourseIds(requiredCourseIds);
     }
-  };
-
-  const handleCancelCertificateEdit = () => {
-    setRequiredCourseIds(path?.required_course_ids || []);
-    setIsCertificateModified(false);
   };
 
   // Bulk selection handlers
@@ -741,17 +738,6 @@ export default function PathDetailPage() {
               >
                 <FaList className="inline mr-2 h-4 w-4" />
                 Courses ({courses.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('certificate')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'certificate'
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
-                }`}
-              >
-                <FaGraduationCap className="inline mr-2 h-4 w-4" />
-                Certificate
               </button>
               <button
                 onClick={() => setActiveTab('canvas')}
@@ -1165,9 +1151,14 @@ export default function PathDetailPage() {
             {activeTab === 'courses' && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg leading-6 font-medium text-neutral-900">
-                    Courses in this Path ({courses.length})
-                  </h3>
+                  <div>
+                    <h3 className="text-lg leading-6 font-medium text-neutral-900">
+                      Courses in this Path ({courses.length})
+                    </h3>
+                    <p className="mt-1 text-sm text-neutral-500">
+                      Mark courses as mandatory to require completion for certificate eligibility.
+                    </p>
+                  </div>
                   <div className="flex items-center space-x-3">
                     <StateFilter
                       states={COURSE_STATES}
@@ -1260,13 +1251,10 @@ export default function PathDetailPage() {
                               Course
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                              Category
+                              Mandatory
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                               Lessons
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                              Duration
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                               State
@@ -1310,13 +1298,10 @@ export default function PathDetailPage() {
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
-                                {course.category || '-'}
+                                {requiredCourseIds.includes(course._id) ? 'Yes' : ''}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                                 {course.total_lessons || 0}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
-                                {course.duration ? formatDuration(course.duration) : '-'}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(course.state)}`}>
@@ -1341,20 +1326,29 @@ export default function PathDetailPage() {
                                       <FaEllipsisV className="h-4 w-4" />
                                     </button>
                                     {openDropdown === course._id && (
-                                      <div className={`absolute right-0 w-48 bg-white rounded-md shadow-lg z-[9999] border border-neutral-200 ${
+                                      <div className={`absolute right-0 w-56 bg-white rounded-md shadow-lg z-[9999] border border-neutral-200 ${
                                         index === filteredArray.length - 1 ? 'bottom-full mb-2' : 'mt-2'
                                       }`}>
                                         <div className="py-1">
-                                          {/* <button
+                                          <button
                                             onClick={() => {
-                                              // TODO: Implement edit course functionality
+                                              handleRequiredCourseToggleWithSave(course._id);
                                               setOpenDropdown(null);
                                             }}
                                             className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 flex items-center"
                                           >
-                                            <FaEdit className="h-4 w-4 mr-2" />
-                                            Edit Course
-                                          </button> */}
+                                            {requiredCourseIds.includes(course._id) ? (
+                                              <>
+                                                <FaMinus className="h-4 w-4 mr-2 text-orange-600" />
+                                                Remove from Mandatory
+                                              </>
+                                            ) : (
+                                              <>
+                                                <FaCheck className="h-4 w-4 mr-2 text-green-600" />
+                                                Mark as Mandatory
+                                              </>
+                                            )}
+                                          </button>
                                           <button
                                             onClick={() => {
                                               handleDeleteCourse(course);
@@ -1381,131 +1375,7 @@ export default function PathDetailPage() {
               </div>
             )}
 
-            {activeTab === 'certificate' && (
-              <div>
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h3 className="text-lg font-medium text-neutral-900">Certificate Requirements</h3>
-                    <p className="mt-1 text-sm text-neutral-500">
-                      Select which courses must be completed to earn a certificate for this path.
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    {isCertificateModified && (
-                      <>
-                        <Btn onClick={handleSaveCertificateConfig}>
-                          <FaSave className="mr-2 h-4 w-4" />
-                          Save Changes
-                        </Btn>
-                        <Btn variant="outlined" onClick={handleCancelCertificateEdit}>
-                          <FaTimes className="mr-2 h-4 w-4" />
-                          Cancel
-                        </Btn>
-                      </>
-                    )}
-                  </div>
-                </div>
 
-                {courses.length === 0 ? (
-                  <div className="text-center py-12">
-                    <FaGraduationCap className="mx-auto h-12 w-12 text-neutral-400" />
-                    <h3 className="mt-2 text-sm font-medium text-neutral-900">No courses available</h3>
-                    <p className="mt-1 text-sm text-neutral-500">
-                      Add courses to this path before configuring certificate requirements.
-                    </p>
-                    <div className="mt-6">
-                      <button 
-                        onClick={() => setActiveTab('courses')}
-                        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
-                      >
-                        <FaPlus className="mr-2 h-4 w-4" />
-                        Go to Courses Tab
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-
-                    <div className="grid gap-4">
-                      {courses.map((course) => (
-                        <div 
-                          key={course._id} 
-                          className={`border rounded-lg p-4 transition-colors ${
-                            requiredCourseIds.includes(course._id) 
-                              ? 'border-secondary-200 bg-secondary-50' 
-                              : 'border-neutral-200 bg-white hover:bg-neutral-50'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                              <div className="flex-shrink-0">
-                                <input
-                                  type="checkbox"
-                                  id={`course-${course._id}`}
-                                  checked={requiredCourseIds.includes(course._id)}
-                                  onChange={() => handleRequiredCourseToggle(course._id)}
-                                  className="h-5 w-5 text-secondary-600 focus:ring-secondary-500 border-neutral-300 rounded"
-                                />
-                              </div>
-                              <div className="flex-shrink-0 h-12 w-12">
-                                <div className="h-12 w-12 rounded-lg bg-primary-500 flex items-center justify-center">
-                                  <FaGraduationCap className="h-6 w-6 text-white" />
-                                </div>
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <label 
-                                  htmlFor={`course-${course._id}`}
-                                  className="block text-sm font-medium text-neutral-900 cursor-pointer"
-                                >
-                                  {course.name}
-                                </label>
-                                <p className="text-sm text-neutral-500">{course.slug}</p>
-                                {course.description && (
-                                  <p className="text-sm text-neutral-600 mt-1 line-clamp-2">{course.description}</p>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-4">
-                              <div className="text-right">
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(course.state)}`}>
-                                  {COURSE_STATES.find(s => s.value === course.state)?.label || course.state}
-                                </span>
-                                <div className="text-xs text-neutral-500 mt-1">
-                                  {course.total_lessons || 0} lessons
-                                  {course.duration ? ` • ${formatDuration(course.duration)}` : ''}
-                                </div>
-                              </div>
-                              {/* {requiredCourseIds.includes(course._id) && (
-                                <div className="flex-shrink-0">
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800">
-                                    Required
-                                  </span>
-                                </div>
-                              )} */}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {isCertificateModified && (
-                      <div className="border-t border-neutral-200 pt-6">
-                        <div className="flex justify-end space-x-3">
-                          <Btn variant="outlined" onClick={handleCancelCertificateEdit}>
-                            <FaTimes className="mr-2 h-4 w-4" />
-                            Cancel Changes
-                          </Btn>
-                          <Btn onClick={handleSaveCertificateConfig}>
-                            <FaSave className="mr-2 h-4 w-4" />
-                            Save Certificate Requirements
-                          </Btn>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
 
             {activeTab === 'canvas' && (
                 <div className=''>
