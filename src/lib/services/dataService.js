@@ -6,7 +6,7 @@
 //
 // SPDX-License-Identifier: MIT
 import connectToDatabase from '../mongodb.js';
-import { Path, Course, Lesson, CourseProgress, Collection } from '../models/index.js';
+import { Path, Course, Lesson, CourseProgress } from '../models/index.js';
 
 // Utility function to generate a unique slug
 async function generateUniqueSlug(name, Model) {
@@ -33,93 +33,7 @@ async function generateUniqueSlug(name, Model) {
   return slug;
 }
 
-// Collection Service
-export const CollectionService = {
-  async getAll(filter = {}) {
-    await connectToDatabase();
-    return await Collection.find(filter)
-      .populate({
-        path: 'paths',
-        select: 'name slug description image thumb tags level path_type state created_at courses course_ids',
-        populate: {
-          path: 'courses',
-          select: 'name slug description state'
-        }
-      })
-      .sort({ created_at: -1 });
-  },
 
-  async getById(id) {
-    await connectToDatabase();
-    return await Collection.findById(id).populate('paths', 'name slug description image thumb tags level path_type state created_at');
-  },
-
-  async getBySlug(slug) {
-    await connectToDatabase();
-    return await Collection.findOne({ slug }).populate('paths', 'name slug description image thumb tags level path_type state created_at');
-  },
-
-  async create(data) {
-    await connectToDatabase();
-    
-    // Generate slug if not provided
-    if (!data.slug && data.name) {
-      data.slug = await generateUniqueSlug(data.name, Collection);
-    }
-    
-    const collection = new Collection(data);
-    return await collection.save();
-  },
-
-  async update(id, data) {
-    await connectToDatabase();
-    return await Collection.findByIdAndUpdate(id, data, { new: true });
-  },
-
-  async delete(id) {
-    await connectToDatabase();
-    return await Collection.findByIdAndDelete(id);
-  },
-
-  async addPath(collectionId, pathId) {
-    await connectToDatabase();
-    const collection = await Collection.findById(collectionId);
-    if (collection) {
-      return await collection.addPath(pathId);
-    }
-    throw new Error('Collection not found');
-  },
-
-  async removePath(collectionId, pathId) {
-    await connectToDatabase();
-    const collection = await Collection.findById(collectionId);
-    if (collection) {
-      return await collection.removePath(pathId);
-    }
-    throw new Error('Collection not found');
-  },
-
-  async reorderPaths(collectionId, newOrder) {
-    await connectToDatabase();
-    const collection = await Collection.findById(collectionId);
-    if (collection) {
-      return await collection.reorderPaths(newOrder);
-    }
-    throw new Error('Collection not found');
-  },
-
-  async getByCategory(category) {
-    return await Collection.findByCategory(category);
-  },
-
-  async getByTags(tags) {
-    return await Collection.findByTags(tags);
-  },
-
-  async getActive() {
-    return await Collection.getActive();
-  }
-};
 
 // Path Service
 export const PathService = {
