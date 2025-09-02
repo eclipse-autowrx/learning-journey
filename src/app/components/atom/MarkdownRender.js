@@ -33,7 +33,7 @@ const CodeBlock = ({ className, children, ...props }) => {
       <div className="relative">
         <button
           onClick={handleCopy}
-          className="absolute top-2 right-2 z-10 bg-gray-700 hover:bg-gray-600 text-white text-xs px-2 py-1 rounded transition-colors duration-200"
+          className="absolute top-2 right-2 z-10 bg-neutral-700 hover:bg-gray-600 text-white text-xs px-2 py-1 rounded transition-colors duration-200"
           title="Copy code"
         >
           Copy
@@ -121,7 +121,7 @@ const components = {
         }
         return (
             <code 
-                className={`font-mono text-sm bg-gray-200 dark:bg-gray-700 text-gray-800
+                className={`font-mono text-sm bg-gray-200 dark:bg-neutral-700 text-gray-800
                      dark:text-gray-200 px-1 py-0.5 rounded ${className}`}
                 {...props}
             >
@@ -140,7 +140,7 @@ const components = {
         <table className="w-full border-collapse my-4 text-gray-700 dark:text-gray-300" {...props} />
     ),
     thead: ({ node, ...props }) => (
-        <thead className="bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600" {...props} />
+        <thead className="bg-gray-100 dark:bg-neutral-700 border-b border-gray-200 dark:border-gray-600" {...props} />
     ),
     th: ({ node, ...props }) => (
         <th className="px-4 py-2 text-left font-semibold text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600" {...props} />
@@ -165,7 +165,7 @@ const components = {
                 fullscreenDiv.innerHTML = `
                     <div class="relative w-screen h-screen">
                         <img src="${e.target.src}" alt="${e.target.alt || ''}" class="w-screen h-screen object-contain" />
-                        <button class="absolute top-4 right-4 text-white text-5xl bg-gray-700 bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-70 transition-colors" onclick="this.parentElement.parentElement.remove()">
+                        <button class="absolute top-4 right-4 text-white text-5xl bg-neutral-700 bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-70 transition-colors" onclick="this.parentElement.parentElement.remove()">
                             ×
                         </button>
                     </div>
@@ -211,7 +211,7 @@ const components = {
     ),
     // Keyboard input
     kbd: ({ node, ...props }) => (
-        <kbd className="inline-block px-1.5 py-0.5 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" {...props} />
+        <kbd className="inline-block px-1.5 py-0.5 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-neutral-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" {...props} />
     ),
     details: ({ node, ...props }) => (
         <details className="my-4 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md" {...props} />

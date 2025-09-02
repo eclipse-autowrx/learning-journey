@@ -12,9 +12,9 @@ import React, { useState } from 'react';
 import { FaRoute, FaGraduationCap, FaBook, FaEllipsisV, FaTrash, FaChevronRight, FaChevronDown } from 'react-icons/fa';
 
 const ICONS = {
-  path: <FaRoute className="text-blue-500" />,
-  course: <FaGraduationCap className="text-green-500" />,
-  lesson: <FaBook className="text-purple-500" />,
+  path: <FaRoute className="text-primary-500" />,
+  course: <FaGraduationCap className="text-secondary-500" />,
+  lesson: <FaBook className="text-primary-500" />,
 };
 
 type ItemType = 'path' | 'course' | 'lesson';
@@ -53,14 +53,14 @@ const TreeItem: React.FC<TreeItemProps> = ({ item, type, onSelect, onDelete, sel
   return (
     <div className="my-1">
       <div 
-        className={`flex items-center justify-between p-2 rounded-md cursor-pointer hover:bg-gray-200 ${isSelected ? 'bg-blue-100' : 'bg-white'}`}
+        className={`flex items-center justify-between p-2 rounded-md cursor-pointer hover:bg-neutral-200 ${isSelected ? 'bg-primary-100' : 'bg-white'}`}
         onClick={handleSelect}
       >
         <div className="flex items-center w-full">
           <div className="w-6 min-w-6 max-w-6">
             {hasChildren && (
               <button onClick={(e) => { e.stopPropagation(); handleToggleExpand(); }} 
-                className="p-1 rounded-full hover:bg-gray-300">
+                className="p-1 rounded-full hover:bg-neutral-300">
                 {isExpanded ? <FaChevronDown size="12" /> : <FaChevronRight size="12" />}
               </button>
             )}
@@ -71,12 +71,12 @@ const TreeItem: React.FC<TreeItemProps> = ({ item, type, onSelect, onDelete, sel
         <div className="relative">
           <button
             onClick={(e) => { e.stopPropagation(); setIsDropdownOpen(!isDropdownOpen); }}
-            className="p-1 rounded-full hover:bg-gray-300"
+            className="p-1 rounded-full hover:bg-neutral-300"
           >
             <FaEllipsisV size="14" />
           </button>
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-20 border border-gray-200">
+            <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-20 border border-neutral-200">
               <button
                 onClick={handleDelete}
                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
@@ -89,7 +89,7 @@ const TreeItem: React.FC<TreeItemProps> = ({ item, type, onSelect, onDelete, sel
         </div>
       </div>
       {isExpanded && hasChildren && (
-        <div className="ml-6 pl-2 border-l-2 border-gray-200">
+        <div className="ml-6 pl-2 border-l-2 border-neutral-200">
           {item.courses?.map((course: any) => (
             <TreeItem 
               key={course._id} 
@@ -126,7 +126,7 @@ interface ImportTreeViewProps {
 
 export default function ImportTreeView({ data, onSelect, onDelete, selectedItem }: ImportTreeViewProps) {
   if (!data || !data.paths) {
-    return <p className="text-gray-500">No data to display.</p>;
+    return <p className="text-neutral-500">No data to display.</p>;
   }
 
   return (

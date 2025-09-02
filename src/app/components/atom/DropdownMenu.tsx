@@ -49,13 +49,13 @@ export default function DropdownMenu({
         type="button"
         aria-label={buttonAriaLabel}
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center px-2 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+        className="inline-flex items-center px-2 py-1 text-sm border border-neutral-300 rounded-md hover:bg-neutral-50"
       >
         {trigger ?? <FaEllipsisV className="h-4 w-4" />}
       </button>
       {open && (
         <div
-          className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} mt-2 w-48 bg-white rounded-md shadow-lg z-[9999] border border-gray-200 ${menuClassName || ''}`}
+          className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} mt-2 w-48 bg-white rounded-md shadow-lg z-[9999] border border-neutral-200 ${menuClassName || ''}`}
         >
           <div className="py-1">
             {items.map((item, idx) => (
@@ -64,7 +64,7 @@ export default function DropdownMenu({
                 onClick={() => {
                   try { item.onClick(); } finally { setOpen(false); }
                 }}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${item.danger ? 'text-red-600' : 'text-gray-700'}`}
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-neutral-50 ${item.danger ? 'text-red-600' : 'text-neutral-700'}`}
               >
                 {item.label}
               </button>

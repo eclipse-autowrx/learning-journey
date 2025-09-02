@@ -55,18 +55,18 @@ export default function TagEditor({
   };
 
   return (
-    <div className={`border border-gray-300 rounded-md px-3 py-2 min-h-[38px] flex flex-wrap items-center gap-2 focus-within:ring-blue-500 focus-within:border-blue-500 ${className} ${disabled ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'}`}>
+    <div className={`border border-neutral-300 rounded-md px-3 py-2 min-h-[38px] flex flex-wrap items-center gap-2 focus-within:ring-primary-500 focus-within:border-primary-500 ${className} ${disabled ? 'bg-neutral-50 cursor-not-allowed' : 'bg-white'}`}>
       {tags.map((tag, index) => (
         <span
           key={index}
-          className="inline-flex items-center px-2 py-1 text-sm font-medium bg-blue-100 text-blue-800 rounded-full"
+          className="inline-flex items-center px-2 py-1 text-sm font-medium bg-primary-100 text-primary-800 rounded-full"
         >
           {tag}
           {!disabled && (
             <button
               type="button"
               onClick={() => removeTag(index)}
-              className="ml-1 text-blue-600 hover:text-blue-800 focus:outline-none"
+              className="ml-1 text-primary-600 hover:text-primary-800 focus:outline-none"
               aria-label={`Remove ${tag} tag`}
             >
               <FaTimes className="h-3 w-3" />
@@ -82,7 +82,7 @@ export default function TagEditor({
           onKeyDown={handleKeyDown}
           onBlur={addTag}
           placeholder={tags.length === 0 ? placeholder : ""}
-          className="flex-1 min-w-[120px] border-none outline-none bg-transparent text-sm placeholder-gray-400"
+          className="flex-1 min-w-[120px] border-none outline-none bg-transparent text-sm placeholder-neutral-400"
         />
       )}
     </div>

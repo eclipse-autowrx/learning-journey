@@ -14,9 +14,9 @@ export default function UserBadge({ align = 'right', variant = 'default' }: User
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const baseText = variant === 'transparent' ? 'text-white' : 'text-gray-700';
-  const subText = variant === 'transparent' ? 'text-white/80' : 'text-gray-500';
-  const iconColor = variant === 'transparent' ? 'text-white/90' : 'text-gray-500';
+  const baseText = variant === 'transparent' ? 'text-white' : 'text-neutral-700';
+  const subText = variant === 'transparent' ? 'text-white/80' : 'text-neutral-500';
+  const iconColor = variant === 'transparent' ? 'text-white/90' : 'text-neutral-500';
   const containerAlign = align === 'right' ? 'ml-auto' : '';
 
   // Close dropdown when clicking outside
@@ -53,7 +53,7 @@ export default function UserBadge({ align = 'right', variant = 'default' }: User
           className={`flex items-center gap-2 px-2 text-sm font-medium rounded-md transition-colors ${
             variant === 'transparent' 
               ? 'text-white hover:text-white/50 cursor-pointer' 
-              : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400'
+              : 'text-neutral-700 bg-white border border-neutral-300 hover:bg-neutral-50 hover:border-neutral-400'
           }`}
         >
           Sign In
@@ -73,10 +73,10 @@ export default function UserBadge({ align = 'right', variant = 'default' }: User
       </div>
 
       {isDropdownOpen && (
-        <div className={`absolute top-full mt-1 ${align === 'right' ? 'right-0' : 'left-0'} z-50 min-w-[120px] bg-white border border-gray-200 rounded-md shadow-lg`}>
+        <div className={`absolute top-full mt-1 ${align === 'right' ? 'right-0' : 'left-0'} z-50 min-w-[120px] bg-white border border-neutral-200 rounded-md shadow-lg`}>
           <button
             onClick={handleLogout}
-            className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors"
+            className="w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-100 flex items-center gap-2 transition-colors"
           >
             <FaSignOutAlt className="h-4 w-4" />
             Log Out
