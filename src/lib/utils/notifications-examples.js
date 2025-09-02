@@ -140,7 +140,7 @@ const handleDataLoss = async () => {
     title: 'Unsaved Changes',
     text: 'You have unsaved changes. Do you want to leave without saving?',
     icon: 'warning',
-    confirmButtonColor: '#EF4444', // Red
+    confirmButtonColor: '#ef4444', // Using error color for destructive action
     confirmButtonText: 'Leave Without Saving',
     cancelButtonText: 'Stay and Save',
     showCancelButton: true,

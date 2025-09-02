@@ -9,13 +9,20 @@
 import Swal from 'sweetalert2';
 import { toast } from 'sonner';
 
-// Color scheme
+// Color scheme - using theme colors from globals.css
+// These colors match the Tailwind classes available in your theme:
+// - primary: text-primary-500, bg-primary-500, border-primary-500
+// - success: text-secondary-500, bg-secondary-500, border-secondary-500  
+// - warning: text-accent-500, bg-accent-500, border-accent-500
+// - error: text-red-500, bg-red-500, border-red-500
+// - neutral: text-neutral-500, bg-neutral-500, border-neutral-500
 const COLORS = {
-  primary: '#3B82F6', // Blue-500
-  delete: '#EF4444',  // Red-500
-  success: '#10B981', // Green-500
-  warning: '#F59E0B', // Amber-500
-  info: '#3B82F6',   // Blue-500
+  primary: '#4a7c6b',   // --color-primary-500 (teal)
+  delete: '#ef4444',    // --color-error (red)
+  success: '#22c55e',   // --color-secondary-500 (green)
+  warning: '#eab308',   // --color-accent-500 (yellow)
+  info: '#4a7c6b',      // --color-primary-500 (teal)
+  neutral: '#737373',   // --color-neutral-500 (gray)
 };
 
 // SweetAlert2 configuration
@@ -23,7 +30,7 @@ export const showConfirmDialog = async (options) => {
   const defaultOptions = {
     icon: 'question',
     confirmButtonColor: COLORS.primary,
-    cancelButtonColor: '#6B7280', // Gray-500
+    cancelButtonColor: COLORS.neutral,
     confirmButtonText: 'Yes',
     cancelButtonText: 'Cancel',
     reverseButtons: true,

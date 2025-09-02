@@ -268,10 +268,10 @@ export default function CourseDetailPage() {
 
    if (authLoading) {
      return (
-         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+         <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
              <div className="text-center">
-                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                 <p className="mt-4 text-gray-600">Checking authentication...</p>
+                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+                 <p className="mt-4 text-neutral-600">Checking authentication...</p>
              </div>
          </div>
      );
@@ -281,14 +281,14 @@ export default function CourseDetailPage() {
     const qs = searchParams?.toString();
     const returnTo = encodeURIComponent(`${pathname}${qs ? `?${qs}` : ''}`);
      return (
-         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+         <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
              <div className="text-center">
-                 <h3 className="mt-2 text-lg font-medium text-gray-900">Authentication Required</h3>
-                 <p className="mt-1 text-sm text-gray-500">
+                 <h3 className="mt-2 text-lg font-medium text-neutral-900">Authentication Required</h3>
+                 <p className="mt-1 text-sm text-neutral-500">
                      You must be logged in to access this page.
                  </p>
                 <div className="mt-6">
-                  <Link href={`/login?returnTo=${returnTo}`} className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                  <Link href={`/login?returnTo=${returnTo}`} className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
                     Go to Login
                   </Link>
                 </div>
@@ -344,15 +344,15 @@ export default function CourseDetailPage() {
   const getStateColor = (state: string) => {
     switch (state) {
       case 'published':
-        return 'bg-green-100 text-green-800';
+        return 'bg-secondary-100 text-secondary-800';
       case 'reviewing':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-accent-100 text-accent-800';
       case 'draft':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary-100 text-primary-800';
       case 'archived':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-neutral-100 text-neutral-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-neutral-100 text-neutral-800';
     }
   };
 
@@ -361,13 +361,13 @@ export default function CourseDetailPage() {
       case 'video':
         return 'bg-red-100 text-red-800';
       case 'text-markdown':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary-100 text-primary-800';
       case 'quiz':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-primary-100 text-primary-800';
       case 'interactive':
-        return 'bg-green-100 text-green-800';
+        return 'bg-secondary-100 text-secondary-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-neutral-100 text-neutral-800';
     }
   };
 
@@ -588,10 +588,10 @@ Start writing your lesson content here.`;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading course details...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-neutral-600">Loading course details...</p>
         </div>
       </div>
     );
@@ -599,17 +599,17 @@ Start writing your lesson content here.`;
 
   if (!course || !path) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
-          <FaGraduationCap className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">Course not found</h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <FaGraduationCap className="mx-auto h-12 w-12 text-neutral-400" />
+          <h3 className="mt-2 text-sm font-medium text-neutral-900">Course not found</h3>
+          <p className="mt-1 text-sm text-neutral-500">
             The course you're looking for doesn't exist.
           </p>
           <div className="mt-6">
             <Link
               href={`/manage/paths/${pathSlug}`}
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
             >
               <FaArrowLeft className="mr-2 h-4 w-4" />
               Back to Path
@@ -621,7 +621,7 @@ Start writing your lesson content here.`;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-neutral-50">
       <ManageBreadCrumb items={[
         { label: 'Paths', link: '/manage?tab=paths' },
         { label: path.name, link: `/manage/paths/${path.slug}` },
@@ -634,13 +634,13 @@ Start writing your lesson content here.`;
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{course.name}</h1>
-                <p className="mt-1 text-sm text-gray-500">{course.slug}</p>
+                <h1 className="text-3xl font-bold text-neutral-900">{course.name}</h1>
+                <p className="mt-1 text-sm text-neutral-500">{course.slug}</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-500">State:</span>
+                <span className="text-sm text-neutral-500">State:</span>
                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(course.state)}`}>{course.state}</span>
                 <DropdownMenu
                   items={COURSE_STATES.filter(s => s.value !== 'released').map((s) => ({
@@ -672,13 +672,13 @@ Start writing your lesson content here.`;
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tabs */}
         <div className="bg-white shadow rounded-lg">
-          <div className="border-b border-gray-200">
+          <div className="border-b border-neutral-200">
             <nav className="-mb-px flex space-x-8 px-6">
               <button
                 onClick={() => setActiveTab('info')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'info'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
                   }`}
               >
                 <FaCog className="inline mr-2 h-4 w-4" />
@@ -687,8 +687,8 @@ Start writing your lesson content here.`;
               <button
                 onClick={() => setActiveTab('lessons')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'lessons'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
                   }`}
               >
                 <FaList className="inline mr-2 h-4 w-4" />
@@ -701,7 +701,7 @@ Start writing your lesson content here.`;
             {activeTab === 'info' && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
+                  <h3 className="text-lg font-medium text-neutral-900">Basic Information</h3>
                   <div className="flex items-center space-x-3">
                     {isEditing ? (
                       <>
@@ -728,47 +728,47 @@ Start writing your lesson content here.`;
                     <dl className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <dt className="text-sm font-semibold text-gray-900 mb-2">Name</dt>
+                          <dt className="text-sm font-semibold text-neutral-900 mb-2">Name</dt>
                           {isEditing ? (
                             <input
                               type="text"
                               value={editForm.name}
                               onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              className="block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                             />
                           ) : (
-                            <dd className="text-sm text-gray-900">{course.name}</dd>
+                            <dd className="text-sm text-neutral-900">{course.name}</dd>
                           )}
                         </div>
                         <div>
-                          <dt className="text-sm font-semibold text-gray-900 mb-2">Slug</dt>
-                          <dd className="text-sm text-gray-700 font-mono">{course.slug}</dd>
+                          <dt className="text-sm font-semibold text-neutral-900 mb-2">Slug</dt>
+                          <dd className="text-sm text-neutral-700 font-mono">{course.slug}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-semibold text-gray-900 mb-2">Category</dt>
+                          <dt className="text-sm font-semibold text-neutral-900 mb-2">Category</dt>
                           {isEditing ? (
                             <input
                               type="text"
                               value={editForm.category}
                               onChange={(e) => setEditForm({...editForm, category: e.target.value})}
-                              className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              className="block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                             />
                           ) : (
-                            <dd className="text-sm text-gray-900">{course.category || '-'}</dd>
+                            <dd className="text-sm text-neutral-900">{course.category || '-'}</dd>
                           )}
                         </div>
                       </div>
                       <div>
-                        <dt className="text-sm font-semibold text-gray-900 mb-2">Description</dt>
+                        <dt className="text-sm font-semibold text-neutral-900 mb-2">Description</dt>
                         {isEditing ? (
                           <textarea
                             value={editForm.description}
                             onChange={(e) => setEditForm({...editForm, description: e.target.value})}
                             rows={4}
-                            className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            className="block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                           />
                         ) : (
-                          <dd className="text-sm text-gray-900">{course.description}</dd>
+                          <dd className="text-sm text-neutral-900">{course.description}</dd>
                         )}
                       </div>
                     </dl>
@@ -791,11 +791,11 @@ Start writing your lesson content here.`;
                       />
                     ) : (
                       <div>
-                        <label className="block text-sm font-semibold text-gray-900 mb-2">Course Image</label>
+                        <label className="block text-sm font-semibold text-neutral-900 mb-2">Course Image</label>
                         {course.image ? (
                           <img src={course.image} alt={course.name} className="rounded-md w-full object-contain" />
                         ) : (
-                          <div className="text-sm text-gray-500">No image</div>
+                          <div className="text-sm text-neutral-500">No image</div>
                         )}
                       </div>
                     )}
@@ -807,7 +807,7 @@ Start writing your lesson content here.`;
             {activeTab === 'lessons' && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">Lessons</h3>
+                  <h3 className="text-lg leading-6 font-medium text-neutral-900">Lessons</h3>
                   <Btn onClick={openCreateLesson}>
                     <FaPlus className="mr-2 h-4 w-4" />
                     Add Lesson
@@ -816,9 +816,9 @@ Start writing your lesson content here.`;
 
                 {lessons.length === 0 ? (
                   <div className="text-center py-12">
-                    <FaBook className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">No lessons</h3>
-                    <p className="mt-1 text-sm text-gray-500">This course doesn't have any lessons yet.</p>
+                    <FaBook className="mx-auto h-12 w-12 text-neutral-400" />
+                    <h3 className="mt-2 text-sm font-medium text-neutral-900">No lessons</h3>
+                    <p className="mt-1 text-sm text-neutral-500">This course doesn't have any lessons yet.</p>
                   </div>
                 ) : (
                   <div className="flex gap-6">
@@ -830,25 +830,25 @@ Start writing your lesson content here.`;
                             <div
                               {...provided.droppableProps}
                               ref={provided.innerRef}
-                              className="bg-white border border-gray-200 rounded-lg overflow-hidden"
+                              className="bg-white border border-neutral-200 rounded-lg overflow-hidden"
                             >
-                              <ul className="divide-y divide-gray-200">
+                              <ul className="divide-y divide-neutral-200">
                                 {lessons.map((l: any, index: number) => (
                                   <Draggable key={l._id} draggableId={l._id} index={index}>
                                     {(provided) => (
                                       <li
                                         ref={provided.innerRef}
                                         {...provided.draggableProps}
-                                        className={`p-4 cursor-pointer group ${selectedLessonSlug === l.slug ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+                                        className={`p-4 cursor-pointer group ${selectedLessonSlug === l.slug ? 'bg-primary-50' : 'hover:bg-neutral-50'}`}
                                         onClick={() => setSelectedLessonSlug(l.slug)}
                                       >
                                         <div className="flex justify-between items-center">
                                           <div className="flex items-center">
                                             <div {...provided.dragHandleProps} className="p-1">
-                                              <FaGripVertical className="h-4 w-4 text-gray-400" />
+                                              <FaGripVertical className="h-4 w-4 text-neutral-400" />
                                             </div>
                                             <div className="flex flex-col items-start space-y-1 ml-2">
-                                              <div className="text-sm font-medium text-gray-900">{index + 1}. {l.name}</div>
+                                              <div className="text-sm font-medium text-neutral-900">{index + 1}. {l.name}</div>
                                               <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full ${getLessonTypeColor(l.lesson_type)}`}>
                                                 {l.lesson_type}
                                               </span>
@@ -875,24 +875,24 @@ Start writing your lesson content here.`;
                     {/* Right: view/edit tabs with render and editor side-by-side */}
                     <div className="flex-1">
                       {!selectedLesson ? (
-                        <div className="h-full flex items-center justify-center text-gray-500">Select a lesson to view/edit</div>
+                        <div className="h-full flex items-center justify-center text-neutral-500">Select a lesson to view/edit</div>
                       ) : (
-                        <div className="bg-white border border-gray-200 rounded-lg">
-                          <div className="border-b border-gray-200 flex items-center justify-between">
+                        <div className="bg-white border border-neutral-200 rounded-lg">
+                          <div className="border-b border-neutral-200 flex items-center justify-between">
                             <div className="flex">
                               
                               <button onClick={() => setLessonDetailTab('info')} 
-                                className={`px-4 py-2 text-sm font-medium ${lessonDetailTab === 'info' ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600'}`}>
+                                className={`px-4 py-2 text-sm font-medium ${lessonDetailTab === 'info' ? 'text-primary-600 border-b-2 border-primary-500' : 'text-neutral-600'}`}>
                                 <FaInfoCircle className="inline mr-2 h-4 w-4" />
                                 Lesson Info
                               </button>
                               <button onClick={() => setLessonDetailTab('edit')} 
-                                className={`px-4 py-2 text-sm font-medium ${lessonDetailTab === 'edit' ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600'}`}>
+                                className={`px-4 py-2 text-sm font-medium ${lessonDetailTab === 'edit' ? 'text-primary-600 border-b-2 border-primary-500' : 'text-neutral-600'}`}>
                                 <FaEdit className="inline mr-2 h-4 w-4" />
                                 Edit Content
                               </button>
                               <button onClick={() => setLessonDetailTab('view')} 
-                                className={`px-4 py-2 text-sm font-medium ${lessonDetailTab === 'view' ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-600'}`}>
+                                className={`px-4 py-2 text-sm font-medium ${lessonDetailTab === 'view' ? 'text-primary-600 border-b-2 border-primary-500' : 'text-neutral-600'}`}>
                                 <FaEye className="inline mr-2 h-4 w-4" />
                                 Preview
                               </button>
@@ -901,7 +901,7 @@ Start writing your lesson content here.`;
                             <div className="px-4 py-2">
                               <button
                                 disabled={!isLessonDirty}
-                                className={`inline-flex items-center px-4 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isLessonDirty ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'}`}
+                                className={`inline-flex items-center px-4 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isLessonDirty ? 'bg-primary-600 hover:bg-primary-700' : 'bg-neutral-300 cursor-not-allowed'}`}
                                 onClick={async () => {
                                   if (editableLesson?.lesson_type === 'quiz' && !validateQuizLesson(editableLesson)) {
                                     return; // Stop if validation fails
@@ -940,16 +940,16 @@ Start writing your lesson content here.`;
                               <div className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div>
-                                    <label className="block text-sm font-medium text-gray-700">Name</label>
-                                    <input name="name" className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.name) || ''} onChange={handleLessonInfoChange} />
+                                    <label className="block text-sm font-medium text-neutral-700">Name</label>
+                                    <input name="name" className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.name) || ''} onChange={handleLessonInfoChange} />
                                   </div>
                                   <div>
-                                    <label className="block text-sm font-medium text-gray-700">Slug</label>
-                                    <input name="slug" className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.slug) || ''} onChange={handleLessonInfoChange} />
+                                    <label className="block text-sm font-medium text-neutral-700">Slug</label>
+                                    <input name="slug" className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.slug) || ''} onChange={handleLessonInfoChange} />
                                   </div>
                                   {/* <div>
-                                    <label className="block text-sm font-medium text-gray-700">Type</label>
-                                    <select className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.lesson_type)||''} onChange={(e)=> setEditableLesson((p:any)=> ({...p, lesson_type: e.target.value}))}>
+                                    <label className="block text-sm font-medium text-neutral-700">Type</label>
+                                    <select className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.lesson_type)||''} onChange={(e)=> setEditableLesson((p:any)=> ({...p, lesson_type: e.target.value}))}>
                                       <option value="text-markdown">text-markdown</option>
                                       <option value="video">video</option>
                                       <option value="quiz">quiz</option>
@@ -957,13 +957,13 @@ Start writing your lesson content here.`;
                                     </select>
                                   </div> */}
                                   {/* <div>
-                                    <label className="block text-sm font-medium text-gray-700">Duration (minutes)</label>
-                                    <input type="number" className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.duration)||0} onChange={(e)=> setEditableLesson((p:any)=> ({...p, duration: Number(e.target.value)}))} />
+                                    <label className="block text-sm font-medium text-neutral-700">Duration (minutes)</label>
+                                    <input type="number" className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.duration)||0} onChange={(e)=> setEditableLesson((p:any)=> ({...p, duration: Number(e.target.value)}))} />
                                   </div> */}
                                 </div>
                                 <div>
-                                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                                  <textarea name="description" rows={4} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.description) || ''} onChange={handleLessonInfoChange} />
+                                  <label className="block text-sm font-medium text-neutral-700">Description</label>
+                                  <textarea name="description" rows={4} className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm" value={(editableLesson?.description) || ''} onChange={handleLessonInfoChange} />
                                 </div>
                                 {/* Save moved to header */}
                               </div>
@@ -1023,22 +1023,22 @@ Start writing your lesson content here.`;
 
       {/* Add modal UI for lesson creation */}
       {showLessonModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div className="fixed inset-0 bg-neutral-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Create Lesson</h3>
+              <h3 className="text-lg font-medium text-neutral-900 mb-4">Create Lesson</h3>
               <form onSubmit={handleLessonSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Name *</label>
-                  <input type="text" required value={lessonForm.name} onChange={(e) => setLessonForm((f: any) => ({ ...f, name: e.target.value }))} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                  <label className="block text-sm font-medium text-neutral-700">Name *</label>
+                  <input type="text" required value={lessonForm.name} onChange={(e) => setLessonForm((f: any) => ({ ...f, name: e.target.value }))} className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea value={lessonForm.description} onChange={(e) => setLessonForm((f: any) => ({ ...f, description: e.target.value }))} rows={3} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                  <label className="block text-sm font-medium text-neutral-700">Description</label>
+                  <textarea value={lessonForm.description} onChange={(e) => setLessonForm((f: any) => ({ ...f, description: e.target.value }))} rows={3} className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Lesson Type *</label>
-                  <select value={lessonForm.lesson_type} onChange={(e) => setLessonForm((f: any) => ({ ...f, lesson_type: e.target.value }))} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                  <label className="block text-sm font-medium text-neutral-700">Lesson Type *</label>
+                  <select value={lessonForm.lesson_type} onChange={(e) => setLessonForm((f: any) => ({ ...f, lesson_type: e.target.value }))} className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500">
                     <option value="text-markdown">Text Markdown</option>
                     <option value="video">Video</option>
                     <option value="quiz">Quiz</option>

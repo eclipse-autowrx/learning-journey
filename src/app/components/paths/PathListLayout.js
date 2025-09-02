@@ -40,16 +40,16 @@ const LaunchCourseBtn = ({path, course}) => {
     return <>   
         {/* <div className="text-xs">{course?.context?.state }</div> */}
             { popupExternalLaunch && <Popup>
-                <div className="pl-4 pr-2 py-2 flex justify-between items-center text-xl font-bold text-black border-b border-slate-200">
+                <div className="pl-4 pr-2 py-2 flex justify-between items-center text-xl font-bold text-neutral-900 border-b border-neutral-200">
                     Launch External Site
 
-                    <IoClose size={30} className="cursor-pointer hover:scale-110 text-black" 
+                    <IoClose size={30} className="cursor-pointer hover:scale-110 text-neutral-900" 
                         onClick={() => setPopupExternalLaunch(false)} />
                 </div>
                 <div className="flex text-sm items-center justify-center mt-2 px-8 py-4">
-                    <p className="text-gray-600 text-center">
+                    <p className="text-neutral-600 text-center">
                         <span><i>You are about to be redirected to an external course at: </i></span>
-                        <div className="mt-2 text-black-600 break-all text-base text-black">
+                        <div className="mt-2 text-neutral-600 break-all text-base text-neutral-900">
                             {course.extends?.external_link}
                         </div>
                     </p>
@@ -142,14 +142,14 @@ const CourseBlock = ({ path, course, index }) => {
         }
 
         {/* { course?.config?.pre_block && 
-                        <div className="rounded-full  flex items-center justify-center px-8 py-1 border-4 border-[#41B452] bg-white">
+                        <div className="rounded-full  flex items-center justify-center px-8 py-1 border-4 border-secondary-500 bg-white">
                             <span className="text-xl font-bold">{course?.config?.pre_block.type} - </span> {course?.config?.pre_block.content}
                         </div>
                     } */}
 
         {course?.type == 'final-test' && <>
-            <div className="h-8 w-1 border-l-4 border-dashed border-[#41B452]" />
-            <div className="rounded-full text-black text-[20px] font-light flex items-center justify-center px-8 py-1 border-4 border-[#41B452] bg-white">
+            <div className="h-8 w-1 border-l-4 border-dashed border-secondary-500" />
+            <div className="rounded-full text-neutral-900 text-[20px] font-light flex items-center justify-center px-8 py-1 border-4 border-secondary-500 bg-white">
                 <MdOutlineChecklist size={32} />
                 <span className="ml-2 mr-1 text-[30px] font-bold">Final test </span> - Prove your skill mastery
             </div>
@@ -157,8 +157,8 @@ const CourseBlock = ({ path, course, index }) => {
         }
 
         {course?.type == 'award' && <>
-            <div className="h-8 w-1 border-l-4 border-dashed border-[#41B452]" />
-            <div className="rounded-full text-black text-[20px] font-light flex items-center justify-center px-8 py-1 border-4 border-[#41B452] bg-white">
+            <div className="h-8 w-1 border-l-4 border-dashed border-secondary-500" />
+            <div className="rounded-full text-neutral-900 text-[20px] font-light flex items-center justify-center px-8 py-1 border-4 border-secondary-500 bg-white">
                 <PiCertificateBold size={32} />
                 <span className="ml-2 mr-1 text-[30px] font-bold">Certificate </span> - Earn your recognition
             </div>
@@ -166,7 +166,7 @@ const CourseBlock = ({ path, course, index }) => {
         }
 
 
-        <div className="h-8 w-1 border-l-4 border-dashed border-[#41B452]" />
+        <div className="h-8 w-1 border-l-4 border-dashed border-secondary-500" />
 
         <div className="w-full min-h-32 bg-white rounded-sm shadow-md flex flex-col">
             <div className="border-b border-slate-200 min-h-[40px] 
@@ -174,20 +174,20 @@ const CourseBlock = ({ path, course, index }) => {
                                         flex items-center">
 
                 <div className="text-slate-300">
-                    {course?.context?.state === 'completed' && <IoCheckbox size={32} className="text-[#41B452]" />}
+                    {course?.context?.state === 'completed' && <IoCheckbox size={32} className="text-secondary-500" />}
                     {course?.context?.state !== 'completed' && <MdCheckBoxOutlineBlank size={34} />}
                 </div>
-                <div className="ml-2 text-xl md:text-2xl font-semibold text-gray-900">{course.name}</div>
+                <div className="ml-2 text-xl md:text-2xl font-semibold text-neutral-900">{course.name}</div>
             </div>
 
             <div className="grow grid grid-cols-2 min-h-[120px] ">
                 <div className="px-4 pt-2 pb-4 flex flex-col">
-                    <div className="grow text-base text-gray-800">
+                    <div className="grow text-base text-neutral-800">
                         {course.description}
                     </div>
                     <div className="flex space-x-4 justify-between">
                         {course.type == "award" && <>
-                            <div className={`bg-black rounded-full px-4 py-2 text-lg font-bold text-white w-fit
+                            <div className={`bg-neutral-900 rounded-full px-4 py-2 text-lg font-bold text-white w-fit
                                             flex items-center
                                             ${course?.context?.state === 'completed' && 'cursor-pointer hover:scale-110'}`}
                                 onClick={() => {
@@ -198,19 +198,19 @@ const CourseBlock = ({ path, course, index }) => {
                                 View
                             </div>
 
-                            <div className="flex items-center text-lg text-black space-x-2">
+                            <div className="flex items-center text-lg text-neutral-900 space-x-2">
                                 Share: 
-                                {course?.context?.state !== 'completed' && <div className="ml-1 text-sm text-slate-400 italic">
+                                {course?.context?.state !== 'completed' && <div className="ml-1 text-sm text-neutral-400 italic">
                                     Finish this course to unlock</div>}
                                 {
                                     course?.context?.state === 'completed'&& <>
-                                            <FaLinkedin className="ml-1 text-blue-700 cursor-pointer hover:scale-110" 
+                                            <FaLinkedin className="ml-1 text-primary-700 cursor-pointer hover:scale-110" 
                                                 size={30}
                                                 onClick={() => {
                                                 window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href+"/cert")}`, '_blank');
                                             }}
                                         />
-                                        <FaFacebookSquare className=" text-blue-700 cursor-pointer hover:scale-110"
+                                        <FaFacebookSquare className=" text-primary-700 cursor-pointer hover:scale-110"
                                             size={30}
                                             onClick={() => {
                                                 window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href+"/cert")}`, '_blank');
@@ -250,7 +250,7 @@ const PathListLayout = ({ path, courses, onRequestUpdateProgress }) => {
     // }, [courses])
 
     return <div className="w-full">
-        <div className="mt-4 bg-slate-200 min-h-[800px] flex flex-col justify-begin items-center px-4 py-8">
+        <div className="mt-4 bg-neutral-200 min-h-[800px] flex flex-col justify-begin items-center px-4 py-8">
             <div className="max-w-[780px] w-full flex flex-col items-center">
                 {courses && courses.length>0 && courses.map((course, cIndex) => <CourseBlock key={cIndex} index={cIndex} course={course} path={path} />)}
             </div>

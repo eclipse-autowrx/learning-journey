@@ -206,16 +206,16 @@ const InteractiveLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextBut
             <div className="mt-0 text-gray-500 text-sm leading-tight">{lesson.description}</div>
         </div> */}
         {lesson.sequence && <>
-            <div className="text-xl font-bold text-black">{lesson.sequence.name}</div>
-            <div className="mt-0 text-gray-500 text-base leading-tight">{lesson.sequence.description}</div>
+            <div className="text-xl font-bold text-neutral-900">{lesson.sequence.name}</div>
+            <div className="mt-0 text-neutral-500 text-base leading-tight">{lesson.sequence.description}</div>
             <div className="mt-4 bg-white">
-                <div className="text-lg text-gray-500">Actions you need to perform:</div>
+                <div className="text-lg text-neutral-500">Actions you need to perform:</div>
                 {Array.isArray(actions) && actions.map((action, index) => {
                     return <div key={index} className="w-full px-2 py-1">
                         <div className="w-full flex items-center">
                             <span className="flex w-6 items-center justify-center">
                                 {action.status == 'finished' && <img src="/imgs/bare/icon_checked.svg" className="w-5 h-5 mr-2 align-middle" />}
-                                {action.status !== 'finished' && <span className="inline-block w-2 h-2 rounded-full bg-gray-400 mr-2 align-middle"></span>}
+                                {action.status !== 'finished' && <span className="inline-block w-2 h-2 rounded-full bg-neutral-400 mr-2 align-middle"></span>}
                             </span>
                             {action.name}
                         </div>
@@ -241,8 +241,8 @@ const InteractiveLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextBut
 
             {lesson.context && <div className="mt-4 space-x-4">
                 <div className="flex items-center">
-                    <span className="text-gray-500 text-sm w-20">Finished at:</span>
-                    <span className="text-gray-500 text-sm" >
+                    <span className="text-neutral-500 text-sm w-20">Finished at:</span>
+                    <span className="text-neutral-500 text-sm" >
                         {new Date(lesson.context?.progress?.finished_at).toLocaleString('en-GB', {
                             day: '2-digit',
                             month: '2-digit',

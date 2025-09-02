@@ -32,7 +32,7 @@ export default function UserProgressDetail() {
       <h2 className="text-xl font-semibold mt-4 mb-2">Paths</h2>
       <table className="min-w-full border mb-6">
         <thead>
-          <tr className="bg-gray-50 border-b">
+          <tr className="bg-neutral-50 border-b">
             <th className="text-left p-2">Path</th>
             <th className="text-left p-2">State</th>
             <th className="text-left p-2">Started</th>
@@ -54,7 +54,7 @@ export default function UserProgressDetail() {
       <h2 className="text-xl font-semibold mt-4 mb-2">Courses</h2>
       <table className="min-w-full border">
         <thead>
-          <tr className="bg-gray-50 border-b">
+          <tr className="bg-neutral-50 border-b">
             <th className="text-left p-2">Course</th>
             <th className="text-left p-2">State</th>
             <th className="text-left p-2">Started</th>

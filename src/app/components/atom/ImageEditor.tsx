@@ -107,8 +107,8 @@ export default function ImageEditor({ label, imageUrl, onImageUrlChange, allowDe
             </svg>
           )}
 
-          <div className="flex text-sm text-gray-600 justify-center items-center mt-2">
-            <label htmlFor={`file-upload-${label}`} className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+          <div className="flex text-sm text-neutral-600 justify-center items-center mt-2">
+            <label htmlFor={`file-upload-${label}`} className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
               <span>{imageUrl ? 'Change image' : 'Upload an image'}</span>
               <input ref={fileInputRef} id={`file-upload-${label}`} name="file-upload" type="file" className="sr-only" onChange={handleImageUpload} accept="image/*" />
             </label>

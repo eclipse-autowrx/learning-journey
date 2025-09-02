@@ -79,16 +79,16 @@ const TextMarkdownEditor = ({ value, onChange }) => {
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
-        <label className="block text-sm font-medium text-gray-700">Markdown Content</label>
+        <label className="block text-sm font-medium text-neutral-700">Markdown Content</label>
         <button
           onClick={handleLocalizeImages}
           disabled={isLocalizing}
-          className="px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400"
+          className="px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:bg-neutral-400"
         >
           {isLocalizing ? 'Localizing...' : 'Localize Images'}
         </button>
       </div>
-      <div className="border border-gray-300 rounded-md overflow-hidden">
+      <div className="border border-neutral-300 rounded-md overflow-hidden">
         <Editor
           height="400px"
           language="markdown"

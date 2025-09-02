@@ -29,7 +29,7 @@ export default function AdminProgressDashboard() {
           <div key={idx} className="border rounded p-3 flex justify-between">
             <div>
               <div className="font-semibold">Path: {r.path_id}</div>
-              <div className="text-sm text-gray-600">Total users: {r.total}</div>
+              <div className="text-sm text-neutral-600">Total users: {r.total}</div>
             </div>
             <div className="text-sm">
               <div>completed: {r.counts?.completed || 0}</div>
@@ -37,7 +37,7 @@ export default function AdminProgressDashboard() {
               <div>not_started: {r.counts?.not_started || 0}</div>
             </div>
             <div>
-              <Link className="text-blue-600" href={`/manage/progress/paths/${r.path_id}`}>View details</Link>
+              <Link className="text-primary-600" href={`/manage/progress/paths/${r.path_id}`}>View details</Link>
             </div>
           </div>
         ))}

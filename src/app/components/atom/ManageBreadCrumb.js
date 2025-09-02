@@ -19,7 +19,7 @@ const ManageBreadCrumb = ({ items, rightSlot }) => {
     };
 
     return (
-        <div className="px-6 py-2 w-full flex flex-row items-center text-white text-sm font-semibold bg-green-600">
+        <div className="px-6 py-2 w-full flex flex-row items-center text-white text-sm font-semibold bg-primary-500">
             <div className="flex flex-row items-center">
                 <Link href="/" className="hover:underline">Home</Link>
                 <span className="mx-2">/</span>

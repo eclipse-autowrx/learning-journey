@@ -26,7 +26,7 @@ export default function CourseProgressDetail() {
       {!loading && rows.length === 0 && <div>No data</div>}
       <table className="min-w-full border">
         <thead>
-          <tr className="bg-gray-50 border-b">
+          <tr className="bg-neutral-50 border-b">
             <th className="text-left p-2">User</th>
             <th className="text-left p-2">State</th>
             <th className="text-left p-2">Started</th>

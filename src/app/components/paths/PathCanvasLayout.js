@@ -48,16 +48,16 @@ const CourseNode = ({ path, item, onRequestUpdateProgress, maps }) => {
     {showCert && <CertificateScreen image={item.course?.image} requestClose={() => setShowCert(false)} />}
 
     {popupExternalLaunch && <Popup>
-      <div className="pl-4 pr-2 py-2 flex justify-between items-center text-xl font-bold text-black border-b border-slate-200">
+      <div className="pl-4 pr-2 py-2 flex justify-between items-center text-xl font-bold text-neutral-900 border-b border-neutral-200">
         Launch External Site
 
-        <IoClose size={30} className="cursor-pointer hover:scale-110 text-black"
+        <IoClose size={30} className="cursor-pointer hover:scale-110 text-neutral-900"
           onClick={() => setPopupExternalLaunch(false)} />
       </div>
       <div className="flex text-sm items-center justify-center mt-2 px-8 py-4">
-        <p className="text-gray-600 text-center">
+        <p className="text-neutral-600 text-center">
           <span><i>You are about to be redirected to an external course at: </i></span>
-          <div className="mt-2 text-black-600 break-all text-base text-black">
+          <div className="mt-2 text-neutral-600 break-all text-base text-neutral-900">
             {item.course?.extends?.external_link}
           </div>
         </p>
@@ -139,7 +139,7 @@ const CourseNode = ({ path, item, onRequestUpdateProgress, maps }) => {
       }}>
         {isCertificate ? (
           // Certificate item
-          <div className={`h-full w-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full 
+          <div className={`h-full w-full bg-gradient-to-br from-accent-400 to-accent-600 rounded-full 
           flex items-center justify-center relative ${pathCompleted ? "" : "opacity-30"}`}>
             <div className="text-white text-3xl">
               {pathCompleted ? <FaGraduationCap className="text-white text-3xl" /> : <FaLock className="text-white text-2xl" />}
@@ -165,7 +165,7 @@ const CourseNode = ({ path, item, onRequestUpdateProgress, maps }) => {
       </div>
 
       <div
-        className="mt-0 text-slate-700 text-[10px] lg:text:[10px] xl:text-base 
+        className="mt-0 text-neutral-700 text-[10px] lg:text:[10px] xl:text-base 
                       font-semibold text-center leading-none"
         style={{
           maxWidth: "11vw",
@@ -181,7 +181,7 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
   const router = useRouter();
 
   return <div className="px-2 lg:px-4">
-    <div className="relative w-full h-[560px] rounded-sm border-2 border-gray-200"
+    <div className="relative w-full h-[560px] rounded-sm border-2 border-neutral-200"
       style={{
         backgroundImage: `url(${path.background_img})`,
         backgroundSize: "cover",

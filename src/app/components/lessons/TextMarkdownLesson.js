@@ -20,8 +20,8 @@ const TextMarkdownLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextBu
 
     return <div className="w-full">
         {/* <div className="px-2 py-2">
-            <div className="text-xl font-bold text-black">{lesson.name}</div>
-            { lesson.description && <div className="mt-2 text-gray-500 text-sm leading-tight">{lesson.description}</div> }
+            <div className="text-xl font-bold text-neutral-900">{lesson.name}</div>
+            { lesson.description && <div className="mt-2 text-neutral-500 text-sm leading-tight">{lesson.description}</div> }
         </div>
         <img className="w-full" src="/imgs/bare/horizontal_line.svg"/> */}
 

@@ -221,17 +221,17 @@ function ManagePageInner() {
   const getStateColor = (state: string) => {
     switch (state) {
       case 'published':
-        return 'bg-green-100 text-green-800';
+        return 'bg-secondary-100 text-secondary-800';
       case 'reviewing':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-accent-100 text-accent-800';
       case 'draft':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary-100 text-primary-800';
       case 'archived':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-neutral-100 text-neutral-800';
       case 'locked':
         return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-neutral-100 text-neutral-800';
     }
   };
 
@@ -716,10 +716,10 @@ function ManagePageInner() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Checking authentication...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-neutral-600">Checking authentication...</p>
         </div>
       </div>
     );
@@ -729,16 +729,16 @@ function ManagePageInner() {
     const qs = searchParams?.toString();
     const returnTo = encodeURIComponent(`${pathname}${qs ? `?${qs}` : ''}`);
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
-          <h3 className="mt-2 text-lg font-medium text-gray-900">Authentication Required</h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <h3 className="mt-2 text-lg font-medium text-neutral-900">Authentication Required</h3>
+          <p className="mt-1 text-sm text-neutral-500">
             You must be logged in to access this page.
           </p>
           <div className="mt-6">
             <Link
               href={`/login?returnTo=${returnTo}`}
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
             >
               Go to Login
             </Link>
@@ -750,17 +750,17 @@ function ManagePageInner() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading management dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-neutral-600">Loading management dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-neutral-50">
       <div className="flex items-center justify-between">
         <ManageBreadCrumb items={[]} rightSlot={<UserBadge align="right" variant="transparent" />} />
       </div>
@@ -769,8 +769,8 @@ function ManagePageInner() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Management Dashboard</h1>
-              <p className="mt-1 text-sm text-gray-500">
+              <h1 className="text-3xl font-bold text-neutral-900">Management Dashboard</h1>
+              <p className="mt-1 text-sm text-neutral-500">
                 Overview of all content in the platform.
               </p>
             </div>
@@ -790,14 +790,14 @@ function ManagePageInner() {
         
         {/* Tabs */}
         <div className="bg-white shadow rounded-lg">
-          <div className="border-b border-gray-200">
+          <div className="border-b border-neutral-200">
             <nav className="-mb-px flex space-x-8 px-6">
               <button
                 onClick={() => setActiveTab('paths')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'paths'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
                 }`}
               >
                 Paths ({paths.length})
@@ -806,8 +806,8 @@ function ManagePageInner() {
                 onClick={() => setActiveTab('studio')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'studio'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
                 }`}
               >
                 Import
@@ -821,7 +821,7 @@ function ManagePageInner() {
             {activeTab === 'paths' && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  <h3 className="text-lg leading-6 font-medium text-neutral-900">
                     Paths
                   </h3>
                   <div className="flex items-center space-x-3">
@@ -832,7 +832,7 @@ function ManagePageInner() {
                     />
                     <button 
                       onClick={openCreatePath}
-                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
                     >
                       <FaPlus className="mr-2 h-4 w-4" />
                       Create Path
@@ -842,9 +842,9 @@ function ManagePageInner() {
 
                 {paths.length === 0 ? (
                   <div className="text-center py-12">
-                    <FaRoute className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">No paths</h3>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <FaRoute className="mx-auto h-12 w-12 text-neutral-400" />
+                    <h3 className="mt-2 text-sm font-medium text-neutral-900">No paths</h3>
+                    <p className="mt-1 text-sm text-neutral-500">
                       Get started by creating a new path.
                     </p>
                   </div>
@@ -855,9 +855,9 @@ function ManagePageInner() {
                       <div>
                         {/* Bulk Actions Bar */}
                         {selectedPaths.length > 0 && (
-                          <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 mb-4 rounded-t-lg">
+                          <div className="bg-primary-50 border-b border-primary-200 px-6 py-3 mb-4 rounded-t-lg">
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-blue-700">
+                              <span className="text-sm text-primary-700">
                                 {selectedPaths.length} item{selectedPaths.length > 1 ? 's' : ''} selected
                               </span>
                               <div className="flex items-center space-x-3">
@@ -900,8 +900,8 @@ function ManagePageInner() {
                         )}
                         
                         <div className="overflow-x-auto">
-                          <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                          <table className="min-w-full divide-y divide-neutral-200">
+                            <thead className="bg-neutral-50">
                               <tr>
                                 <th className="px-6 py-3 w-12">
                                   <input
@@ -915,32 +915,32 @@ function ManagePageInner() {
                                         setSelectedPaths([]);
                                       }
                                     }}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded"
                                   />
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                                   Path
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                                   Category
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                                   Courses
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                                   State
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                                   Created
                                 </th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
                                   Actions
                                 </th>
                               </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-white divide-y divide-neutral-200">
                               {filteredPaths.map((path) => (
-                                <tr key={path._id} className={`hover:bg-gray-50 ${selectedPaths.includes(path._id) ? 'bg-blue-50' : ''}`}>
+                                <tr key={path._id} className={`hover:bg-neutral-50 ${selectedPaths.includes(path._id) ? 'bg-primary-50' : ''}`}>
                                   <td className="px-6 py-3">
                                     <input
                                       type="checkbox"
@@ -950,33 +950,33 @@ function ManagePageInner() {
                                           prev.includes(path._id) ? prev.filter(id => id !== path._id) : [...prev, path._id]
                                         );
                                       }}
-                                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded"
                                     />
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center">
                                       <div className="flex-shrink-0 h-10 w-10">
-                                        <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center">
+                                        <div className="h-10 w-10 rounded-lg bg-primary-500 flex items-center justify-center">
                                           <FaRoute className="h-6 w-6 text-white" />
                                         </div>
                                       </div>
                                       <div className="ml-4">
                                         <Link 
                                           href={`/manage/paths/${path.slug}`}
-                                          className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                                          className="text-sm font-medium text-neutral-900 hover:text-primary-600"
                                         >
                                           {path.name}
                                         </Link>
-                                        <div className="text-sm text-gray-500">
+                                        <div className="text-sm text-neutral-500">
                                           {path.slug}
                                         </div>
                                       </div>
                                     </div>
                                   </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                                     {path.category || '-'}
                                   </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                                     {path.total_courses || 0}
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap">
@@ -984,14 +984,14 @@ function ManagePageInner() {
                                       {PATH_STATES.find(s => s.value === path.state)?.label || path.state}
                                     </span>
                                   </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
                                     {new Date(path.created_at).toLocaleDateString()}
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div className="flex items-center justify-end space-x-2">
                                       <Link 
                                         href={`/manage/paths/${path.slug}`}
-                                        className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200"
+                                        className="text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 px-2 py-1 rounded transition-colors duration-200"
                                         title="View Path"
                                       >
                                         <FaArrowRight className="h-4 w-4" />
@@ -1004,7 +1004,7 @@ function ManagePageInner() {
                                                   onClick={() => {
                                                     openEditPath(path);
                                                   }}
-                                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                                  className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 flex items-center"
                                                 >
                                                   <FaEdit className="h-4 w-4 mr-2" />
                                                   Edit Path
@@ -1030,7 +1030,7 @@ function ManagePageInner() {
                                           zIndex={9999}
                                         >
                                           <button
-                                            className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
+                                            className="text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
                                             title="More options"
                                           >
                                             <FaEllipsisV className="h-4 w-4" />
@@ -1054,7 +1054,7 @@ function ManagePageInner() {
             {activeTab === 'studio' && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  <h3 className="text-lg leading-6 font-medium text-neutral-900">
                     Import Studio
                   </h3>
                   <div className="flex items-center space-x-3">
@@ -1078,8 +1078,8 @@ function ManagePageInner() {
                 {importedData ? (
                    <div className="flex gap-6">
                     <div className="w-1/3">
-                      <div className="p-4 border rounded-lg bg-gray-50 h-[600px] overflow-auto">
-                        <h4 className="font-bold mb-2 text-gray-700">Imported Content</h4>
+                      <div className="p-4 border rounded-lg bg-neutral-50 h-[600px] overflow-auto">
+                        <h4 className="font-bold mb-2 text-neutral-700">Imported Content</h4>
                         <ImportTreeView 
                           data={importedData}
                           onSelect={handleTreeSelect}
@@ -1101,11 +1101,11 @@ function ManagePageInner() {
                 ) : (
                   <div 
                     onClick={handleImportClick}
-                    className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-gray-50"
+                    className="text-center py-12 border-2 border-dashed border-neutral-300 rounded-lg cursor-pointer hover:border-primary-500 hover:bg-neutral-50"
                   >
-                    <FaUpload className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">No file imported</h3>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <FaUpload className="mx-auto h-12 w-12 text-neutral-400" />
+                    <h3 className="mt-2 text-sm font-medium text-neutral-900">No file imported</h3>
+                    <p className="mt-1 text-sm text-neutral-500">
                       {isImporting ? 'Processing file...' : 'Click here or use the button above to import a zip file.'}
                     </p>
                   </div>
@@ -1118,21 +1118,21 @@ function ManagePageInner() {
 
       {/* Bulk Action Modal */}
       {showBulkActionModal && bulkActionType === 'state' && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div className="fixed inset-0 bg-neutral-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Change State for {`${selectedPaths.length} paths`}</h3>
+              <h3 className="text-lg font-medium text-neutral-900 mb-4">Change State for {`${selectedPaths.length} paths`}</h3>
               
               <div className="space-y-2">
                 {PATH_STATES.filter(s => s.value !== 'published').map((state) => (
-                  <label key={state.value} className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                  <label key={state.value} className="flex items-center p-3 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-50">
                     <input
                       type="radio"
                       name="newState"
                       value={state.value}
                       checked={bulkNewState === state.value}
                       onChange={(e) => setBulkNewState(e.target.value)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500"
                     />
                     <span className="ml-3 text-sm">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(state.value)}`}>
@@ -1165,16 +1165,16 @@ function ManagePageInner() {
 
       {/* Path Modal */}
       {showPathModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div className="fixed inset-0 bg-neutral-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-lg font-medium text-neutral-900 mb-4">
                 {editingPath ? 'Edit Path' : 'Create Path'}
               </h3>
               
               <form onSubmit={handlePathSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-neutral-700">
                     Name *
                   </label>
                   <input
@@ -1182,33 +1182,33 @@ function ManagePageInner() {
                     required
                     value={pathForm.name}
                     onChange={(e) => setPathForm({...pathForm, name: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                     placeholder="Path name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-neutral-700">
                     Description
                   </label>
                   <textarea
                     value={pathForm.description}
                     onChange={(e) => setPathForm({...pathForm, description: e.target.value})}
                     rows={3}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                     placeholder="Path description"
                   />
                 </div>
 
                 {editingPath && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-neutral-700">
                       State
                     </label>
                     <select
                       value={pathForm.state}
                       onChange={(e) => setPathForm({...pathForm, state: e.target.value})}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                     >
                       <option value="draft">Draft</option>
                       <option value="published">Published</option>
@@ -1239,16 +1239,16 @@ function ManagePageInner() {
 
       {/* Course Modal */}
       {showCourseModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div className="fixed inset-0 bg-neutral-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-lg font-medium text-neutral-900 mb-4">
                 Create Course
               </h3>
               
               <form onSubmit={handleCourseSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-neutral-700">
                     Name *
                   </label>
                   <input
@@ -1256,20 +1256,20 @@ function ManagePageInner() {
                     required
                     value={courseForm.name}
                     onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                     placeholder="Course name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-neutral-700">
                     Description
                   </label>
                   <textarea
                     value={courseForm.description}
                     onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
                     rows={3}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                     placeholder="Course description"
                   />
                 </div>
@@ -1295,16 +1295,16 @@ function ManagePageInner() {
 
       {/* Lesson Modal */}
       {showLessonModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div className="fixed inset-0 bg-neutral-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-lg font-medium text-neutral-900 mb-4">
                 Create Lesson
               </h3>
               
               <form onSubmit={handleLessonSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-neutral-700">
                     Name *
                   </label>
                   <input
@@ -1312,32 +1312,32 @@ function ManagePageInner() {
                     required
                     value={lessonForm.name}
                     onChange={(e) => setLessonForm({...lessonForm, name: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                     placeholder="Lesson name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-neutral-700">
                     Description
                   </label>
                   <textarea
                     value={lessonForm.description}
                     onChange={(e) => setLessonForm({...lessonForm, description: e.target.value})}
                     rows={3}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                     placeholder="Lesson description"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-neutral-700">
                     Lesson Type
                   </label>
                   <select
                     value={lessonForm.lesson_type}
                     onChange={(e) => setLessonForm({...lessonForm, lesson_type: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="text-markdown">Text/Markdown</option>
                     <option value="video">Video</option>
@@ -1370,7 +1370,7 @@ function ManagePageInner() {
 
 export default function ManagePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="text-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div><p className="mt-4 text-gray-600">Loading management dashboard...</p></div></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-neutral-50 flex items-center justify-center"><div className="text-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div><p className="mt-4 text-neutral-600">Loading management dashboard...</p></div></div>}>
       <ManagePageInner />
     </Suspense>
   );

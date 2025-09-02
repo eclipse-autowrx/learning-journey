@@ -31,14 +31,14 @@ const QuizQuestion = ({ question, index, onGotAnswer }) => {
 
   return <div className="w-full">
     <div className="flex flex-col">
-      <div className="font-bold text-black">Question {index}:</div>
+      <div className="font-bold text-neutral-900">Question {index}:</div>
       <div className="mt-1 text-base leading-tight">{question.question}</div>
     </div>
     <div className={`py-3 xl:py-4 w-full px-0 grid grid-cols-1 lg:grid-cols-1 gap-2 lg:gap-3
                         `}>
       {question.answers && question.answers.map((ans, aIndex) => <div key={aIndex}
-        className={`px-4 py-2 xl:px-6 xl:py-3 border-2 border-slate-300 rounded-lg flex items-start
-                            cursor-pointer hover:border-slate-800 hover:bg-slate-100
+        className={`px-4 py-2 xl:px-6 xl:py-3 border-2 border-neutral-300 rounded-lg flex items-start
+                            cursor-pointer hover:border-neutral-800 hover:bg-neutral-100
                             ${tmpAnswer == aIndex ? 'item-border-active' : 'item-border'}`}
         onClick={() => {
           setTmpAnswer(aIndex)
@@ -148,8 +148,8 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
   return <div className="w-full px-2 overflow-auto">
     <div className="mt-2 flex pl-2 min-h-[12vh] max-h-[12vh] overflow-auto">
       <div className="grow">
-        <div className="text-xl font-bold text-black">{lesson.name}</div>
-        <div className="mt-0 text-gray-500 text-sm leading-tight">{lesson.description}</div>
+        <div className="text-xl font-bold text-neutral-900">{lesson.name}</div>
+        <div className="mt-0 text-neutral-500 text-sm leading-tight">{lesson.description}</div>
       </div>
 
       <div className="mt-2 px-1 py-2 flex items-center space-x-2">
@@ -212,13 +212,13 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
                 const correctAnswerLabel = question.answers[res.correct_answer]?.label;
 
                 return (
-                  <div key={index} className={`p-4 rounded-lg border ${res.is_correct ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'}`}>
-                    <p className="font-bold text-gray-800">{index + 1}. {question.question}</p>
-                    <p className={`mt-2 ${res.is_correct ? 'text-green-700' : 'text-red-700'}`}>
+                  <div key={index} className={`p-4 rounded-lg border ${res.is_correct ? 'bg-secondary-50 border-secondary-300' : 'bg-red-50 border-red-300'}`}>
+                    <p className="font-bold text-neutral-800">{index + 1}. {question.question}</p>
+                    <p className={`mt-2 ${res.is_correct ? 'text-secondary-700' : 'text-red-700'}`}>
                       Your answer: <span className="font-semibold">{userAnswerLabel}</span> {res.is_correct ? '✅' : '❌'}
                     </p>
                     {!res.is_correct && (
-                      <p className="mt-1 text-green-700">
+                      <p className="mt-1 text-secondary-700">
                         Correct answer: <span className="font-semibold">{correctAnswerLabel}</span>
                       </p>
                     )}

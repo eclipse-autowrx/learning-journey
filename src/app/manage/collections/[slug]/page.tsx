@@ -140,10 +140,10 @@ export default function CollectionDetailPage() {
 
   if (authLoading) {
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
             <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Checking authentication...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+                <p className="mt-4 text-neutral-600">Checking authentication...</p>
             </div>
         </div>
     );
@@ -153,14 +153,14 @@ export default function CollectionDetailPage() {
     const qs = searchParams?.toString();
     const returnTo = encodeURIComponent(`${pathname}${qs ? `?${qs}` : ''}`);
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
             <div className="text-center">
-                <h3 className="mt-2 text-lg font-medium text-gray-900">Authentication Required</h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <h3 className="mt-2 text-lg font-medium text-neutral-900">Authentication Required</h3>
+                <p className="mt-1 text-sm text-neutral-500">
                     You must be logged in to access this page.
                 </p>
                 <div className="mt-6">
-                  <Link href={`/login?returnTo=${returnTo}`} className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                  <Link href={`/login?returnTo=${returnTo}`} className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
                     Go to Login
                   </Link>
                 </div>
@@ -455,24 +455,24 @@ export default function CollectionDetailPage() {
   const getStateColor = (state: string) => {
     switch (state) {
       case 'published':
-        return 'bg-green-100 text-green-800';
+        return 'bg-secondary-100 text-secondary-800';
       case 'draft':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary-100 text-primary-800';
       case 'archived':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-neutral-100 text-neutral-800';
       case 'locked':
         return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-neutral-100 text-neutral-800';
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading collection...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-neutral-600">Loading collection...</p>
         </div>
       </div>
     );
@@ -480,17 +480,17 @@ export default function CollectionDetailPage() {
 
   if (!collection) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Collection not found</h2>
-          <Link href="/admin" className="text-blue-600 hover:text-blue-800">← Go to Admin</Link>
+          <h2 className="text-2xl font-bold text-neutral-900 mb-4">Collection not found</h2>
+          <Link href="/admin" className="text-primary-600 hover:text-primary-800">← Go to Admin</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-neutral-50">
       <ManageBreadCrumb items={[
         { label: 'Collections', link: '/manage?tab=collections' },
         { label: collection.name }
@@ -501,15 +501,15 @@ export default function CollectionDetailPage() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{collection.name}</h1>
-                <p className="mt-1 text-sm text-gray-500">
+                <h1 className="text-3xl font-bold text-neutral-900">{collection.name}</h1>
+                <p className="mt-1 text-sm text-neutral-500">
                   {collection.slug}
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-500">State:</span>
+                <span className="text-sm text-neutral-500">State:</span>
                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(collectionState)}`}>{collectionState}</span>
                 <DropdownMenu
                   items={COLLECTION_STATES.filter(s => s.value !== 'published').map((s) => ({
@@ -538,14 +538,14 @@ export default function CollectionDetailPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tabs */}
         <div className="bg-white shadow rounded-lg">
-          <div className="border-b border-gray-200">
+          <div className="border-b border-neutral-200">
             <nav className="-mb-px flex space-x-8 px-6">
               <button
                 onClick={() => setActiveTab('info')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'info'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
                 }`}
               >
                 <FaFolder className="mr-2 h-4 w-4 inline" />
@@ -555,8 +555,8 @@ export default function CollectionDetailPage() {
                 onClick={() => setActiveTab('paths')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'paths'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
                 }`}
               >
                 <FaRoute className="mr-2 h-4 w-4 inline" />
@@ -569,7 +569,7 @@ export default function CollectionDetailPage() {
             {activeTab === 'info' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-medium text-gray-900">Collection Information</h3>
+                  <h3 className="text-lg font-medium text-neutral-900">Collection Information</h3>
                   <div className="flex items-center space-x-3">
                     {isEditing ? (
                       <>
@@ -593,7 +593,7 @@ export default function CollectionDetailPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">
                       Name
                     </label>
                     {isEditing ? (
@@ -601,22 +601,22 @@ export default function CollectionDetailPage() {
                         type="text"
                         value={editForm.name}
                         onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                        className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                       />
                     ) : (
-                      <p className="text-sm text-gray-900">{collection.name}</p>
+                      <p className="text-sm text-neutral-900">{collection.name}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">
                       Slug
                     </label>
-                    <p className="text-sm text-gray-500 font-mono">{collection.slug}</p>
+                    <p className="text-sm text-neutral-500 font-mono">{collection.slug}</p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">
                       Category
                     </label>
                     {isEditing ? (
@@ -624,16 +624,16 @@ export default function CollectionDetailPage() {
                         type="text"
                         value={editForm.category}
                         onChange={(e) => setEditForm({...editForm, category: e.target.value})}
-                        className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                       />
                     ) : (
-                      <p className="text-sm text-gray-900">{collection.category || '-'}</p>
+                      <p className="text-sm text-neutral-900">{collection.category || '-'}</p>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Description
                   </label>
                   {isEditing ? (
@@ -641,15 +641,15 @@ export default function CollectionDetailPage() {
                       value={editForm.description}
                       onChange={(e) => setEditForm({...editForm, description: e.target.value})}
                       rows={4}
-                      className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                     />
                   ) : (
-                    <p className="text-sm text-gray-900">{collection.description || 'No description provided'}</p>
+                    <p className="text-sm text-neutral-900">{collection.description || 'No description provided'}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Tags
                   </label>
                   {isEditing ? (
@@ -662,12 +662,12 @@ export default function CollectionDetailPage() {
                     <div className="flex flex-wrap gap-2">
                       {collection.tags && collection.tags.length > 0 ? (
                         collection.tags.map((tag, index) => (
-                          <span key={index} className="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                          <span key={index} className="inline-flex px-2 py-1 text-xs font-medium bg-primary-100 text-primary-800 rounded-full">
                             {tag}
                           </span>
                         ))
                       ) : (
-                        <span className="text-sm text-gray-500">No tags</span>
+                        <span className="text-sm text-neutral-500">No tags</span>
                       )}
                     </div>
                   )}
@@ -675,18 +675,18 @@ export default function CollectionDetailPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">
                       Created
                     </label>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-neutral-500">
                       {new Date(collection.created_at).toLocaleDateString()}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">
                       Last Updated
                     </label>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-neutral-500">
                       {new Date(collection.updated_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -697,7 +697,7 @@ export default function CollectionDetailPage() {
             {activeTab === 'paths' && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  <h3 className="text-lg leading-6 font-medium text-neutral-900">
                     Paths ({paths.length})
                   </h3>
                   <div className="flex items-center space-x-3">
@@ -708,7 +708,7 @@ export default function CollectionDetailPage() {
                     />
                     <button
                       onClick={() => setShowAddPathModal(true)}
-                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
                     >
                       <FaPlus className="mr-2 h-4 w-4" />
                       Add Path
@@ -718,14 +718,14 @@ export default function CollectionDetailPage() {
 
                 {paths.length === 0 ? (
                   <div className="text-center py-12">
-                    <FaRoute className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">No paths in collection</h3>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <FaRoute className="mx-auto h-12 w-12 text-neutral-400" />
+                    <h3 className="mt-2 text-sm font-medium text-neutral-900">No paths in collection</h3>
+                    <p className="mt-1 text-sm text-neutral-500">
                       Get started by adding paths to this collection.
                     </p>
                     <button
                       onClick={() => setShowAddPathModal(true)}
-                      className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                      className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
                     >
                       <FaPlus className="mr-2 h-4 w-4" />
                       Add Path
@@ -735,15 +735,15 @@ export default function CollectionDetailPage() {
                   <div>
                     {/* Bulk Actions Bar */}
                     {selectedPaths.length > 0 && (
-                      <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 mb-4 rounded-t-lg">
+                      <div className="bg-primary-50 border-b border-primary-200 px-6 py-3 mb-4 rounded-t-lg">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-blue-700">
+                          <span className="text-sm text-primary-700">
                             {selectedPaths.length} item{selectedPaths.length > 1 ? 's' : ''} selected
                           </span>
                           <div className="flex items-center space-x-3">
                             <button
                               onClick={() => setSelectedPaths([])}
-                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                              className="inline-flex items-center px-3 py-1.5 border border-neutral-300 rounded-md text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50"
                             >
                               Clear Selection
                             </button>
@@ -752,7 +752,7 @@ export default function CollectionDetailPage() {
                                 setBulkActionType('state');
                                 setShowBulkActionModal(true);
                               }}
-                              className="inline-flex items-center px-3 py-1.5 border border-blue-300 rounded-md text-sm font-medium text-blue-700 bg-white hover:bg-blue-50"
+                              className="inline-flex items-center px-3 py-1.5 border border-primary-300 rounded-md text-sm font-medium text-primary-700 bg-white hover:bg-primary-50"
                             >
                               Change State
                             </button>
@@ -772,8 +772,8 @@ export default function CollectionDetailPage() {
                     )}
                     
                     <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                      <table className="min-w-full divide-y divide-neutral-200">
+                        <thead className="bg-neutral-50">
                           <tr>
                             <th className="px-6 py-3 w-12">
                               <input
@@ -783,69 +783,69 @@ export default function CollectionDetailPage() {
                                     .filter(p => selectedPathStates.includes(p.state))
                                     .every(p => selectedPaths.includes(p._id))}
                                 onChange={(e) => handleSelectAllPaths(e.target.checked)}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded"
                               />
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                               Path
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                               Category
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                               Difficulty
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                               Duration
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                               State
                             </th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
                               Actions
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-white divide-y divide-neutral-200">
                           {paths
                             .filter(path => selectedPathStates.includes(path.state))
                             .map((path, index, filteredArray) => (
-                            <tr key={path._id} className={`hover:bg-gray-50 ${selectedPaths.includes(path._id) ? 'bg-blue-50' : ''}`}>
+                            <tr key={path._id} className={`hover:bg-neutral-50 ${selectedPaths.includes(path._id) ? 'bg-primary-50' : ''}`}>
                               <td className="px-6 py-3">
                                 <input
                                   type="checkbox"
                                   checked={selectedPaths.includes(path._id)}
                                   onChange={() => handleTogglePath(path._id)}
-                                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded"
                                 />
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
                                   <div className="flex-shrink-0 h-10 w-10">
-                                    <div className="h-10 w-10 rounded-lg bg-purple-500 flex items-center justify-center">
+                                    <div className="h-10 w-10 rounded-lg bg-primary-500 flex items-center justify-center">
                                       <FaRoute className="h-6 w-6 text-white" />
                                     </div>
                                   </div>
                                   <div className="ml-4">
                                     <Link 
                                       href={`/manage/paths/${path.slug}`}
-                                      className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                                      className="text-sm font-medium text-neutral-900 hover:text-primary-600"
                                     >
                                       {path.name}
                                     </Link>
-                                    <div className="text-sm text-gray-500">
+                                    <div className="text-sm text-neutral-500">
                                       {path.slug}
                                     </div>
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                                 {path.category || '-'}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                                 {path.difficulty || '-'}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                                 {path.estimated_duration ? `${path.estimated_duration}h` : '-'}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -857,7 +857,7 @@ export default function CollectionDetailPage() {
                                 <div className="flex justify-end space-x-2">
                                   <Link 
                                     href={`/manage/paths/${path.slug}`}
-                                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200"
+                                    className="text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 px-2 py-1 rounded transition-colors duration-200"
                                     title="View Path"
                                   >
                                     <FaArrowRight className="h-4 w-4" />
@@ -865,13 +865,13 @@ export default function CollectionDetailPage() {
                                   <div className="relative dropdown-container">
                                     <button 
                                       onClick={() => setOpenDropdown(openDropdown === path._id ? null : path._id)}
-                                      className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
+                                      className="text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
                                       title="More options"
                                     >
                                       <FaEllipsisV className="h-4 w-4" />
                                     </button>
                                     {openDropdown === path._id && (
-                                      <div className={`absolute right-0 w-48 bg-white rounded-md shadow-lg z-[9999] border border-gray-200 ${
+                                      <div className={`absolute right-0 w-48 bg-white rounded-md shadow-lg z-[9999] border border-neutral-200 ${
                                         index === filteredArray.length - 1 ? 'bottom-full mb-2' : 'mt-2'
                                       }`}>
                                         <div className="py-1">
@@ -906,10 +906,10 @@ export default function CollectionDetailPage() {
 
       {/* Add Path Modal */}
       {showAddPathModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div className="fixed inset-0 bg-neutral-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-lg font-medium text-neutral-900 mb-4">
                 Add Path to Collection
               </h3>
               
@@ -919,26 +919,26 @@ export default function CollectionDetailPage() {
                   placeholder="Search paths..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="block w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
 
               <div className="max-h-60 overflow-y-auto space-y-2">
                 {filteredPaths.length === 0 ? (
-                  <p className="text-sm text-gray-500 text-center py-4">
+                  <p className="text-sm text-neutral-500 text-center py-4">
                     {searchTerm ? 'No paths found matching your search' : 'No available paths to add'}
                   </p>
                 ) : (
                   filteredPaths.map((path) => (
-                    <div key={path._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={path._id} className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
                       <div>
-                        <h4 className="text-sm font-medium text-gray-900">{path.name}</h4>
-                        <p className="text-xs text-gray-500">{path.category}</p>
-                        <p className="text-xs text-gray-400">{path.difficulty} • {path.estimated_duration}h</p>
+                        <h4 className="text-sm font-medium text-neutral-900">{path.name}</h4>
+                        <p className="text-xs text-neutral-500">{path.category}</p>
+                        <p className="text-xs text-neutral-400">{path.difficulty} • {path.estimated_duration}h</p>
                       </div>
                       <button
                         onClick={() => handleAddPath(path._id)}
-                        className="text-green-600 hover:text-green-900"
+                        className="text-secondary-600 hover:text-secondary-900"
                         title="Add to collection"
                       >
                         <FaPlus className="h-4 w-4" />
@@ -951,7 +951,7 @@ export default function CollectionDetailPage() {
               <div className="flex justify-end pt-4">
                 <button
                   onClick={() => setShowAddPathModal(false)}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  className="px-4 py-2 bg-neutral-300 text-neutral-700 text-sm font-medium rounded-md hover:bg-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-500"
                 >
                   Close
                 </button>
@@ -963,25 +963,25 @@ export default function CollectionDetailPage() {
 
       {/* Bulk Action Modal */}
       {showBulkActionModal && bulkActionType === 'state' && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div className="fixed inset-0 bg-neutral-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-lg font-medium text-neutral-900 mb-4">
                 Change State
               </h3>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-neutral-500 mb-4">
                 Select the new state for {selectedPaths.length} selected paths.
               </p>
               
               <div className="space-y-2">
-                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                <label className="flex items-center p-3 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-50">
                   <input
                     type="radio"
                     name="newState"
                     value="published"
                     checked={bulkNewState === 'published'}
                     onChange={(e) => setBulkNewState(e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500"
                   />
                   <span className="ml-3 text-sm">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('published')}`}>
@@ -990,14 +990,14 @@ export default function CollectionDetailPage() {
                   </span>
                 </label>
                 
-                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                <label className="flex items-center p-3 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-50">
                   <input
                     type="radio"
                     name="newState"
                     value="draft"
                     checked={bulkNewState === 'draft'}
                     onChange={(e) => setBulkNewState(e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500"
                   />
                   <span className="ml-3 text-sm">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('draft')}`}>
@@ -1006,14 +1006,14 @@ export default function CollectionDetailPage() {
                   </span>
                 </label>
                 
-                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                <label className="flex items-center p-3 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-50">
                   <input
                     type="radio"
                     name="newState"
                     value="archived"
                     checked={bulkNewState === 'archived'}
                     onChange={(e) => setBulkNewState(e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500"
                   />
                   <span className="ml-3 text-sm">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('archived')}`}>
@@ -1022,14 +1022,14 @@ export default function CollectionDetailPage() {
                   </span>
                 </label>
                 
-                <label className="flex items-center p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50">
+                <label className="flex items-center p-3 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-50">
                   <input
                     type="radio"
                     name="newState"
                     value="locked"
                     checked={bulkNewState === 'locked'}
                     onChange={(e) => setBulkNewState(e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500"
                   />
                   <span className="ml-3 text-sm">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor('locked')}`}>
@@ -1042,13 +1042,13 @@ export default function CollectionDetailPage() {
               <div className="flex justify-end space-x-3 mt-6">
                 <button
                   onClick={() => setShowBulkActionModal(false)}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400"
+                  className="px-4 py-2 bg-neutral-300 text-neutral-700 text-sm font-medium rounded-md hover:bg-neutral-400"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleBulkStateChange}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700"
                 >
                   Change State
                 </button>

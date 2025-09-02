@@ -173,13 +173,13 @@ export default function QuizLessonEditor({ value, onChange }: QuizLessonEditorPr
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center border-b border-gray-200">
+      <div className="flex items-center border-b border-neutral-200">
           <button
               onClick={() => setViewMode('editor')}
               className={`px-4 py-2 text-sm font-medium rounded-t-md ${
                   viewMode === 'editor'
-                  ? 'bg-white border-gray-200 border-t border-l border-r -mb-px'
-                  : 'bg-gray-50 hover:bg-gray-100'
+                  ? 'bg-white border-neutral-200 border-t border-l border-r -mb-px'
+                  : 'bg-neutral-50 hover:bg-neutral-100'
               }`}
           >
               Editor
@@ -188,8 +188,8 @@ export default function QuizLessonEditor({ value, onChange }: QuizLessonEditorPr
               onClick={handleSwitchToJSON}
               className={`px-4 py-2 text-sm font-medium rounded-t-md ${
                   viewMode === 'json'
-                  ? 'bg-white border-gray-200 border-t border-l border-r -mb-px'
-                  : 'bg-gray-50 hover:bg-gray-100'
+                  ? 'bg-white border-neutral-200 border-t border-l border-r -mb-px'
+                  : 'bg-neutral-50 hover:bg-neutral-100'
               }`}
           >
               JSON
@@ -197,11 +197,11 @@ export default function QuizLessonEditor({ value, onChange }: QuizLessonEditorPr
       </div>
 
       {viewMode === 'json' && (
-        <div className="p-4 border border-gray-200 rounded-lg space-y-2 bg-gray-50 border-t-0 rounded-t-none">
-          <label className="block text-sm font-medium text-gray-700">Raw JSON</label>
+        <div className="p-4 border border-neutral-200 rounded-lg space-y-2 bg-neutral-50 border-t-0 rounded-t-none">
+          <label className="block text-sm font-medium text-neutral-700">Raw JSON</label>
           <textarea
             rows={10}
-            className={`block w-full border rounded-md px-3 py-2 text-sm font-mono bg-white ${jsonError ? 'border-red-500' : 'border-gray-300'}`}
+            className={`block w-full border rounded-md px-3 py-2 text-sm font-mono bg-white ${jsonError ? 'border-red-500' : 'border-neutral-300'}`}
             value={jsonViewText}
             onChange={handleJsonChange}
             placeholder="Enter quiz questions in JSON format..."
@@ -213,7 +213,7 @@ export default function QuizLessonEditor({ value, onChange }: QuizLessonEditorPr
 
       {viewMode === 'editor' && (
         <div>
-          <div className="flex items-center border-b border-gray-200">
+          <div className="flex items-center border-b border-neutral-200">
             <div className="flex-grow flex space-x-1">
               {questions.map((_, index) => {
                 const hasError = !!Object.keys(errors[index] || {}).length;
@@ -223,8 +223,8 @@ export default function QuizLessonEditor({ value, onChange }: QuizLessonEditorPr
                     onClick={() => setActiveQuestionIndex(index)}
                     className={`relative px-3 py-2 text-sm font-medium rounded-t-md ${
                       activeQuestionIndex === index
-                        ? 'bg-white border-gray-200 border-t border-l border-r -mb-px'
-                        : 'bg-gray-50 hover:bg-gray-100'
+                        ? 'bg-white border-neutral-200 border-t border-l border-r -mb-px'
+                        : 'bg-neutral-50 hover:bg-neutral-100'
                     } ${hasError ? 'text-red-600' : ''}`}
                   >
                     Q{index + 1}
@@ -235,23 +235,23 @@ export default function QuizLessonEditor({ value, onChange }: QuizLessonEditorPr
             </div>
             <button
               onClick={handleAddQuestion}
-              className="flex items-center px-3 py-1.5 border border-dashed border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 ml-2"
+              className="flex items-center px-3 py-1.5 border border-dashed border-neutral-300 rounded-md text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50 ml-2"
             >
               <FaPlus />
             </button>
           </div>
 
           {activeQuestion ? (
-            <div className="p-4 border border-gray-200 rounded-lg space-y-4 bg-gray-50 border-t-0 rounded-t-none">
+            <div className="p-4 border border-neutral-200 rounded-lg space-y-4 bg-neutral-50 border-t-0 rounded-t-none">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700">Question {activeQuestionIndex + 1}</label>
+                <label className="block text-sm font-medium text-neutral-700">Question {activeQuestionIndex + 1}</label>
                 <button onClick={() => handleDeleteQuestion(activeQuestionIndex)} className="text-red-500 hover:text-red-700">
                   <FaTrash />
                 </button>
               </div>
               <textarea
                 rows={2}
-                className={`block w-full border rounded-md px-3 py-2 text-sm bg-white ${activeQuestionErrors.question ? 'border-red-500' : 'border-gray-300'}`}
+                className={`block w-full border rounded-md px-3 py-2 text-sm bg-white ${activeQuestionErrors.question ? 'border-red-500' : 'border-neutral-300'}`}
                 value={activeQuestion.question}
                 onChange={(e) => handleQuestionChange(activeQuestionIndex, e.target.value)}
                 placeholder="Enter your question here..."
@@ -259,7 +259,7 @@ export default function QuizLessonEditor({ value, onChange }: QuizLessonEditorPr
               {activeQuestionErrors.question && <p className="text-xs text-red-600 mt-1">{activeQuestionErrors.question}</p>}
               
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-600">Answers</label>
+                <label className="block text-xs font-medium text-neutral-600">Answers</label>
                 {activeQuestion.answers.length === 0 && activeQuestionErrors.noAnswers && (
                   <p className="text-xs text-red-600 mt-1">{activeQuestionErrors.noAnswers}</p>
                 )}
@@ -273,11 +273,11 @@ export default function QuizLessonEditor({ value, onChange }: QuizLessonEditorPr
                           name={`correct-answer-${activeQuestionIndex}`}
                           checked={ans.is_correct === true}
                           onChange={() => handleCorrectAnswerChange(activeQuestionIndex, aIndex)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300"
                         />
                         <input
                           type="text"
-                          className={`block w-full border rounded-md px-3 py-2 text-sm bg-white ${answerError ? 'border-red-500' : 'border-gray-300'}`}
+                          className={`block w-full border rounded-md px-3 py-2 text-sm bg-white ${answerError ? 'border-red-500' : 'border-neutral-300'}`}
                           value={ans.label}
                           onChange={(e) => handleAnswerChange(activeQuestionIndex, aIndex, e.target.value)}
                           placeholder={`Answer ${aIndex + 1}`}
@@ -298,14 +298,14 @@ export default function QuizLessonEditor({ value, onChange }: QuizLessonEditorPr
 
               <button
                 onClick={() => handleAddAnswer(activeQuestionIndex)}
-                className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+                className="flex items-center text-sm text-primary-600 hover:text-primary-800"
               >
                 <FaPlus className="mr-2" /> Add Answer
               </button>
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-500">No questions yet. Add one to get started.</p>
+              <p className="text-neutral-500">No questions yet. Add one to get started.</p>
             </div>
           )}
         </div>
