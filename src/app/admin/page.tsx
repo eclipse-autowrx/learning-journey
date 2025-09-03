@@ -49,8 +49,8 @@ function AdminPageInner() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: 'var(--color-primary-500)' }}></div>
       </div>
     );
   }
@@ -61,13 +61,17 @@ function AdminPageInner() {
 
   if (!hasManageUsers) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-secondary)' }}>
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-          <p className="text-gray-600 mb-8">You don't have permission to access the admin panel.</p>
+          <h1 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Access Denied</h1>
+          <p className="mb-8" style={{ color: 'var(--text-secondary)' }}>You don't have permission to access the admin panel.</p>
           <Link
             href="/"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md"
+            style={{ 
+              backgroundColor: 'var(--color-primary-500)', 
+              color: 'var(--text-inverse)'
+            }}
           >
             Go Home
           </Link>
@@ -77,31 +81,35 @@ function AdminPageInner() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-secondary)' }}>
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          <div className="border-b border-gray-200 mb-8">
+          <div className="border-b mb-8" style={{ borderColor: 'var(--border-primary)' }}>
             <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
-                <p className="mt-2 text-sm text-gray-600">
+            <div>
+                <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Admin Panel</h1>
+                <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
                   Manage system settings, collections, and paths
-                </p>
-              </div>
-              <UserBadge />
+              </p>
             </div>
-          </div>
+              <UserBadge />
+        </div>
+      </div>
 
           {/* Tab Navigation */}
-          <div className="border-b border-gray-200 mb-8">
+          <div className="border-b mb-8" style={{ borderColor: 'var(--border-primary)' }}>
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setActiveTab('collections')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'collections'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? ''
+                    : 'border-transparent'
                 }`}
+                style={{
+                  borderBottomColor: activeTab === 'collections' ? 'var(--color-primary-500)' : 'transparent',
+                  color: activeTab === 'collections' ? 'var(--color-primary-500)' : 'var(--text-tertiary)'
+                }}
               >
                 <FaList className="inline-block mr-2" />
                 Collections
@@ -110,9 +118,13 @@ function AdminPageInner() {
                 onClick={() => setActiveTab('paths')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'paths'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? ''
+                    : 'border-transparent'
                 }`}
+                style={{
+                  borderBottomColor: activeTab === 'paths' ? 'var(--color-primary-500)' : 'transparent',
+                  color: activeTab === 'paths' ? 'var(--color-primary-500)' : 'var(--text-tertiary)'
+                }}
               >
                 <FaRoute className="inline-block mr-2" />
                 Paths
@@ -121,9 +133,13 @@ function AdminPageInner() {
                 onClick={() => setActiveTab('settings')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'settings'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? ''
+                    : 'border-transparent'
                 }`}
+                style={{
+                  borderBottomColor: activeTab === 'settings' ? 'var(--color-primary-500)' : 'transparent',
+                  color: activeTab === 'settings' ? 'var(--color-primary-500)' : 'var(--text-tertiary)'
+                }}
               >
                 <FaCog className="inline-block mr-2" />
                 Settings
@@ -131,8 +147,8 @@ function AdminPageInner() {
             </nav>
           </div>
 
-          {/* Tab Content */}
-          <div className="bg-white shadow rounded-lg">
+                    {/* Tab Content */}
+          <div className="shadow rounded-lg" style={{ backgroundColor: 'var(--bg-primary)' }}>
             <div className="px-4 py-5 sm:p-6">
               {activeTab === 'collections' && (
                 <CollectionsTab hasManageUsers={hasManageUsers} />
@@ -154,8 +170,8 @@ function AdminPageInner() {
 export default function AdminPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: 'var(--color-primary-500)' }}></div>
       </div>
     }>
       <AdminPageInner />

@@ -9,9 +9,6 @@
 'use client'
 
 const ProgressIndicator = ({ steps = 5, completedSteps = 0, activeStep = 1 }) => {
-    // Debug log to see the actual progress data
-    console.log('ProgressIndicator received:', { steps, completedSteps, activeStep });
-    
     const renderStep = (stepIndex) => {
         const stepNumber = stepIndex + 1;
         const isCompleted = stepNumber <= completedSteps;

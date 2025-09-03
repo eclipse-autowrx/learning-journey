@@ -116,7 +116,6 @@ const HomeContent = ({ }) => {
             const data = await response.json();
             if (data && data.success) {
                 let collections = data.data
-                console.log('collections from settings', collections)
                 await applyProgressForCollections(collections)
                 setItems(collections)
             } else {

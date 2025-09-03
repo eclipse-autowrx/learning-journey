@@ -131,17 +131,17 @@ function LoginPageInner() {
 
   if (authLoading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center text-gray-600">Checking authentication...</div>
+      <div className="min-h-[60vh] flex items-center justify-center" style={{ color: 'var(--text-secondary)' }}>Checking authentication...</div>
     )
   }
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-xl bg-white shadow rounded-lg p-6 space-y-6">
+    <div className="min-h-[60vh] flex items-center justify-center px-4 py-10" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+      <div className="w-full max-w-xl shadow rounded-lg p-6 space-y-6" style={{ backgroundColor: 'var(--bg-primary)' }}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-800">{mode === 'login' ? 'Sign in' : 'Create your account'}</h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <h1 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>{mode === 'login' ? 'Sign in' : 'Create your account'}</h1>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-tertiary)' }}>
               {mode === 'login' ? 'Use your credentials to access the Playground.' : 'Register to start your learning journey.'}
             </p>
           </div>
@@ -149,7 +149,8 @@ function LoginPageInner() {
             <button
               type="button"
               onClick={() => { setMode('login'); setErrorMessage(null) }}
-              className="text-sm text-gray-600 hover:text-gray-800"
+              className="text-sm hover:opacity-80"
+              style={{ color: 'var(--text-secondary)' }}
             >
               Back
             </button>
@@ -157,7 +158,12 @@ function LoginPageInner() {
         </div>
 
         {errorMessage && (
-          <div className="rounded border border-red-200 bg-red-50 text-red-700 px-3 py-2 text-sm">
+          <div className="rounded border px-3 py-2 text-sm" style={{ 
+            borderColor: 'var(--color-error)', 
+            backgroundColor: 'var(--color-error)', 
+            color: 'var(--text-inverse)',
+            opacity: 0.1
+          }}>
             {errorMessage}
           </div>
         )}
@@ -165,12 +171,18 @@ function LoginPageInner() {
         {mode === 'login' ? (
           <>
             <form onSubmit={handleLoginWithEmail} className="space-y-3">
-              <div className="text-sm font-medium text-gray-700">Email and password</div>
+              <div className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Email and password</div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Email</label>
+                <label className="block text-xs mb-1" style={{ color: 'var(--text-tertiary)' }}>Email</label>
                 <input
                   type="email"
-                  className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-600"
+                  className="w-full rounded px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                  style={{ 
+                    borderColor: 'var(--border-primary)', 
+                    color: 'var(--text-primary)',
+                    backgroundColor: 'var(--bg-primary)',
+                    border: '1px solid var(--border-primary)'
+                  }}
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -178,10 +190,16 @@ function LoginPageInner() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Password</label>
+                <label className="block text-xs mb-1" style={{ color: 'var(--text-tertiary)' }}>Password</label>
                 <input
                   type="password"
-                  className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-600"
+                  className="w-full rounded px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                  style={{ 
+                    borderColor: 'var(--border-primary)', 
+                    color: 'var(--text-primary)',
+                    backgroundColor: 'var(--bg-primary)',
+                    border: '1px solid var(--border-primary)'
+                  }}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -191,7 +209,11 @@ function LoginPageInner() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full rounded bg-gray-800 text-white py-2 text-sm font-medium hover:bg-gray-700 disabled:opacity-60"
+                className="w-full rounded py-2 text-sm font-medium disabled:opacity-60"
+                style={{ 
+                  backgroundColor: 'var(--color-primary-500)', 
+                  color: 'var(--text-inverse)'
+                }}
               >
                 {submitting ? 'Signing in...' : 'Sign in'}
               </button>
@@ -200,7 +222,13 @@ function LoginPageInner() {
               <button
                 type="button"
                 onClick={() => { setMode('register'); setErrorMessage(null) }}
-                className="w-full rounded border border-gray-300 text-gray-700 py-2 text-sm font-medium hover:bg-gray-50"
+                className="w-full rounded py-2 text-sm font-medium"
+                style={{ 
+                  borderColor: 'var(--border-primary)', 
+                  color: 'var(--text-secondary)',
+                  backgroundColor: 'var(--bg-primary)',
+                  border: '1px solid var(--border-primary)'
+                }}
               >
                 Create an account
               </button>
@@ -208,12 +236,18 @@ function LoginPageInner() {
           </>
         ) : (
           <form onSubmit={handleRegister} className="space-y-3">
-            <div className="text-sm font-medium text-gray-700">Register with email</div>
+            <div className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Register with email</div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Full name</label>
+              <label className="block text-xs mb-1" style={{ color: 'var(--text-tertiary)' }}>Full name</label>
               <input
                 type="text"
-                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-600"
+                className="w-full rounded px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                style={{ 
+                  borderColor: 'var(--border-primary)', 
+                  color: 'var(--text-primary)',
+                  backgroundColor: 'var(--bg-primary)',
+                  border: '1px solid var(--border-primary)'
+                }}
                 placeholder="Jane Doe"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
@@ -221,10 +255,16 @@ function LoginPageInner() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Email</label>
+              <label className="block text-xs mb-1" style={{ color: 'var(--text-tertiary)' }}>Email</label>
               <input
                 type="email"
-                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-600"
+                className="w-full rounded px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                style={{ 
+                  borderColor: 'var(--border-primary)', 
+                  color: 'var(--text-primary)',
+                  backgroundColor: 'var(--bg-primary)',
+                  border: '1px solid var(--border-primary)'
+                }}
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -232,10 +272,16 @@ function LoginPageInner() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Password</label>
+              <label className="block text-xs mb-1" style={{ color: 'var(--text-tertiary)' }}>Password</label>
               <input
                 type="password"
-                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-600"
+                className="w-full rounded px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                style={{ 
+                  borderColor: 'var(--border-primary)', 
+                  color: 'var(--text-primary)',
+                  backgroundColor: 'var(--bg-primary)',
+                  border: '1px solid var(--border-primary)'
+                }}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -245,7 +291,11 @@ function LoginPageInner() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded bg-emerald-600 text-white py-2 text-sm font-medium hover:bg-emerald-500 disabled:opacity-60"
+              className="w-full rounded py-2 text-sm font-medium disabled:opacity-60"
+              style={{ 
+                backgroundColor: 'var(--color-secondary-500)', 
+                color: 'var(--text-inverse)'
+              }}
             >
               {submitting ? 'Registering...' : 'Register'}
             </button>
@@ -258,7 +308,7 @@ function LoginPageInner() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center text-gray-600">Loading…</div>}>
+    <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center" style={{ color: 'var(--text-secondary)' }}>Loading…</div>}>
       <LoginPageInner />
     </Suspense>
   );
