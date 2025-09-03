@@ -105,7 +105,7 @@ export default function PathsTab({ hasManageUsers }: PathsTabProps) {
       case 'reviewing':
         return 'bg-yellow-100 text-yellow-800';
       case 'draft':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-purple-100 text-purple-800';
       case 'archived':
         return 'bg-gray-100 text-gray-800';
       case 'locked':
@@ -152,7 +152,7 @@ export default function PathsTab({ hasManageUsers }: PathsTabProps) {
 
       {loadingAllPaths ? (
         <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading paths...</p>
         </div>
       ) : allPaths.length === 0 ? (
@@ -168,15 +168,15 @@ export default function PathsTab({ hasManageUsers }: PathsTabProps) {
             <div>
               {/* Bulk Actions Bar */}
               {selectedPaths.length > 0 && (
-                <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 mb-4 rounded-t-lg">
+                <div className="bg-purple-50 border-b border-purple-200 px-6 py-3 mb-4 rounded-t-lg">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-blue-700">
+                    <span className="text-sm text-purple-700">
                       {selectedPaths.length} path{selectedPaths.length > 1 ? 's' : ''} selected
                     </span>
                     <div className="flex items-center space-x-3">
                       <button
                         onClick={() => setSelectedPaths([])}
-                        className="text-sm text-blue-600 hover:text-blue-800"
+                        className="text-sm text-purple-600 hover:text-purple-800"
                       >
                         Clear Selection
                       </button>
@@ -185,7 +185,7 @@ export default function PathsTab({ hasManageUsers }: PathsTabProps) {
                           setBulkActionType('state');
                           setShowBulkActionModal(true);
                         }}
-                        className="inline-flex items-center px-3 py-1.5 border border-blue-300 text-sm font-medium rounded text-blue-700 bg-white hover:bg-blue-50"
+                        className="inline-flex items-center px-3 py-1.5 border border-purple-300 text-sm font-medium rounded text-purple-700 bg-white hover:bg-purple-50"
                       >
                         Change State
                       </button>
@@ -204,7 +204,7 @@ export default function PathsTab({ hasManageUsers }: PathsTabProps) {
                           checked={selectedPaths.length > 0 && 
                             filteredPaths.every(p => selectedPaths.includes(p._id))}
                           onChange={(e) => handleSelectAllPaths(e.target.checked)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                         />
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -229,19 +229,19 @@ export default function PathsTab({ hasManageUsers }: PathsTabProps) {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredPaths.map((path) => (
-                      <tr key={path._id} className={`hover:bg-gray-50 ${selectedPaths.includes(path._id) ? 'bg-blue-50' : ''}`}>
+                      <tr key={path._id} className={`hover:bg-gray-50 ${selectedPaths.includes(path._id) ? 'bg-purple-50' : ''}`}>
                         <td className="px-6 py-3">
                           <input
                             type="checkbox"
                             checked={selectedPaths.includes(path._id)}
                             onChange={() => handleTogglePath(path._id)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                           />
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
-                              <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center">
+                              <div className="h-10 w-10 rounded-lg bg-purple-500 flex items-center justify-center">
                                 <FaRoute className="h-6 w-6 text-white" />
                               </div>
                             </div>
@@ -274,7 +274,7 @@ export default function PathsTab({ hasManageUsers }: PathsTabProps) {
                             <select
                               value={path.state}
                               onChange={(e) => handleIndividualStateChange(path._id, e.target.value)}
-                              className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                              className="text-sm border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
                             >
                               {PATH_STATES.map((state) => (
                                 <option key={state.value} value={state.value}>
@@ -310,7 +310,7 @@ export default function PathsTab({ hasManageUsers }: PathsTabProps) {
                       value={state.value}
                       checked={bulkNewState === state.value}
                       onChange={(e) => setBulkNewState(e.target.value)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 text-purple-600 focus:ring-purple-500"
                     />
                     <span className="ml-3 text-sm">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(state.value)}`}>
@@ -330,7 +330,7 @@ export default function PathsTab({ hasManageUsers }: PathsTabProps) {
                 </button>
                 <button
                   onClick={handleBulkStateChange}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700"
                 >
                   Change State
                 </button>

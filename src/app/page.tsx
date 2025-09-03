@@ -10,6 +10,8 @@ import HomeContent from "./components/screen/HomeContent";
 import PathList from "./components/screen/PathList";
 import { FaDiamond } from "react-icons/fa6";
 import Link from 'next/link';
+import connectToDatabase from '../lib/mongodb';
+import SystemSettings from '../lib/models/SystemSettings';
 
 const winston = require('winston');
 
@@ -22,7 +24,39 @@ const logger = winston.createLogger({
   ],
 });
 
+interface HomeConfig {
+  title: string;
+  bulletPoints: string[];
+  imageUrl: string;
+}
+
+async function getHomeConfig(): Promise<HomeConfig> {
+  try {
+    await connectToDatabase();
+    const setting = await SystemSettings.findOne({ key: 'home_config' });
+    
+    if (setting?.value) {
+      return setting.value;
+    }
+  } catch (error) {
+    console.error('Error fetching home config:', error);
+  }
+  
+  // Return default configuration if setting doesn't exist or error occurs
+  return {
+    title: 'Your SDV journey starts here.',
+    bulletPoints: [
+      'From zero to hero',
+      'Practice in our virtual lab and seamlessly transition to physical kit',
+      'Track your progress and get certificates',
+      'Stay in the loop with our community'
+    ],
+    imageUrl: '/imgs/sdv.png'
+  };
+}
+
 export default async function Home() {
+  const homeConfig = await getHomeConfig();
   return (
     <div className="bg-white text-slate-600 text-2xl p-0
         h-full w-full flex flex-col gap-0">
@@ -31,26 +65,24 @@ export default async function Home() {
         <div className="container h-full flex sm:flex-row flex-col gap-6">
           <div className="flex-3 px-2">
             <div className="text-2xl sm:text-2xl lg:text-4xl font-bold  pt-8 text-left">
-              Your SDV journey starts here.
+              {homeConfig.title}
             </div>
             <div className="text-sm sm:text-md leading-tight font-bold text-left pt-4 mt-4 flex flex-col gap-2">
-              <div className="flex items-center">
-                <FaDiamond size={12} className="mr-4 text-white min-w-3" /> 
-                From zero to hero</div>
-              <div className="flex items-center">
-                <FaDiamond size={12} className="mr-4 text-white min-w-4" /> 
-                Practice in our virtual lab and seamlessly transition to physical kit</div>
-              <div className="flex items-center">
-                <FaDiamond size={12} className="mr-4 text-white min-w-4" /> 
-                Track your progress and get certificates</div>
-              <div className="flex items-center">
-                <FaDiamond size={12} className="mr-4 text-white min-w-4" /> 
-                Stay in the loop with our community</div>
+              {homeConfig.bulletPoints.map((point, index) => (
+                <div key={index} className="flex items-center">
+                  <FaDiamond size={12} className="mr-4 text-white min-w-3" /> 
+                  {point}
+                </div>
+              ))}
             </div>
           </div>
 
           <div className="flex-2 px-2 grid place-items-center">
-            <img className="w-[60vw] sm:w-[40vw]" src="/imgs/sdv.png" />
+            <img 
+              className="w-[60vw] sm:w-[40vw]" 
+              src={homeConfig.imageUrl} 
+              alt="Hero image"
+            />
           </div>
 
         </div>

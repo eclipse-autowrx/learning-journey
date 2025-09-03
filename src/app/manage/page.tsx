@@ -112,7 +112,32 @@ function ManagePageInner() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [paths, setPaths] = useState<Path[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'paths' | 'studio'>(searchParams?.get('tab') === 'studio' ? 'studio' : 'paths');
+  // Get initial tab from URL parameter, default to 'paths'
+  const getInitialTab = (): 'paths' | 'studio' => {
+    const tabParam = searchParams?.get('tab');
+    const validTabs = ['paths', 'studio'];
+    return validTabs.includes(tabParam || '') ? (tabParam as any) : 'paths';
+  };
+  
+  const [activeTab, setActiveTab] = useState<'paths' | 'studio'>(getInitialTab);
+
+  // Function to handle tab changes and update URL
+  const handleTabChange = (tab: 'paths' | 'studio') => {
+    setActiveTab(tab);
+    // Update URL with new tab parameter
+    const params = new URLSearchParams(searchParams?.toString() || '');
+    params.set('tab', tab);
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  // Sync tab state with URL parameter changes (for browser back/forward)
+  useEffect(() => {
+    const tabParam = searchParams?.get('tab');
+    const validTabs = ['paths', 'studio'];
+    if (tabParam && validTabs.includes(tabParam)) {
+      setActiveTab(tabParam as any);
+    }
+  }, [searchParams]);
 
   // Filter states
   const [selectedCollectionStates, setSelectedCollectionStates] = useState<string[]>(COLLECTION_STATES.map(s => s.value));
@@ -793,7 +818,7 @@ function ManagePageInner() {
           <div className="border-b border-neutral-200">
             <nav className="-mb-px flex space-x-8 px-6">
               <button
-                onClick={() => setActiveTab('paths')}
+                onClick={() => handleTabChange('paths')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'paths'
                     ? 'border-primary-500 text-primary-600'
@@ -803,7 +828,7 @@ function ManagePageInner() {
                 Paths ({paths.length})
               </button>
               <button
-                onClick={() => setActiveTab('studio')}
+                onClick={() => handleTabChange('studio')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'studio'
                     ? 'border-primary-500 text-primary-600'

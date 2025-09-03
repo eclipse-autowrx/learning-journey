@@ -298,7 +298,7 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
         ref={setNodeRef}
         style={style}
         className={`p-4 border rounded-lg cursor-pointer hover:bg-gray-50 ${
-          selectedCollectionIndex === index ? 'bg-blue-50 border-blue-300' : 'border-gray-200'
+          selectedCollectionIndex === index ? 'bg-purple-50 border-purple-300' : 'border-gray-200'
         }`}
         onClick={() => handleCollectionClick(index)}
       >
@@ -349,7 +349,7 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
         case 'locked':
           return 'bg-red-100 text-red-800';
         case 'draft':
-          return 'bg-blue-100 text-blue-800';
+          return 'bg-purple-100 text-purple-800';
         case 'archived':
           return 'bg-gray-100 text-gray-800';
         default:
@@ -431,7 +431,7 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
             placeholder="Search paths..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         </div>
 
@@ -440,7 +440,7 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
           <div className="flex gap-2">
             <button
               onClick={handleSelectAll}
-              className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+              className="px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
             >
               Select All
             </button>
@@ -462,7 +462,7 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
             <div
               key={path._id}
               className={`p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                selectedPaths.includes(path._id) ? 'bg-blue-50' : ''
+                selectedPaths.includes(path._id) ? 'bg-purple-50' : ''
               }`}
               onClick={() => handleTogglePath(path._id)}
             >
@@ -475,7 +475,7 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
                   type="checkbox"
                   checked={selectedPaths.includes(path._id)}
                   onChange={() => handleTogglePath(path._id)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                 />
               </div>
             </div>
@@ -487,7 +487,7 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
           <button
             onClick={handleAddSelected}
             disabled={selectedPaths.length === 0}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             Add Selected Paths ({selectedPaths.length})
           </button>
@@ -505,7 +505,7 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
         </div>
         <button
           onClick={openCreateCollection}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700"
         >
           <FaPlus className="mr-2 h-4 w-4" />
           Add Collection
@@ -554,7 +554,7 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
 
           {loadingPaths ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
               <p className="mt-2 text-sm text-gray-500">Loading paths...</p>
             </div>
           ) : (

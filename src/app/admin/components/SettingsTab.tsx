@@ -371,7 +371,7 @@ export default function SettingsTab({ hasManageUsers }: SettingsTabProps) {
                     type="text"
                     value={newSetting.key}
                     onChange={(e) => setNewSetting({...newSetting, key: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="e.g., app_name, api_url"
                   />
                 </div>
@@ -383,7 +383,7 @@ export default function SettingsTab({ hasManageUsers }: SettingsTabProps) {
                   <textarea
                     value={newSetting.value}
                     onChange={(e) => setNewSetting({...newSetting, value: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                     rows={3}
                     placeholder='e.g., "My App" or {"key": "value"}'
                   />
@@ -397,7 +397,7 @@ export default function SettingsTab({ hasManageUsers }: SettingsTabProps) {
                     type="text"
                     value={newSetting.description}
                     onChange={(e) => setNewSetting({...newSetting, description: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="Brief description of this setting"
                   />
                 </div>
@@ -409,7 +409,7 @@ export default function SettingsTab({ hasManageUsers }: SettingsTabProps) {
                   <select
                     value={newSetting.category}
                     onChange={(e) => setNewSetting({...newSetting, category: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   >
                     <option value="general">General</option>
                     <option value="ui">UI</option>
@@ -425,7 +425,7 @@ export default function SettingsTab({ hasManageUsers }: SettingsTabProps) {
                     id="secret"
                     checked={newSetting.secret}
                     onChange={(e) => setNewSetting({...newSetting, secret: e.target.checked})}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                   />
                   <label htmlFor="secret" className="ml-2 text-sm text-gray-700">
                     Secret setting (admin only)
@@ -443,7 +443,7 @@ export default function SettingsTab({ hasManageUsers }: SettingsTabProps) {
                 <button
                   onClick={handleCreateSetting}
                   disabled={isCreating}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md disabled:opacity-50"
                 >
                   {isCreating ? 'Creating...' : 'Create Setting'}
                 </button>

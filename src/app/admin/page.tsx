@@ -3,22 +3,50 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { FaCog, FaList, FaRoute } from 'react-icons/fa';
+import { FaCog, FaList, FaRoute, FaPalette, FaHome } from 'react-icons/fa';
 import UserBadge from '@/app/components/atom/UserBadge';
 import { useAuth } from '@/lib/frontend/auth';
 import CollectionsTab from './components/CollectionsTab';
 import PathsTab from './components/PathsTab';
 import SettingsTab from './components/SettingsTab';
+import ColorThemeTab from './components/ColorThemeTab';
+import HomeCfgTab from './components/HomeCfgTab';
 
 function AdminPageInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
   const { isAuthenticated, loading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'collections' | 'paths' | 'settings'>('collections');
+  
+  // Get initial tab from URL parameter, default to 'collections'
+  const getInitialTab = (): 'collections' | 'paths' | 'settings' | 'theme' | 'home' => {
+    const tabParam = searchParams.get('tab');
+    const validTabs = ['collections', 'paths', 'settings', 'theme', 'home'];
+    return validTabs.includes(tabParam || '') ? (tabParam as any) : 'collections';
+  };
+  
+  const [activeTab, setActiveTab] = useState<'collections' | 'paths' | 'settings' | 'theme' | 'home'>(getInitialTab);
 
   const [loading, setLoading] = useState(true);
   const [hasManageUsers, setHasManageUsers] = useState<boolean | null>(null);
+
+  // Function to handle tab changes and update URL
+  const handleTabChange = (tab: 'collections' | 'paths' | 'settings' | 'theme' | 'home') => {
+    setActiveTab(tab);
+    // Update URL with new tab parameter
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', tab);
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  // Sync tab state with URL parameter changes (for browser back/forward)
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    const validTabs = ['collections', 'paths', 'settings', 'theme', 'home'];
+    if (tabParam && validTabs.includes(tabParam)) {
+      setActiveTab(tabParam as any);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
@@ -100,7 +128,7 @@ function AdminPageInner() {
           <div className="border-b mb-8" style={{ borderColor: 'var(--border-primary)' }}>
             <nav className="-mb-px flex space-x-8">
               <button
-                onClick={() => setActiveTab('collections')}
+                onClick={() => handleTabChange('collections')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'collections'
                     ? ''
@@ -115,7 +143,7 @@ function AdminPageInner() {
                 Collections
               </button>
               <button
-                onClick={() => setActiveTab('paths')}
+                onClick={() => handleTabChange('paths')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'paths'
                     ? ''
@@ -130,7 +158,7 @@ function AdminPageInner() {
                 Paths
               </button>
               <button
-                onClick={() => setActiveTab('settings')}
+                onClick={() => handleTabChange('settings')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'settings'
                     ? ''
@@ -143,6 +171,36 @@ function AdminPageInner() {
               >
                 <FaCog className="inline-block mr-2" />
                 Settings
+              </button>
+              <button
+                onClick={() => handleTabChange('theme')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'theme'
+                    ? ''
+                    : 'border-transparent'
+                }`}
+                style={{
+                  borderBottomColor: activeTab === 'theme' ? 'var(--color-primary-500)' : 'transparent',
+                  color: activeTab === 'theme' ? 'var(--color-primary-500)' : 'var(--text-tertiary)'
+                }}
+              >
+                <FaPalette className="inline-block mr-2" />
+                Theme
+              </button>
+              <button
+                onClick={() => handleTabChange('home')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'home'
+                    ? ''
+                    : 'border-transparent'
+                }`}
+                style={{
+                  borderBottomColor: activeTab === 'home' ? 'var(--color-primary-500)' : 'transparent',
+                  color: activeTab === 'home' ? 'var(--color-primary-500)' : 'var(--text-tertiary)'
+                }}
+              >
+                <FaHome className="inline-block mr-2" />
+                Home Cfg
               </button>
             </nav>
           </div>
@@ -158,6 +216,12 @@ function AdminPageInner() {
               )}
               {activeTab === 'settings' && (
                 <SettingsTab hasManageUsers={hasManageUsers} />
+              )}
+              {activeTab === 'theme' && (
+                <ColorThemeTab hasManageUsers={hasManageUsers} />
+              )}
+              {activeTab === 'home' && (
+                <HomeCfgTab hasManageUsers={hasManageUsers} />
               )}
             </div>
           </div>
