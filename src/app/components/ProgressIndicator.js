@@ -40,7 +40,7 @@ const ProgressIndicator = ({ steps = 5, completedSteps = 0, activeStep = 1 }) =>
                 
                 {/* Connecting Line */}
                 {stepIndex < steps - 1 && (
-                    <div className="w-[14px] h-0.5" style={{
+                    <div className="w-[0.5vw] h-0.5" style={{
                         backgroundColor: stepNumber <= completedSteps || (stepNumber === activeStep && stepNumber <= completedSteps + 1)
                             ? 'var(--progress-completed)' 
                             : 'var(--progress-line-inactive)'

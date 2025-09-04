@@ -40,7 +40,8 @@ import {
   FaTimes,
   FaArrowUp,
   FaArrowDown,
-  FaGripVertical
+  FaGripVertical,
+  FaDownload
 } from 'react-icons/fa';
 import ManageBreadCrumb from '@/app/components/atom/ManageBreadCrumb';
 import UserBadge from '@/app/components/atom/UserBadge';
@@ -49,6 +50,144 @@ import { COURSE_STATES, LESSON_STATES } from '@/lib/const';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ImageEditor from '@/app/components/atom/ImageEditor';
 import { useAuth } from '@/lib/frontend/auth';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
+
+function generateLessonFiles(lesson: any, index: number): { fileName: string; content: string; isJson: boolean } {
+  const baseFileName = `${String(index + 1).padStart(2, '0')}-${lesson.slug}`;
+  
+  if (lesson.lesson_type === 'text-markdown') {
+    // For markdown lessons, save as .md file with the actual content
+    const content = lesson.markdown_content || '# No content available\n\nThis lesson does not have any markdown content.';
+    return {
+      fileName: `${baseFileName}.md`,
+      content: content,
+      isJson: false
+    };
+  } else {
+    // For all other lesson types, save as .json file with all the raw data
+    const jsonData = {
+      name: lesson.name,
+      slug: lesson.slug,
+      description: lesson.description || '',
+      lesson_type: lesson.lesson_type,
+      state: lesson.state,
+      duration: lesson.duration || 0,
+      created_at: lesson.created_at,
+      updated_at: lesson.updated_at,
+      // Include all lesson-type specific data
+      ...(lesson.lesson_type === 'video' && {
+        video_url: lesson.video_url,
+        video_duration: lesson.video_duration,
+        video_provider: lesson.video_provider
+      }),
+      ...(lesson.lesson_type === 'quiz' && {
+        quiz_questions: lesson.quiz_questions,
+        passing_score: lesson.passing_score,
+        max_attempts: lesson.max_attempts
+      }),
+      ...(lesson.lesson_type === 'interactive' && {
+        sequence: lesson.sequence,
+        auto_run_next: lesson.auto_run_next,
+        auto_start: lesson.auto_start,
+        trigger_source: lesson.trigger_source,
+        actions: lesson.actions,
+        interactive_config: lesson.interactive_config
+      }),
+      // Include any other properties that might exist
+      content: lesson.content,
+      configs: lesson.configs,
+      extends: lesson.extends
+    };
+    
+    return {
+      fileName: `${baseFileName}.json`,
+      content: JSON.stringify(jsonData, null, 2),
+      isJson: true
+    };
+  }
+}
+
+async function downloadCourseAsZip(course: any, lessons: any[]) {
+  try {
+    const zip = new JSZip();
+    
+    // Add course info file
+    const courseInfo = `# ${course.name}
+
+**Slug:** ${course.slug}
+**Category:** ${course.category || 'No category'}
+**State:** ${course.state}
+**Description:** ${course.description || 'No description'}
+**Total Lessons:** ${lessons.length}
+**Duration:** ${course.duration || 0} minutes
+
+---
+
+## Course Information
+This course contains ${lessons.length} lessons covering various topics.
+
+**Created:** ${course.created_at ? new Date(course.created_at).toLocaleDateString() : 'Unknown'}
+**Updated:** ${course.updated_at ? new Date(course.updated_at).toLocaleDateString() : 'Unknown'}
+
+## File Structure
+- \`README.md\` - This course information file
+- \`lesson-index.md\` - Index of all lessons
+- \`lessons/\` - Individual lesson files (markdown for text lessons, JSON for others)
+`;
+    
+    zip.file('README.md', courseInfo);
+    
+    // Add lessons folder
+    const lessonsFolder = zip.folder('lessons');
+    
+    // Track lesson files for the index
+    const lessonFiles: Array<{ name: string; fileName: string; type: string; isJson: boolean }> = [];
+    
+    // Add each lesson as appropriate file type
+    lessons.forEach((lesson, index) => {
+      const { fileName, content, isJson } = generateLessonFiles(lesson, index);
+      lessonsFolder?.file(fileName, content);
+      
+      lessonFiles.push({
+        name: lesson.name,
+        fileName: fileName,
+        type: lesson.lesson_type,
+        isJson: isJson
+      });
+    });
+    
+    // Add lesson index with file type information
+    const lessonIndex = `# Lesson Index
+
+This course contains the following lessons:
+
+${lessonFiles.map((file, index) => 
+  `${index + 1}. **${file.name}** (${file.type})
+   - File: \`lessons/${file.fileName}\`
+   - Format: ${file.isJson ? 'JSON data' : 'Markdown content'}
+   - Description: ${lessons[index].description || 'No description'}
+`).join('\n')}
+
+## File Format Notes
+- **Markdown lessons** (\`.md\` files): Contain the actual lesson content in markdown format
+- **Other lesson types** (\`.json\` files): Contain all lesson data in JSON format for programmatic access
+`;
+    
+    zip.file('lesson-index.md', lessonIndex);
+    
+    // Generate and download the zip
+    const content = await zip.generateAsync({ type: 'blob' });
+    const fileName = `${course.slug}-course-export.zip`;
+    
+    saveAs(content, fileName);
+    
+    showToast.success(`Course exported as ${fileName}`);
+  } catch (error) {
+    console.error('Error creating course zip:', error);
+    showToast.error('Failed to export course');
+  }
+}
 
 function validateQuizLesson(lesson: any) {
   if (lesson.lesson_type !== 'quiz') {
@@ -639,6 +778,14 @@ Start writing your lesson content here.`;
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <Btn 
+                variant="outlined" 
+                onClick={() => downloadCourseAsZip(course, lessons)}
+                disabled={lessons.length === 0}
+              >
+                <FaDownload className="mr-2 h-4 w-4" />
+                Download Course
+              </Btn>
               <div className="flex items-center space-x-3">
                 <span className="text-sm text-neutral-500">State:</span>
                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(course.state)}`}>{course.state}</span>

@@ -76,17 +76,61 @@ const TextMarkdownEditor = ({ value, onChange }) => {
     }
   };
 
+  const handleDownloadMd = () => {
+    const element = document.createElement('a');
+    const file = new Blob([markdown], { type: 'text/markdown' });
+    element.href = URL.createObjectURL(file);
+    element.download = 'lesson-content.md';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    showToast.success('Markdown file downloaded successfully.');
+  };
+
+  const handleUploadMd = (event) => {
+    const file = event.target.files[0];
+    if (file && (file.type === 'text/markdown' || file.name.endsWith('.md'))) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target.result;
+        update(content);
+        showToast.success('Markdown file uploaded and content replaced.');
+      };
+      reader.readAsText(file);
+    } else {
+      showToast.error('Please select a valid .md file.');
+    }
+    event.target.value = '';
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
         <label className="block text-sm font-medium text-neutral-700">Markdown Content</label>
-        <button
-          onClick={handleLocalizeImages}
-          disabled={isLocalizing}
-          className="px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:bg-neutral-400"
-        >
-          {isLocalizing ? 'Localizing...' : 'Localize Images'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleDownloadMd}
+            className="px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Download .md
+          </button>
+          <label className="px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 cursor-pointer">
+            Upload .md
+            <input
+              type="file"
+              accept=".md"
+              onChange={handleUploadMd}
+              className="hidden"
+            />
+          </label>
+          <button
+            onClick={handleLocalizeImages}
+            disabled={isLocalizing}
+            className="px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:bg-neutral-400"
+          >
+            {isLocalizing ? 'Localizing...' : 'Localize Images'}
+          </button>
+        </div>
       </div>
       <div className="border border-neutral-300 rounded-md overflow-hidden">
         <Editor

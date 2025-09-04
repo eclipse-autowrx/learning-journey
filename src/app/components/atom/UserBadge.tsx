@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/lib/frontend/auth';
-import { FaUserCircle, FaSignOutAlt, FaSignInAlt } from 'react-icons/fa';
+import { FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
 
 interface UserBadgeProps {
   align?: 'left' | 'right';
@@ -38,6 +38,11 @@ export default function UserBadge({ align = 'right', variant = 'default' }: User
     setIsDropdownOpen(false);
   };
 
+  const truncateName = (name: string | null) => {
+    if (!name) return name;
+    return name.length > 20 ? name.slice(0, 20) + '...' : name;
+  };
+
   if (loading) {
     return <div className={`text-sm ${subText} ${containerAlign}`}>Checking user...</div>;
   }
@@ -69,7 +74,7 @@ export default function UserBadge({ align = 'right', variant = 'default' }: User
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
       >
         <FaUserCircle className={`h-5 w-5 ${iconColor}`} />
-        <span className="font-medium">{userName || userId}</span>
+        <span className="font-medium">{truncateName(userName || userId)}</span>
       </div>
 
       {isDropdownOpen && (

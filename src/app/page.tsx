@@ -1,28 +1,8 @@
-// Copyright (c) 2025 Eclipse Foundation.
-// 
-// This program and the accompanying materials are made available under the
-// terms of the MIT License which is available at
-// https://opensource.org/licenses/MIT.
-//
-// SPDX-License-Identifier: MIT
-
 import HomeContent from "./components/screen/HomeContent";
-import PathList from "./components/screen/PathList";
 import { FaDiamond } from "react-icons/fa6";
-import Link from 'next/link';
 import connectToDatabase from '../lib/mongodb';
 import SystemSettings from '../lib/models/SystemSettings';
-
-const winston = require('winston');
-
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.json(),
-  transports: [
-    // new winston.transports.Console(), // Output to console
-    new winston.transports.File({ filename: 'server.log' }), // Output to a file
-  ],
-});
+import TopRightControls from './components/TopRightControls';
 
 interface HomeConfig {
   title: string;
@@ -59,7 +39,10 @@ export default async function Home() {
   const homeConfig = await getHomeConfig();
   return (
     <div className="bg-white text-slate-600 text-2xl p-0
-        h-full w-full flex flex-col gap-0">
+        h-full w-full flex flex-col gap-0 relative">
+
+      {/* Top right controls - Admin link and UserBadge */}
+      <TopRightControls />
 
       <div className="w-full bg-gradient-to-br from-primary-800 via-primary-800 to-primary-700 text-white flex flex-col items-center justify-center pt-8 pb-8 px-6 lg:px-12">
         <div className="container h-full flex sm:flex-row flex-col gap-6">
@@ -128,5 +111,3 @@ export default async function Home() {
     </div>
   );
 }
-
-

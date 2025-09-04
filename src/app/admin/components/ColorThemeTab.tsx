@@ -96,7 +96,9 @@ export default function ColorThemeTab({ hasManageUsers }: ColorThemeTabProps) {
       Object.entries(generatedTheme).filter(([key]) => key.startsWith('color-primary-')) :
       colorType === 'secondary' ?
       Object.entries(generatedTheme).filter(([key]) => key.startsWith('color-secondary-')) :
-      Object.entries(generatedTheme).filter(([key]) => key.startsWith('color-accent-'));
+      colorType === 'accent' ?
+      Object.entries(generatedTheme).filter(([key]) => key.startsWith('color-accent-')) :
+      Object.entries(generatedTheme).filter(([key]) => key.startsWith('color-neutral-'));
 
     return (
       <div className="p-4 bg-white rounded-lg border border-neutral-200">
@@ -209,6 +211,10 @@ export default function ColorThemeTab({ hasManageUsers }: ColorThemeTabProps) {
                         className="w-4 h-4 rounded"
                         style={{ backgroundColor: preset.baseColors.accent }}
                       />
+                      <div 
+                        className="w-4 h-4 rounded"
+                        style={{ backgroundColor: preset.baseColors.neutral }}
+                      />
                     </div>
                     <div className="text-sm font-medium text-neutral-900">{preset.name}</div>
                   </div>
@@ -255,6 +261,7 @@ export default function ColorThemeTab({ hasManageUsers }: ColorThemeTabProps) {
               <BaseColorPicker colorType="primary" label="Primary Color" />
               <BaseColorPicker colorType="secondary" label="Secondary Color" />
               <BaseColorPicker colorType="accent" label="Accent Color" />
+              <BaseColorPicker colorType="neutral" label="Neutral Color" />
             </div>
           </div>
 
@@ -268,6 +275,7 @@ export default function ColorThemeTab({ hasManageUsers }: ColorThemeTabProps) {
                 <ColorScalePreview colorType="primary" label="Primary" />
                 <ColorScalePreview colorType="secondary" label="Secondary" />
                 <ColorScalePreview colorType="accent" label="Accent" />
+                <ColorScalePreview colorType="neutral" label="Neutral" />
               </div>
             </div>
           )}

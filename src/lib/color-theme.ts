@@ -10,6 +10,7 @@ export interface BaseColorTheme {
   primary: string;    // Base primary color (500)
   secondary: string;  // Base secondary color (500)
   accent: string;     // Base accent color (500)
+  neutral: string;    // Base neutral color (500)
 }
 
 export interface ColorTheme {
@@ -51,6 +52,19 @@ export interface ColorTheme {
   'color-accent-800': string;
   'color-accent-900': string;
   'color-accent-950': string;
+
+  // Neutral colors
+  'color-neutral-50': string;
+  'color-neutral-100': string;
+  'color-neutral-200': string;
+  'color-neutral-300': string;
+  'color-neutral-400': string;
+  'color-neutral-500': string;
+  'color-neutral-600': string;
+  'color-neutral-700': string;
+  'color-neutral-800': string;
+  'color-neutral-900': string;
+  'color-neutral-950': string;
 }
 
 export const DEFAULT_THEME: ColorTheme = {
@@ -92,6 +106,19 @@ export const DEFAULT_THEME: ColorTheme = {
   'color-accent-800': '#854d0e',
   'color-accent-900': '#713f12',
   'color-accent-950': '#422006',
+
+  // Neutral Color System - Gray tones
+  'color-neutral-50': '#fafafa',
+  'color-neutral-100': '#f5f5f5',
+  'color-neutral-200': '#e5e5e5',
+  'color-neutral-300': '#d4d4d4',
+  'color-neutral-400': '#a3a3a3',
+  'color-neutral-500': '#737373',
+  'color-neutral-600': '#525252',
+  'color-neutral-700': '#404040',
+  'color-neutral-800': '#262626',
+  'color-neutral-900': '#171717',
+  'color-neutral-950': '#0a0a0a',
 };
 
 /**
@@ -198,7 +225,7 @@ function generateColorScale(baseColor: string): Record<string, string> {
   const scale: Record<string, string> = {};
   
   Object.entries(lightnessAdjustments).forEach(([shade, lightness]) => {
-    const saturation = saturationAdjustments[shade as keyof typeof saturationAdjustments];
+    const saturation = saturationAdjustments[Number(shade) as keyof typeof saturationAdjustments];
     scale[shade] = hslToHex(h, saturation, lightness);
   });
 
@@ -212,6 +239,7 @@ export function generateColorTheme(baseColors: BaseColorTheme): ColorTheme {
   const primaryScale = generateColorScale(baseColors.primary);
   const secondaryScale = generateColorScale(baseColors.secondary);
   const accentScale = generateColorScale(baseColors.accent);
+  const neutralScale = generateColorScale(baseColors.neutral);
 
   return {
     // Primary colors
@@ -252,6 +280,19 @@ export function generateColorTheme(baseColors: BaseColorTheme): ColorTheme {
     'color-accent-800': accentScale['800'],
     'color-accent-900': accentScale['900'],
     'color-accent-950': accentScale['950'],
+
+    // Neutral colors
+    'color-neutral-50': neutralScale['50'],
+    'color-neutral-100': neutralScale['100'],
+    'color-neutral-200': neutralScale['200'],
+    'color-neutral-300': neutralScale['300'],
+    'color-neutral-400': neutralScale['400'],
+    'color-neutral-500': neutralScale['500'],
+    'color-neutral-600': neutralScale['600'],
+    'color-neutral-700': neutralScale['700'],
+    'color-neutral-800': neutralScale['800'],
+    'color-neutral-900': neutralScale['900'],
+    'color-neutral-950': neutralScale['950'],
   };
 }
 
@@ -263,6 +304,7 @@ export function extractBaseColors(theme: ColorTheme): BaseColorTheme {
     primary: theme['color-primary-500'],
     secondary: theme['color-secondary-500'],
     accent: theme['color-accent-500'],
+    neutral: theme['color-neutral-500'],
   };
 }
 
@@ -272,7 +314,8 @@ export const PRESET_THEMES = {
     baseColors: {
       primary: '#4a7c6b',
       secondary: '#22c55e',
-      accent: '#eab308'
+      accent: '#eab308',
+      neutral: '#737373'
     }
   },
   'blue': {
@@ -280,7 +323,8 @@ export const PRESET_THEMES = {
     baseColors: {
       primary: '#3b82f6',
       secondary: '#06b6d4',
-      accent: '#f59e0b'
+      accent: '#f59e0b',
+      neutral: '#6b7280'
     }
   },
   'purple': {
@@ -288,7 +332,8 @@ export const PRESET_THEMES = {
     baseColors: {
       primary: '#a855f7',
       secondary: '#ec4899',
-      accent: '#f59e0b'
+      accent: '#f59e0b',
+      neutral: '#71717a'
     }
   },
   'red': {
@@ -296,7 +341,8 @@ export const PRESET_THEMES = {
     baseColors: {
       primary: '#ef4444',
       secondary: '#f97316',
-      accent: '#eab308'
+      accent: '#eab308',
+      neutral: '#737373'
     }
   },
   'green': {
@@ -304,7 +350,8 @@ export const PRESET_THEMES = {
     baseColors: {
       primary: '#059669',
       secondary: '#0d9488',
-      accent: '#d97706'
+      accent: '#d97706',
+      neutral: '#6b7280'
     }
   },
   'indigo': {
@@ -312,7 +359,8 @@ export const PRESET_THEMES = {
     baseColors: {
       primary: '#6366f1',
       secondary: '#8b5cf6',
-      accent: '#f59e0b'
+      accent: '#f59e0b',
+      neutral: '#6b7280'
     }
   }
 };

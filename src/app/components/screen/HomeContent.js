@@ -293,7 +293,7 @@ const HomeContent = ({ }) => {
                                         {/* Course Content - Exact Figma Layout */}
                                         <div className="flex-1 flex flex-col justify-between p-4">
                                             <div className="flex flex-col gap-1">
-                                                <h3 className="font-semibold text-xl 
+                                                <h3 className="font-semibold text-base md:text-lg xl:text-xl line-clamp-1
                                                     leading-tight tracking-[-0.02em] text-neutral-800">
                                                     {path.name || 'No Name'}
                                                 </h3>
