@@ -6,14 +6,14 @@
 //
 // SPDX-License-Identifier: MIT
 
-const { execSync } = require('child_process');
+import { execSync } from 'child_process';
 
 /**
  * Pre-warm script to build and cache pages for better first-user experience
  * This script runs after the Next.js build to pre-generate commonly accessed pages
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3099';
 const isDev = process.env.NODE_ENV !== 'production';
 
 console.log('🚀 Starting page pre-warming process...');

@@ -10,17 +10,15 @@ import connectToDatabase from "@/lib/mongodb";
 import { CourseProgress } from "@/lib/models/index.js";
 
 
-import { STATE_NOT_STARTED, STATE_IN_PROGRESS, STATE_COMPLETED, STATE_LOCKED } from "@/lib/const";
+import { STATE_NOT_STARTED, STATE_COMPLETED } from "@/lib/const";
 
 export const getProgressForCourse = async (user_id, course_id) => {
     if (!user_id) return
     try {
-        console.log(`getProgressForCourse user_id ${user_id}`)
         await connectToDatabase();
         const dbProgress = await CourseProgress.findOne({ user_id: user_id, course_id: course_id }).lean();
         return dbProgress
     } catch (err) {
-        console.log(err)
         return null
     }
 }
@@ -42,7 +40,6 @@ export const getProgressForCourses = async (user_id, course_ids) => {
         }).lean())
         return dbProgresses;
     } catch (err) {
-        console.log(err)
         return null
     }
 }

@@ -8,41 +8,46 @@
 
 'use client'
 
-const ProgressIndicator = ({ steps = 5, completedSteps = 0, activeStep = 1 }) => {
-    const renderStep = (stepIndex) => {
-        const stepNumber = stepIndex + 1;
-        const isCompleted = stepNumber <= completedSteps;
-        const isActive = stepNumber === activeStep;
-        const isPending = stepNumber > activeStep;
+const ProgressIndicator = ({ courses = [] }) => {
+    // Handle edge cases
+    if (!courses || courses.length === 0) {
+        return null;
+    }
+
+    const renderStep = (course, index) => {
+        const courseState = course?.context?.state;
+        const isCompleted = courseState === 'completed';
+        const isActive = courseState === 'in_progress';
+        const isPending = !courseState || courseState === 'not_started';
 
         return (
-            <div key={stepIndex} className="flex items-center w-full m-0 p-0">
+            <div key={course?._id || index} className="flex items-center w-full m-0 p-0">
                 {/* Step Circle */}
-                <div className="w-4 h-4 m-0 p-0 rounded-full border-2 flex items-center justify-center" style={{
+                <div className="w-[14px] h-[14px] m-0 p-0 rounded-full border-2 grid place-items-center" style={{
                     backgroundColor: isCompleted ? 'var(--progress-completed)' : 'transparent',
                     borderColor: isCompleted ? 'var(--progress-completed)' : isActive ? 'var(--progress-completed)' : 'var(--progress-line-inactive)'
                 }}>
                     {/* Checkmark for completed steps */}
                     {isCompleted && (
-                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20" strokeWidth="1.2">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                     )}
                     {/* Active step dot */}
-                    {isActive && !isCompleted && (
-                        <div className="w-2 h-2 rounded-full" style={{backgroundColor: 'var(--progress-completed)'}}></div>
+                    {isActive && (
+                        <div className="w-[5px] h-[5px] rounded-full" style={{backgroundColor: 'var(--progress-completed)'}}></div>
                     )}
-                    {/* Pending step dot */}
+                    {/* Pending step - empty circle */}
                     {isPending && (
                         <div className="w-2 h-2 rounded-full bg-transparent"></div>
                     )}
                 </div>
-                
+
                 {/* Connecting Line */}
-                {stepIndex < steps - 1 && (
+                {index < courses.length - 1 && (
                     <div className="w-[0.5vw] h-0.5" style={{
-                        backgroundColor: stepNumber <= completedSteps || (stepNumber === activeStep && stepNumber <= completedSteps + 1)
-                            ? 'var(--progress-completed)' 
+                        backgroundColor: isCompleted || isActive
+                            ? 'var(--progress-completed)'
                             : 'var(--progress-line-inactive)'
                     }}></div>
                 )}
@@ -52,7 +57,7 @@ const ProgressIndicator = ({ steps = 5, completedSteps = 0, activeStep = 1 }) =>
 
     return (
         <div className="flex items-center space-x-1">
-            {Array.from({ length: steps }, (_, index) => renderStep(index))}
+            {courses.map((course, index) => renderStep(course, index))}
         </div>
     );
 };

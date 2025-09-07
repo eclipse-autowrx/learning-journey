@@ -42,7 +42,6 @@ export default async function handler(req, res) {
 
   switch (method) {
     case "GET":
-      console.log(`BE get course ${slug}`)
       try {
         const dbCourse = await CourseService.getBySlug(slug);
         if (!dbCourse) return res.status(404).json({ success: false, error: "Course not found" });
@@ -70,7 +69,6 @@ export default async function handler(req, res) {
 
         return res.status(200).json({ success: true, data: dbCourse });
       } catch (error) {
-        console.log(`Error get course ${slug}`, error)
         return res.status(400).json({ success: false, error: error.message });
       }
     default:

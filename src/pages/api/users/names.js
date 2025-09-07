@@ -64,7 +64,6 @@ export default async function handler(req, res) {
       if (!resultMap[id]) resultMap[id] = id;
     }
 
-    console.log(`[GET /api/users/names] success. ids=${ids}, data=${JSON.stringify(resultMap)}`);
     return res.status(200).json({ success: true, data: resultMap });
   } catch (e) {
     console.error(`[GET /api/users/names] error. ids=${ids}, error=${e}`);

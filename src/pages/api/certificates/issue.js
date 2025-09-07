@@ -110,8 +110,7 @@ async function checkCourseCompletion(userId, courseId) {
     // Example implementation:
     // const progress = await Progress.findOne({ user_id: userId, course_id: courseId });
     // return progress && progress.completed === true;
-    
-    console.log(`Checking completion for user ${userId}, course ${courseId}`);
+
     return true; // Placeholder - always return true for testing
   } catch (error) {
     console.error('Error checking course completion:', error);
@@ -131,8 +130,7 @@ async function getCourseInfo(courseId) {
     //   courseName: course.name,
     //   pathName: course.path?.name || 'General Course'
     // };
-    
-    console.log(`Getting course info for course ${courseId}`);
+
     return {
       courseName: 'Sample Course',
       pathName: 'Full Stack Web Development'

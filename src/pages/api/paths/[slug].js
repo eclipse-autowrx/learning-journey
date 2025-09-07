@@ -55,10 +55,8 @@ export default async function handler(req, res) {
   switch (method) {
     case "GET":
       try {
-        console.log(` PathService.getBySlugslug`, slug)
         const dbPath = await PathService.getBySlug(slug);
-        if (!dbPath) { 
-          console.log(` PathService.getBySlug not found`, slug)
+        if (!dbPath) {
           return res.status(404).json({ success: false, error: "Path not found" });
         }
 
@@ -74,15 +72,11 @@ export default async function handler(req, res) {
             }
             
             if (user_id) {
-              console.log("User ID found, fetching progress:", user_id);
               const courseIds = dbPath.courses.map(c => c._id);
-              console.log("Fetching progress for course IDs:", courseIds);
               const progresses = await CourseProgress.find({ user_id: user_id, course_id: { $in: courseIds } });
-              console.log("Fetched progresses:", JSON.stringify(progresses, null, 2));
               dbPath.courses.forEach(course => {
                 const progress = progresses.find(p => p.course_id.toString() === course._id.toString());
                 if (progress) {
-                  console.log(`Match found for course ${course._id}:`, JSON.stringify(progress, null, 2));
                   course.context = {
                     state: progress.state,
                     progress: progress
@@ -99,7 +93,7 @@ export default async function handler(req, res) {
 
           addMediaUrlForCourses(dbPath);
         } catch (err) {
-          console.log('Error processing courses:', err);
+          // Error processing courses
         }
 
         res.status(200).json({ success: true, data: dbPath });

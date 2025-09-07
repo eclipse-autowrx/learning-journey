@@ -14,6 +14,7 @@ import ProgressIndicator from '../ProgressIndicator';
 import { genQueryParamsForRequest } from '@/lib/frontend/utils';
 import { useAuth } from '../../../lib/frontend/auth';
 
+
 const HomeContent = ({ }) => {
     const [items, setItems] = useState([]);
     const [imageErrors, setImageErrors] = useState(new Set());
@@ -70,7 +71,6 @@ const HomeContent = ({ }) => {
     const applyProgressForCollections = async (collections) => {
         // Only fetch progress data for authenticated users
         if (!isAuthenticated) {
-            console.log('User not authenticated, skipping progress fetch');
             return;
         }
 
@@ -110,8 +110,15 @@ const HomeContent = ({ }) => {
                                             state: matchProgress.state,
                                             progress: matchProgress
                                         };
+                                    } else {
+                                        // No progress record found, set as not started
+                                        course.context = {
+                                            state: 'not_started'
+                                        };
                                     }
                                 });
+                                // Set course icons based on progress state
+                                // addMediaUrlForCourses(path, path.courses);
                             }
                         });
                     }
@@ -130,6 +137,7 @@ const HomeContent = ({ }) => {
             if (data && data.success) {
                 let collections = data.data
                 await applyProgressForCollections(collections)
+                // console.log("Fetched collections:", collections)
                 setItems(collections)
             } else {
                 setItems([])
@@ -151,6 +159,8 @@ const HomeContent = ({ }) => {
             console.log("Learning auth fail")
         }
     }
+
+
 
     const getDifficultyClass = (level) => {
         // Convert to number if it's a string
@@ -194,44 +204,7 @@ const HomeContent = ({ }) => {
         }
     };
 
-    const getProgressData = (path) => {
-        // For unauthenticated users, show no progress
-        if (!isAuthenticated) {
-            return {
-                totalSteps: path.courses?.length || 5,
-                completedSteps: 0,
-                activeStep: 1
-            };
-        }
 
-        // Get real progress data from path courses
-        if (path.courses && path.courses.length > 0) {
-            const totalCourses = path.courses.length;
-            let completedCourses = 0;
-            let activeCourse = 0;
-
-            path.courses.forEach((course, index) => {
-                if (course.context && course.context.state === 'completed') {
-                    completedCourses++;
-                } else if (course.context && course.context.state === 'active') {
-                    activeCourse = index + 1;
-                }
-            });
-
-            return {
-                totalSteps: totalCourses,
-                completedSteps: completedCourses,
-                activeStep: activeCourse || completedCourses + 1
-            };
-        }
-
-        // Fallback for authenticated users with no course data
-        return {
-            totalSteps: 5,
-            completedSteps: 0,
-            activeStep: 1
-        };
-    };
 
     return (
         <div id='pathList' className="bg-white min-h-screen text-center">
@@ -325,29 +298,21 @@ const HomeContent = ({ }) => {
                                                 </p>
                                             </div>
 
-                                            {/* Progress Section - Only show for authenticated users */}
-                                            {isAuthenticated && (
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    <p className="font-medium text-sm leading-[1.4] text-neutral-600">Progress</p>
-                                                    <ProgressIndicator
-                                                        steps={getProgressData(path).totalSteps}
-                                                        completedSteps={getProgressData(path).completedSteps}
-                                                        activeStep={getProgressData(path).activeStep}
-                                                    />
-                                                </div>
-                                            )}
+                                             {/* Progress Section - Only show for authenticated users */}
+                                             {isAuthenticated && path.courses && path.courses.length > 0 && (
+                                                 <div className="flex items-center gap-2 mt-2">
+                                                     <p className="font-medium text-sm leading-[1.4] text-neutral-600">Progress</p>
+                                                     <ProgressIndicator courses={path.courses} />
+                                                 </div>
+                                             )}
 
-                                            {/* Show "Not Started" for unauthenticated users */}
-                                            {!isAuthenticated && !authLoading && (
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    <p className="font-medium text-sm leading-[1.4] text-neutral-500">Not Started</p>
-                                                    <ProgressIndicator
-                                                        steps={getProgressData(path).totalSteps}
-                                                        completedSteps={0}
-                                                        activeStep={1}
-                                                    />
-                                                </div>
-                                            )}
+                                             {/* Show "Not Started" for unauthenticated users */}
+                                             {!isAuthenticated && !authLoading && path.courses && path.courses.length > 0 && (
+                                                 <div className="flex items-center gap-2 mt-2">
+                                                     <p className="font-medium text-sm leading-[1.4] text-neutral-500">Not Started</p>
+                                                     <ProgressIndicator courses={path.courses} />
+                                                 </div>
+                                             )}
                                         </div>
                                     </div>
                                 ))}

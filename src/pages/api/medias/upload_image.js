@@ -29,17 +29,7 @@ async function handler(req, res) {
 
     // Basic request diagnostics
     try {
-        console.log('[upload_image] request start', {
-            method: req.method,
-            url: req.url,
-            contentType: req.headers['content-type'],
-        });
-        console.log('[upload_image] config', {
-            MEDIA_STORE_PATH,
-            TMP_DIR: path.join(process.cwd(), '.tmp_uploads'),
-            THUMBNAIL_SIZE,
-            MAX_IMG_SIZE,
-        });
+        // Request diagnostics removed
     } catch (_) {}
 
     // Ensure media store directory exists and is writable
@@ -80,30 +70,14 @@ async function handler(req, res) {
         keepExtensions: true,
     });
 
-    form.parse(req, async (err, fields, files) => {
-        console.log('[upload_image] formidable.parse callback');
+    form.parse(req, async (err, _, files) => {
         if (err) {
             console.error('[upload_image] formidable error:', err);
             res.status(500).json({ error: 'Error parsing the file', details: err?.message });
             return;
         }
 
-        try {
-            console.log('[upload_image] fields =', fields);
-            const fileKeys = Object.keys(files || {});
-            console.log('[upload_image] files keys =', fileKeys);
-            for (const key of fileKeys) {
-                const val = files[key];
-                const f = Array.isArray(val) ? val[0] : val;
-                console.log(`[upload_image] file[${key}]`, {
-                    originalFilename: f?.originalFilename || f?.name,
-                    filepath: f?.filepath,
-                    path: f?.path,
-                    size: f?.size,
-                    mimetype: f?.mimetype,
-                });
-            }
-        } catch (_) {}
+
 
         let file = files.image || files.file || Object.values(files)[0];
         if (Array.isArray(file)) {
@@ -154,9 +128,7 @@ async function handler(req, res) {
 
         try {
             // Move file to destination
-            console.log('file.filepath', file.filepath);
-            console.log('file.path', file.path);
-            
+
             // For Windows compatibility, always use copy+unlink instead of rename
             const fromPath = file.filepath || file.path;
             if (!fromPath) {
@@ -166,10 +138,10 @@ async function handler(req, res) {
             try {
                 await fs.promises.copyFile(fromPath, destPath);
                 // Clean up temp file
-                try { 
-                    await fs.promises.unlink(fromPath); 
+                try {
+                    await fs.promises.unlink(fromPath);
                 } catch (unlinkErr) {
-                    console.log('Warning: Could not delete temp file:', unlinkErr.message);
+                    // Warning: Could not delete temp file
                 }
             } catch (copyErr) {
                 console.error('Failed to copy file:', copyErr);
@@ -213,7 +185,7 @@ async function handler(req, res) {
                     try {
                         await fs.promises.unlink(tempResizedPath);
                     } catch (cleanupErr) {
-                        console.log('Warning: Could not delete temp resized file:', cleanupErr.message);
+                        // Warning: Could not delete temp resized file
                     }
                 } catch (resizeErr) {
                     console.error('Failed to save resized image:', resizeErr);
@@ -253,15 +225,13 @@ async function handler(req, res) {
                 });
             }
         } catch (moveErr) {
-            console.log('moveErr', moveErr);
-            
             // Clean up any files that might have been created
             try {
                 if (fs.existsSync(destPath)) {
                     await fs.promises.unlink(destPath);
                 }
             } catch (cleanupErr) {
-                console.log('Warning: Could not cleanup destination file:', cleanupErr.message);
+                // Warning: Could not cleanup destination file
             }
             
             if (!res.headersSent) {

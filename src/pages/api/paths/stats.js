@@ -66,8 +66,6 @@ export default async function handler(req, res) {
                 // Only count as certified if ALL path courses are completed
                 if (completedCourses.length === pathDoc.courses.length) {
                     trueCertifiedLearners++;
-                } else {
-                    console.log(`[WARNING] User ${pathProgress.user_id} marked as path completed but only finished ${completedCourses.length}/${pathDoc.courses.length} courses`);
                 }
             }
         }
