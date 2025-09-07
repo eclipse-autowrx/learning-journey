@@ -49,6 +49,12 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
   const [showAddPathsModal, setShowAddPathsModal] = useState(false);
   const [collectionPaths, setCollectionPaths] = useState<any[]>([]);
 
+  // Collection creation form state
+  const [collectionForm, setCollectionForm] = useState({
+    name: '',
+    description: ''
+  });
+
   // Drag and drop sensors
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -82,7 +88,51 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
   };
 
   const openCreateCollection = () => {
+    setCollectionForm({
+      name: '',
+      description: ''
+    });
     setShowCollectionsModal(true);
+  };
+
+  const handleCollectionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!collectionForm.name.trim()) {
+      alert('Collection name is required');
+      return;
+    }
+
+    const newCollection = {
+      name: collectionForm.name.trim(),
+      description: collectionForm.description.trim(),
+      path_ids: []
+    };
+
+    const updatedCollections = [...collectionsData, newCollection];
+    setCollectionsData(updatedCollections);
+
+    try {
+      const response = await fetch('/api/admin/settings/collections', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ value: updatedCollections }),
+      });
+
+      if (response.ok) {
+        setShowCollectionsModal(false);
+        setCollectionForm({ name: '', description: '' });
+      } else {
+        console.error('Failed to save collection');
+        // Revert the change
+        setCollectionsData(collectionsData);
+      }
+    } catch (error) {
+      console.error('Error saving collection:', error);
+      // Revert the change
+      setCollectionsData(collectionsData);
+    }
   };
 
   const handleCollectionClick = async (index: number) => {
@@ -117,8 +167,8 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
     const { active, over } = event;
 
     if (active.id !== over?.id) {
-      const oldIndex = collectionsData.findIndex((item, index) => `collection-${index}` === active.id);
-      const newIndex = collectionsData.findIndex((item, index) => `collection-${index}` === over?.id);
+      const oldIndex = collectionsData.findIndex((_item, index) => `collection-${index}` === active.id);
+      const newIndex = collectionsData.findIndex((_item, index) => `collection-${index}` === over?.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
         const newCollections = arrayMove(collectionsData, oldIndex, newIndex);
@@ -156,8 +206,8 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
     const { active, over } = event;
 
     if (active.id !== over?.id && selectedCollectionIndex !== null) {
-      const oldIndex = collectionPaths.findIndex((item, index) => `path-${index}` === active.id);
-      const newIndex = collectionPaths.findIndex((item, index) => `path-${index}` === over?.id);
+      const oldIndex = collectionPaths.findIndex((_item, index) => `path-${index}` === active.id);
+      const newIndex = collectionPaths.findIndex((_item, index) => `path-${index}` === over?.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
         const newPaths = arrayMove(collectionPaths, oldIndex, newIndex);
@@ -223,7 +273,7 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
 
     const updated = [...collectionsData];
     const currentPathIds = updated[selectedCollectionIndex].path_ids || [];
-    updated[selectedCollectionIndex].path_ids = currentPathIds.filter(id => id !== pathId);
+    updated[selectedCollectionIndex].path_ids = currentPathIds.filter((id: string) => id !== pathId);
     setCollectionsData(updated);
 
     // Auto-save the changes
@@ -265,14 +315,16 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
     }
   };
 
-  const handleAddSelected = () => {
-    const selectedPathIds = availablePaths
-      .filter(path => path.selected)
-      .map(path => path._id);
-    
+  const handleAddSelected = async (selectedPathIds: string[]) => {
     if (selectedPathIds.length > 0) {
-      addSelectedPaths(selectedPathIds);
-      setShowAddPathsModal(false);
+      try {
+        await addSelectedPaths(selectedPathIds);
+        setShowAddPathsModal(false);
+      } catch (error) {
+        console.error('Error adding paths to collection:', error);
+        // Don't close the modal if there was an error
+        // The user can try again or see the error
+      }
     }
   };
 
@@ -395,7 +447,7 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
   }
 
   // Add Paths Modal Content Component
-  function AddPathsModalContent() {
+  function AddPathsModalContent({ onAddSelected }: { onAddSelected: (selectedIds: string[]) => Promise<void> }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedPaths, setSelectedPaths] = useState<string[]>([]);
 
@@ -485,7 +537,16 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
         {/* Add Button */}
         <div className="mt-4 flex justify-end">
           <button
-            onClick={handleAddSelected}
+            onClick={async () => {
+              if (selectedPaths.length > 0) {
+                try {
+                  await onAddSelected(selectedPaths);
+                  setSelectedPaths([]); // Clear selection after successful add
+                } catch (error) {
+                  console.error('Error adding paths:', error);
+                }
+              }
+            }}
             disabled={selectedPaths.length === 0}
             className="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
@@ -613,7 +674,68 @@ export default function CollectionsTab({ hasManageUsers }: CollectionsTabProps) 
                   ×
                 </button>
               </div>
-              <AddPathsModalContent />
+              <AddPathsModalContent onAddSelected={handleAddSelected} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Collection Modal */}
+      {showCollectionsModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Create Collection</h3>
+                <button
+                  onClick={() => setShowCollectionsModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              </div>
+              <form onSubmit={handleCollectionSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={collectionForm.name}
+                    onChange={(e) => setCollectionForm({...collectionForm, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Collection name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    value={collectionForm.description}
+                    onChange={(e) => setCollectionForm({...collectionForm, description: e.target.value})}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Collection description"
+                  />
+                </div>
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowCollectionsModal(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
+                  >
+                    Create Collection
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

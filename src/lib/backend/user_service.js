@@ -1,14 +1,14 @@
 // Copyright (c) 2025 Eclipse Foundation.
 // SPDX-License-Identifier: MIT
 
-const BASE_URL = (process.env.USER_BASE_URL || '').replace(/\/$/, '');
+const BASE_URL = (process.env.USER_BASE_URL || 'https://backend-core-dev.digital.auto/v2').replace(/\/$/, '');
 
 // Simple in-memory cache with TTL for user profiles
 const userCache = new Map(); // key: userId, value: { user, expiresAt }
 const DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 async function doFetch(path, { token } = {}) {
-  if (!BASE_URL) throw new Error('USER_BASE_URL is not configured');
+  if (!BASE_URL) throw new Error('NEXT_PUBLIC_BASE_URL is not configured');
   const url = `${BASE_URL}${path}`;
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;

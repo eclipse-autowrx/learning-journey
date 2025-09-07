@@ -68,7 +68,7 @@ export default async function handler(req, res) {
         const setting = await SystemSettings.findOneAndUpdate(
           { key },
           updateData,
-          { new: true, upsert: false }
+          { new: true, upsert: true }
         );
 
         if (!setting) {

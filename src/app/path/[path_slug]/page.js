@@ -13,6 +13,9 @@ import BreadCrumb from "@/app/components/atom/BreadCrumb"
 
 import { cookies, headers } from 'next/headers';
 
+// Revalidate every 10 minutes for dynamic paths
+export const revalidate = 600;
+
 const Page = async ({ params }) => {
   const cookieStore = await cookies();
 
@@ -25,7 +28,7 @@ const Page = async ({ params }) => {
     const hdrs = await headers();
     const host = hdrs.get('x-forwarded-host') || hdrs.get('host') || '';
     const proto = hdrs.get('x-forwarded-proto') || 'http';
-    const origin = host ? `${proto}://${host}` : (process.env.APP_DOMAIN || process.env.NEXT_PUBLIC_API_URL || process.env.HOST || undefined);
+    const origin = host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_BASE_URL || undefined);
     curPath = await fetchPathBySlug(
       path_slug,
       cookieStore.get('user_id')?.value || "",

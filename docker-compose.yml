@@ -24,7 +24,7 @@ services:
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: admin
       ME_CONFIG_MONGODB_ADMINPASSWORD: password123
-      ME_CONFIG_MONGODB_URL: mongodb://admin:password123@mongodb:27017/
+      ME_CONFIG_MONGODB_URL: mongodb://admin:password123@mongodb:27000/
       ME_CONFIG_BASICAUTH_USERNAME: admin
       ME_CONFIG_BASICAUTH_PASSWORD: password123
     ports:
@@ -34,16 +34,16 @@ services:
     networks:
       - learning-journey-network
 
-  app:
-    build: .
-    container_name: learning-journey-app
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=development
-      - MONGO_URI=mongodb://admin:password123@mongodb:27017/learning_journey?authSource=admin
-      - PORT=3000
-    ports:
-      - "3000:3000"
+   app:
+     build: .
+     container_name: learning-journey-app
+     restart: unless-stopped
+     environment:
+       - NODE_ENV=development
+       - MONGO_URI=mongodb://admin:password123@mongodb:27017/learning_journey?authSource=admin
+       - PORT=3090
+     ports:
+       - "3090:3090"
     depends_on:
       - mongodb
     networks:

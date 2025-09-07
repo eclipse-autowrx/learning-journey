@@ -101,6 +101,15 @@ export default async function handler(req, res) {
 
             for (const p of paths) {
                 const newPathData = { ...cleanId(p), owner_id: user_id };
+
+                // Handle date fields that might be empty objects
+                if (newPathData.valid_from && typeof newPathData.valid_from === 'object' && Object.keys(newPathData.valid_from).length === 0) {
+                    newPathData.valid_from = null;
+                }
+                if (newPathData.valid_to && typeof newPathData.valid_to === 'object' && Object.keys(newPathData.valid_to).length === 0) {
+                    newPathData.valid_to = null;
+                }
+
                 newPathData.slug = await generateUniqueSlug(newPathData.name, Path);
                 
                 const importedCourses = newPathData.courses || [];
@@ -113,6 +122,19 @@ export default async function handler(req, res) {
                 const newCourseIds = [];
                 for (const c of importedCourses) {
                     const newCourseData = { ...cleanId(c), owner_id: user_id };
+
+                    // Handle invalid course_type values
+                    const validCourseTypes = ['standard', 'workshop', 'certification', 'mini_course', 'bootcamp'];
+                    if (newCourseData.course_type && !validCourseTypes.includes(newCourseData.course_type)) {
+                        // Map 'award' to 'certification' as it's the closest match
+                        if (newCourseData.course_type === 'award') {
+                            newCourseData.course_type = 'certification';
+                        } else {
+                            // For other invalid types, default to 'standard'
+                            newCourseData.course_type = 'standard';
+                        }
+                    }
+
                     newCourseData.slug = await generateUniqueSlug(newCourseData.name, Course);
                     
                     const importedLessons = newCourseData.lessons || [];

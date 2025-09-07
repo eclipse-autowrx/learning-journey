@@ -25,10 +25,10 @@ import { IoReturnDownBackSharp } from "react-icons/io5";
 import { genQueryParamsForRequest } from "@/lib/frontend/utils";
 
 const ICON_SET = {
-  not_started: 'https://bewebstudio.digitalauto.tech/data/projects/zb1Shh3qkfNG/course-notyet.png',
-  in_progress: 'https://bewebstudio.digitalauto.tech/data/projects/zb1Shh3qkfNG/course-learning.png',
-  completed: 'https://bewebstudio.digitalauto.tech/data/projects/zb1Shh3qkfNG/course-done.png',
-  locked: 'https://bewebstudio.digitalauto.tech/data/projects/zb1Shh3qkfNG/course-notyet.png',
+  not_started: '/icons/course-notyet.png',
+  in_progress: '/icons/course-learning.png',
+  completed: '/icons/course-done.png',
+  locked: '/icons/course-locked.png',
 }
 
 const fetchProgressForCourses = async (course_ids) => {
@@ -126,10 +126,10 @@ const PathScreen = ({ path }) => {
   }, [maps])
 
   useEffect(() => {
-    if(path) {
+    if (path) {
       let courses = path?.courses || []
       let maps = path?.maps || []
-      if(courses.length > 0 && maps.length > 0) {
+      if (courses.length > 0 && maps.length > 0) {
         maps.forEach(map => {
           if (map.course_id) {
             // Course item
@@ -147,8 +147,8 @@ const PathScreen = ({ path }) => {
   }, [path])
 
   useEffect(() => {
-    if(updateTrigger) {
-      if(path?.course_ids || path?.courses){
+    if (updateTrigger) {
+      if (path?.course_ids || path?.courses) {
         // updateProgressForCourses() // No need this anymore
         updatePathProgress()
         updatePathStats()
@@ -157,7 +157,7 @@ const PathScreen = ({ path }) => {
   }, [updateTrigger])
 
   const updateProgressForCourses = async () => {
-    if(!path) return
+    if (!path) return
     if (!path?.course_ids) {
       path.course_ids = path?.courses?.map(c => c._id) || []
     }
@@ -177,7 +177,7 @@ const PathScreen = ({ path }) => {
               state: matchProgress.state,
               progress: matchProgress
             }
-            
+
 
             // Update lesson states based on progress
             if (course.lessons && matchProgress.lessons) {
@@ -193,21 +193,21 @@ const PathScreen = ({ path }) => {
             }
           }
 
-          if(course.type != 'award') {
-            if(!course.context?.state || course.context?.state != 'completed') {
+          if (course.type != 'award') {
+            if (!course.context?.state || course.context?.state != 'completed') {
               isPathFinish = false
             }
           }
         })
 
         // TODO: temp solutions, set award state on frontend base on other course state, later: no need, backend will do that
-        if(isPathFinish) {
+        if (isPathFinish) {
           tmpCourses.forEach(course => {
-              if(course.type == 'award') {
-                course.context = {
-                  state: 'completed'
-                }
+            if (course.type == 'award') {
+              course.context = {
+                state: 'completed'
               }
+            }
           })
         }
 
@@ -308,30 +308,35 @@ const PathScreen = ({ path }) => {
             </div>
 
             {path.time_to_complete && <div className="my-1 flex items-center text-sm text-neutral-500">
-              <GiDuration size={20} className='mr-1' />
+              <GiDuration size={20} className='mr-2 text-neutral-400' />
               <span className="mr-2">Time to completed:</span>
               Approx. <span className="mx-1"><b>{path.time_to_complete} </b></span> hours
             </div>}
 
             {/* Created by and last updated date */}
-            <div className='text-neutral-500 text-sm  my-2 flex items-center'>
-              <CiTimer size={20} className='mr-1' />
-              <div> Last updated <b>{dayjs(path.updated_at || path.created_at).format('MMM DD, YYYY')}</b></div>
-
-              <FaUserTie size={18} className='ml-8 mr-1 text-neutral-400' />
-              <div>Instructor</div>
-              <div className='ml-1'><b>{path.created_by}</b></div>
+            <div className='text-neutral-500 text-sm  my-2 flex flex-row items-center space-x-2'>
+              <div className='flex flex-row items-center w-[220px]'>
+                <CiTimer size={20} className='mr-2 text-neutral-400' />
+                <div> Updated <b>{dayjs(path.updated_at || path.created_at).format('MMM DD, YYYY')}</b></div>
+              </div>
+              <div className='flex flex-row items-center'>
+                <FaUserTie size={18} className='mr-2 text-neutral-400' />
+                <div>Instructor</div>
+                <div className='ml-1'><b>{path.created_by}</b></div>
+              </div>
             </div>
 
             {/* Statistics */}
-            <div className='text-neutral-500 text-sm italic my-2 flex flex-row items-center space-x-4'>
-              <div className='flex flex-row items-center w-[120px]'>
-                <FaUsersBetweenLines size={24} className="mr-2 text-neutral-400" />
-                <span className="mr-1 text-neutral-900"><b>{pathStats.num_learners || 0}</b></span> learners  </div>
+            <div className='text-neutral-500 text-sm italic my-2 flex flex-row items-center space-x-2'>
+              <div className='flex flex-row items-center w-[220px]'>
+                <FaUsersBetweenLines size={20} className="mr-2 text-neutral-400" />
+                <span className="mr-1 text-neutral-900"><b>{pathStats.num_learners || 0}</b></span> learners
+              </div>
 
               <div className='flex flex-row items-center'>
-                <PiCertificateBold size={24} className="mr-2 text-neutral-400" />
-                <span className="mr-1 text-neutral-900"><b>{pathStats.num_certified_learners || 0}</b></span> learners got certification  </div>
+                <PiCertificateBold size={22} className="mr-2 text-neutral-400" />
+                <span className="mr-1 text-neutral-900"><b>{pathStats.num_certified_learners || 0}</b></span> learners got certification
+              </div>
             </div>
 
           </div>
@@ -346,19 +351,19 @@ const PathScreen = ({ path }) => {
 
       <div className="min-h-[400px]">
         {
-          path.configs?.display_type === "canvas" && <PathCanvasLayout path={path} maps={maps} 
+          path.configs?.display_type === "canvas" && <PathCanvasLayout path={path} maps={maps}
             onRequestUpdateProgress={() => {
               setUpdateTrigger(0)
-              setTimeout(() => {setUpdateTrigger(1) }, 200)
-            }}/>
+              setTimeout(() => { setUpdateTrigger(1) }, 200)
+            }} />
         }
 
         {
-          path.configs?.display_type !== "canvas" && <PathListLayout path={path} courses={courses} 
+          path.configs?.display_type !== "canvas" && <PathListLayout path={path} courses={courses}
             onRequestUpdateProgress={() => {
               setUpdateTrigger(0)
-              setTimeout(() => {setUpdateTrigger(1) }, 200)
-            }}/>
+              setTimeout(() => { setUpdateTrigger(1) }, 200)
+            }} />
         }
       </div>
     </div>

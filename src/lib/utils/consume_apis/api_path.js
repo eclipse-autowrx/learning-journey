@@ -27,10 +27,7 @@ async function fetchPathBySlug(slug, user_id, token, origin) {
         // Determine base URL: server needs absolute, client can be relative
         const isServer = typeof window === 'undefined';
         const baseUrl = origin || (isServer
-            ? (process.env.APP_DOMAIN
-                || process.env.NEXT_PUBLIC_API_URL
-                || process.env.HOST
-                || 'http://localhost:3000')
+            ? (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000')
             : '');
 
         const qs = `user_id=${encodeURIComponent(user_id || '')}&token=${encodeURIComponent(token || '')}`;

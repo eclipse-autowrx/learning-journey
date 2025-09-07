@@ -25,8 +25,8 @@ function LoginPageInner() {
   }, [authLoading, isAuthenticated, router])
 
   const getServerBaseUrl = () => {
-    // Prefer public env if provided; fallback to docs default
-    const envUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+    // Prefer USER_BASE_URL for external service; fallback to docs default
+    const envUrl = process.env.USER_BASE_URL
     return (envUrl && envUrl.trim()) ? envUrl.replace(/\/$/, '') : DEFAULT_SERVER_BASE_URL
   }
 
@@ -161,8 +161,7 @@ function LoginPageInner() {
           <div className="rounded border px-3 py-2 text-sm" style={{ 
             borderColor: 'var(--color-error)', 
             backgroundColor: 'var(--color-error)', 
-            color: 'var(--text-inverse)',
-            opacity: 0.1
+            color: 'var(--text-inverse)'
           }}>
             {errorMessage}
           </div>

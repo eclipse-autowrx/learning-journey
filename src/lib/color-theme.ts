@@ -409,20 +409,18 @@ export class ColorThemeManager {
    */
   async loadThemeFromSettings(): Promise<void> {
     try {
-      const response = await fetch('/api/admin/settings?category=theme');
+      const response = await fetch('/api/admin/settings/color_theme');
       const data = await response.json();
-      
-      if (data.success && data.data) {
-        const themeSettings = data.data.find((setting: any) => setting.key === 'color_theme');
-        if (themeSettings && themeSettings.value) {
-          // Check if it's base colors or full theme
-          if (themeSettings.value.primary && themeSettings.value.secondary && themeSettings.value.accent) {
-            // It's base colors, generate full theme
-            this.applyBaseColors(themeSettings.value);
-          } else {
-            // It's a full theme, apply directly
-            this.applyTheme(themeSettings.value);
-          }
+
+      if (data.success && data.data && data.data.value) {
+        const themeValue = data.data.value;
+        // Check if it's base colors or full theme
+        if (themeValue.primary && themeValue.secondary && themeValue.accent) {
+          // It's base colors, generate full theme
+          this.applyBaseColors(themeValue);
+        } else {
+          // It's a full theme, apply directly
+          this.applyTheme(themeValue);
         }
       }
     } catch (error) {
@@ -443,7 +441,8 @@ export class ColorThemeManager {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          value: theme
+          value: theme,
+          category: 'theme'
         }),
       });
 
@@ -469,7 +468,8 @@ export class ColorThemeManager {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          value: baseColors
+          value: baseColors,
+          category: 'theme'
         }),
       });
 

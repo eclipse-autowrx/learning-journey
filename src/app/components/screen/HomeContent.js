@@ -238,7 +238,7 @@ const HomeContent = ({ }) => {
                 {!isLoading && (
                     <div className="space-y-16">
                         {items.map((collection, gIndex) => (
-                        <div key={gIndex} className="space-y-3 bg-neutral-100 rounded-lg px-6 py-6">
+                        <div key={gIndex} id={collection.id || collection.slug || collection.name} className="space-y-3 bg-neutral-100 rounded-lg px-6 py-6">
                             {/* Collection Header - Exact Figma Layout */}
                             <div className="space-y-0 w-full">
                                 <div className="py-0 block items-center justify-center">

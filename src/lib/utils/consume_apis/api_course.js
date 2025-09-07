@@ -11,7 +11,7 @@ async function fetchCourseBySlug(slug, queryParams, origin) {
     try {
         const isServer = typeof window === 'undefined';
         const baseUrl = origin || (isServer
-            ? (process.env.APP_DOMAIN || process.env.NEXT_PUBLIC_API_URL || process.env.HOST || 'http://localhost:3000')
+            ? (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000')
             : '');
         console.log(`fetchCourseBySlug ${baseUrl}/api/courses/${slug}?${queryParams}`)
         const response = await fetch(`${baseUrl}/api/courses/${slug}?${queryParams}`)

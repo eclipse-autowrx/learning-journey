@@ -39,10 +39,16 @@ async function generateUniqueSlug(name, Model) {
 export const PathService = {
   async getAll(filter = {}) {
     await connectToDatabase();
-    return await Path.find(filter || {})
+    const paths = await Path.find(filter || {})
       .populate('courses', 'name slug description category state total_lessons duration created_at')
       .sort({ created_at: -1 })
       .lean();
+
+    // Add total_courses field dynamically
+    return paths.map(path => ({
+      ...path,
+      total_courses: path.courses ? path.courses.length : 0
+    }));
   },
 
   async getById(id) {

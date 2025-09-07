@@ -7,10 +7,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, error: `Method ${req.method} Not Allowed` });
   }
 
-  const BASE_URL = (process.env.USER_BASE_URL || '').replace(/\/$/, '');
-  if (!BASE_URL) {
-    return res.status(500).json({ success: false, error: 'USER_BASE_URL is not configured' });
-  }
+  const BASE_URL = (process.env.USER_BASE_URL || 'https://backend-core-dev.digital.auto/v2').replace(/\/$/, '');
 
   try {
     const { email, password } = req.body || {};

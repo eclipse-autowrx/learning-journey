@@ -32,7 +32,7 @@ const Page = async ({ params }) => {
     const hdrs = await headers();
     const host = hdrs.get('x-forwarded-host') || hdrs.get('host') || '';
     const proto = hdrs.get('x-forwarded-proto') || 'http';
-    const origin = host ? `${proto}://${host}` : (process.env.APP_DOMAIN || process.env.NEXT_PUBLIC_API_URL || process.env.HOST || undefined);
+    const origin = host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_BASE_URL || undefined);
 
     dbPath = await fetchPathBySlug(path_slug, user_id, token, origin);
     dbCourse = await fetchCourseBySlug(course_slug, `user_id=${user_id}&token=${token}`, origin);

@@ -11,11 +11,8 @@ export default function ColorThemeProvider({ children }: ColorThemeProviderProps
   useEffect(() => {
     const initializeTheme = async () => {
       const colorThemeManager = ColorThemeManager.getInstance();
-      
-      // First, try to create the theme setting if it doesn't exist
-      await colorThemeManager.createThemeSetting();
-      
-      // Then load and apply the theme
+
+      // Load and apply the theme
       await colorThemeManager.loadThemeFromSettings();
     };
 

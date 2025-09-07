@@ -19,8 +19,7 @@ export const config = {
     },
 };
 
-const MEDIA_STORE_PATH = process.env.MEDIA_STORE_PATH || path.join(process.cwd(), 'public', 'images');
-const APP_DOMAIN = process.env.APP_DOMAIN || 'http://localhost:3000';
+const MEDIA_STORE_PATH = path.join(process.cwd(), 'public', 'images');
 
 async function handler(req, res) {
     if (req.method !== 'POST') {

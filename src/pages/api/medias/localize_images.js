@@ -14,8 +14,7 @@ const sharp = require('sharp');
 const THUMBNAIL_SIZE = Number(process.env.THUMBNAIL_SIZE || '480');
 const MAX_IMG_SIZE = Number(process.env.MAX_IMG_SIZE || '1200');
 
-const MEDIA_STORE_PATH = process.env.MEDIA_STORE_PATH || path.join(process.cwd(), 'public', 'images');
-const APP_DOMAIN = process.env.APP_DOMAIN || 'http://localhost:3000';
+const MEDIA_STORE_PATH = path.join(process.cwd(), 'public', 'images');
 
 async function handler(req, res) {
     if (req.method !== 'POST') {

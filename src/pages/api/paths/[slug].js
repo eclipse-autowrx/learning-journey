@@ -13,10 +13,10 @@ import { STATE_NOT_STARTED, STATE_IN_PROGRESS, STATE_COMPLETED, STATE_LOCKED } f
 import { CourseProgress } from "@/lib/models/index.js";
 
 const ICON_SET = {
-  not_started: 'https://bewebstudio.digitalauto.tech/data/projects/zb1Shh3qkfNG/course-notyet.png',
-  in_progress: 'https://bewebstudio.digitalauto.tech/data/projects/zb1Shh3qkfNG/course-learning.png',
-  completed: 'https://bewebstudio.digitalauto.tech/data/projects/zb1Shh3qkfNG/course-done.png',
-  locked: 'https://bewebstudio.digitalauto.tech/data/projects/zb1Shh3qkfNG/course-notyet.png',
+  not_started: '/icons/course-notyet.png',
+  in_progress: '/icons/course-learning.png',
+  completed: '/icons/course-done.png',
+  locked: '/icons/course-locked.png',
 }
 
 function addMediaUrlForCourses(path) {

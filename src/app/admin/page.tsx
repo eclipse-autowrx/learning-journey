@@ -20,7 +20,7 @@ function AdminPageInner() {
   
   // Get initial tab from URL parameter, default to 'collections'
   const getInitialTab = (): 'collections' | 'paths' | 'settings' | 'theme' | 'home' => {
-    const tabParam = searchParams.get('tab');
+    const tabParam = searchParams?.get('tab');
     const validTabs = ['collections', 'paths', 'settings', 'theme', 'home'];
     return validTabs.includes(tabParam || '') ? (tabParam as any) : 'collections';
   };
@@ -34,14 +34,14 @@ function AdminPageInner() {
   const handleTabChange = (tab: 'collections' | 'paths' | 'settings' | 'theme' | 'home') => {
     setActiveTab(tab);
     // Update URL with new tab parameter
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams?.toString() || '');
     params.set('tab', tab);
     router.push(`${pathname}?${params.toString()}`);
   };
 
   // Sync tab state with URL parameter changes (for browser back/forward)
   useEffect(() => {
-    const tabParam = searchParams.get('tab');
+    const tabParam = searchParams?.get('tab');
     const validTabs = ['collections', 'paths', 'settings', 'theme', 'home'];
     if (tabParam && validTabs.includes(tabParam)) {
       setActiveTab(tabParam as any);

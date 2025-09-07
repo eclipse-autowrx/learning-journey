@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FaSave, FaHome, FaUndo, FaPlus, FaTrash, FaUpload } from 'react-icons/fa';
+import { FaDiamond } from 'react-icons/fa6';
 
 interface SystemSetting {
   _id: string;
@@ -231,8 +232,8 @@ export default function HomeCfgTab({ hasManageUsers }: HomeCfgTabProps) {
         </div>
       </div>
 
-      {/* Main Content - Split Layout */}
-      <div className="flex-1 flex gap-6 min-h-0">
+      {/* Main Content - Split Layout for Config */}
+      <div className="flex gap-6 mb-6">
         {/* Left Side - Configuration (1/2) */}
         <div className="w-1/2 flex flex-col gap-6">
           {/* Title Configuration */}
@@ -291,9 +292,8 @@ export default function HomeCfgTab({ hasManageUsers }: HomeCfgTabProps) {
           </div>
         </div>
 
-        {/* Right Side - Image Configuration & Preview (1/2) */}
-        <div className="w-1/2 flex flex-col gap-6">
-          {/* Image Configuration */}
+        {/* Right Side - Image Configuration (1/2) */}
+        <div className="w-1/2">
           <div className="bg-white rounded-lg border border-neutral-200 shadow-sm">
             <div className="p-4 border-b border-neutral-200">
               <h3 className="text-lg font-medium text-neutral-900">Hero Image</h3>
@@ -307,7 +307,7 @@ export default function HomeCfgTab({ hasManageUsers }: HomeCfgTabProps) {
                     alt="Hero image preview"
                     className="max-w-full max-h-48 rounded-lg border border-neutral-200"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/imgs/placeholder.png';
+                      (e.target as HTMLImageElement).src = '/imgs/sdv.png';
                     }}
                   />
                 </div>
@@ -362,35 +362,72 @@ export default function HomeCfgTab({ hasManageUsers }: HomeCfgTabProps) {
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Live Preview */}
-          <div className="bg-white rounded-lg border border-neutral-200 shadow-sm">
-            <div className="p-4 border-b border-neutral-200">
-              <h3 className="text-lg font-medium text-neutral-900">Live Preview</h3>
-            </div>
-            <div className="p-4">
-              <div className="bg-gradient-to-br from-primary-800 via-primary-800 to-primary-700 text-white rounded-lg p-6">
-                <div className="text-2xl font-bold mb-4">
+      {/* Live Preview - Full Width Row */}
+      <div className="bg-white rounded-lg border border-neutral-200 shadow-sm">
+        <div className="p-4 border-b border-neutral-200">
+          <h3 className="text-lg font-medium text-neutral-900">Live Preview</h3>
+        </div>
+        <div className="p-4">
+          {/* Exact replica of home page first section */}
+          <div className="w-full bg-gradient-to-br from-primary-800 via-primary-800 to-primary-700 text-white flex flex-col items-center justify-center pt-8 pb-8 px-6 lg:px-12">
+            <div className="container h-full flex sm:flex-row flex-col gap-6">
+              <div className="flex-3 px-2">
+                <div className="text-2xl sm:text-2xl lg:text-4xl font-bold pt-8 text-left">
                   {homeConfig.title}
                 </div>
-                <div className="space-y-2">
+                <div className="text-sm sm:text-md leading-tight font-bold text-left pt-4 mt-4 flex flex-col gap-2">
                   {homeConfig.bulletPoints.map((point, index) => (
-                    <div key={index} className="flex items-center text-sm">
-                      <div className="w-3 h-3 bg-white rounded-full mr-3 flex-shrink-0"></div>
-                      <span>{point}</span>
+                    <div key={index} className="flex items-center">
+                      <FaDiamond size={12} className="mr-4 text-white min-w-3" />
+                      {point}
                     </div>
                   ))}
                 </div>
-                <div className="mt-6 flex justify-center">
-                  <img
-                    src={homeConfig.imageUrl}
-                    alt="Preview"
-                    className="max-w-full max-h-32 rounded-lg"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/imgs/placeholder.png';
-                    }}
-                  />
+              </div>
+
+              <div className="flex-2 px-2 grid place-items-center">
+                <img
+                  className="w-[60vw] sm:w-[40vw]"
+                  src={homeConfig.imageUrl}
+                  alt="Hero image"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/imgs/sdv.png';
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="container h-full flex flex-col gap-2 mt-8">
+              <div className="w-full text-center">How do you want to start?</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-2 text-xs sm:text-sm lg:text-base xl:text-base text-center leading-tight">
+                <a href="#pathList" className="flex">
+                  <div className="flex-1 rounded-lg bg-white flex flex-col items-center justify-center px-2 py-2 cursor-pointer hover:scale-105">
+                    <img className="h-28 p-4" src="/imgs/learning_path_icon.png" />
+                    <div className="font-bold px-4 py-1 text-neutral-500">I want to follow a guided path</div>
+                  </div>
+                </a>
+
+                <a href="/manage" className="flex">
+                  <div className="flex-1 rounded-lg bg-white flex flex-col items-center justify-center px-2 py-2 cursor-pointer hover:scale-105">
+                    <img className="h-28" src="/imgs/edit_path_icon.jpg" />
+                    <div className="font-bold px-4 py-1 text-neutral-500">I want to design a new path</div>
+                  </div>
+                </a>
+
+                <div className="flex-1 rounded-lg bg-white flex flex-col items-center justify-center px-2 py-2 cursor-pointer hover:scale-105">
+                  <img className="h-28" src="/imgs/hackathon.png" />
+                  <div className="font-bold px-4 py-1 text-neutral-500">I want to plan a hackathon</div>
                 </div>
+
+                <a href="#dreamkit" className="flex">
+                  <div className="flex-1 rounded-lg bg-white flex flex-col items-center justify-center px-2 py-2 cursor-pointer hover:scale-105">
+                    <img className="h-28" src="/imgs/dreamKit.png" />
+                    <div className="font-bold px-4 py-1 text-neutral-500">I want to work with dreamKIT</div>
+                  </div>
+                </a>
               </div>
             </div>
           </div>

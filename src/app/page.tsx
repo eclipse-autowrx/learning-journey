@@ -35,8 +35,12 @@ async function getHomeConfig(): Promise<HomeConfig> {
   };
 }
 
+// Revalidate every 5 minutes (300 seconds)
+export const revalidate = 300;
+
 export default async function Home() {
   const homeConfig = await getHomeConfig();
+
   return (
     <div className="bg-white text-slate-600 text-2xl p-0
         h-full w-full flex flex-col gap-0 relative">
@@ -62,7 +66,7 @@ export default async function Home() {
 
           <div className="flex-2 px-2 grid place-items-center">
             <img 
-              className="w-[60vw] sm:w-[40vw]" 
+              className="w-[40vw] h-[200px] sm:w-[40vw] object-contain" 
               src={homeConfig.imageUrl} 
               alt="Hero image"
             />
