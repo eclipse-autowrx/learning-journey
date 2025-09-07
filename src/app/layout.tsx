@@ -7,19 +7,20 @@
 // SPDX-License-Identifier: MIT
 
 import type { Metadata, Viewport } from "next";
-import { Shantell_Sans, Quicksand } from "next/font/google";
+import { Quicksand } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import ColorThemeProvider from "../components/ColorThemeProvider";
+import { getThemeStyles } from "../lib/theme-server";
 
 
-// Configure Shantell Sans
-const shantell_sans = Shantell_Sans({
-  subsets: ['latin'], // Specify the desired subsets (e.g., 'latin', 'latin-ext', 'cyrillic', etc.)
-  display: 'swap',   // 'swap' is generally recommended for FOUT (Flash of Unstyled Text)
-                     // 'optional' can also be used for minimal layout shift
-  variable: '--font-sans', // Optional: define a CSS variable for easy use
-});
+// Configure Shantell Sans (commented out as not currently used)
+// const shantell_sans = Shantell_Sans({
+//   subsets: ['latin'], // Specify the desired subsets (e.g., 'latin', 'latin-ext', 'cyrillic', etc.)
+//   display: 'swap',   // 'swap' is generally recommended for FOUT (Flash of Unstyled Text)
+//                       // 'optional' can also be used for minimal layout shift
+//   variable: '--font-sans', // Optional: define a CSS variable for easy use
+// });
 
 const quicksand = Quicksand({
   subsets: ['latin'],
@@ -54,13 +55,20 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch theme server-side to prevent flash
+  const themeStyles = await getThemeStyles();
+
   return (
     <html lang="en">
+      <head>
+        {/* Inject theme styles before main CSS loads */}
+        <style dangerouslySetInnerHTML={{ __html: themeStyles }} />
+      </head>
       <body
         className={`h-screen w-screen overflow-y-auto ${quicksand.variable} antialiased`}
       >

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { FaSave, FaPalette, FaUndo, FaEye } from 'react-icons/fa';
 import { DEFAULT_THEME, PRESET_THEMES, BaseColorTheme, generateColorTheme, extractBaseColors } from '../../../lib/color-theme';
 import { useColorTheme } from '../../../hooks/useColorTheme';
+import ColorPicker from '../../../components/ColorPicker';
 
 interface ColorThemeTabProps {
   hasManageUsers: boolean;
@@ -69,24 +70,11 @@ export default function ColorThemeTab({ hasManageUsers }: ColorThemeTabProps) {
   };
 
   const BaseColorPicker = ({ colorType, label }: { colorType: keyof BaseColorTheme; label: string }) => (
-    <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-neutral-200">
-      <div className="flex items-center gap-4">
-        <div 
-          className="w-12 h-12 rounded-lg border border-neutral-300 shadow-sm"
-          style={{ backgroundColor: localBaseColors[colorType] }}
-        />
-        <div>
-          <div className="font-medium text-base text-neutral-900">{label}</div>
-          <div className="text-sm text-neutral-500 font-mono">{localBaseColors[colorType]}</div>
-        </div>
-      </div>
-      <input
-        type="color"
-        value={localBaseColors[colorType]}
-        onChange={(e) => handleBaseColorChange(colorType, e.target.value)}
-        className="w-16 h-10 rounded border border-neutral-300 cursor-pointer"
-      />
-    </div>
+    <ColorPicker
+      value={localBaseColors[colorType]}
+      onChange={(color: string) => handleBaseColorChange(colorType, color)}
+      label={label}
+    />
   );
 
   const ColorScalePreview = ({ colorType, label }: { colorType: keyof BaseColorTheme; label: string }) => {

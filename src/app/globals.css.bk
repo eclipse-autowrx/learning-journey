@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+:root {
+  /* Semantic Colors */
+  --color-success: var(--color-primary-500);
+  --color-warning: var(--color-accent-500);
+  --color-error: #ef4444;
+  --color-info: var(--color-secondary-500);
+
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: var(--color-neutral-50);
+  --bg-tertiary: var(--color-neutral-100);
+  --bg-primary-light: var(--color-primary-200);
+
+  /* Text Colors */
+  --text-primary: var(--color-neutral-900);
+  --text-secondary: var(--color-neutral-600);
+  --text-tertiary: var(--color-neutral-500);
+  --text-inverse: #ffffff;
+
+  /* Border Colors */
+  --border-primary: var(--color-neutral-200);
+  --border-secondary: var(--color-neutral-300);
+  --border-focus: var(--color-primary-500);
+
+  /* Difficulty Level Colors */
+  --difficulty-level-1: var(--color-primary-800);
+  --difficulty-level-2: var(--color-primary-600);
+  --difficulty-level-3: var(--color-primary-500);
+  --difficulty-level-4: var(--color-primary-700);
+
+  /* Progress Indicator Colors */
+  --progress-completed: var(--color-primary-500);
+  --progress-text: var(--color-neutral-600);
+  --progress-inactive: var(--color-neutral-400);
+  --progress-line-inactive: var(--color-neutral-300);
+  --progress-checkmark: #ffffff;
+
+  /* Force light theme */
+  color-scheme: light;
+}
+
+@theme {
+  /* Primary Color System - Purple/Violet tones */
+  --color-primary-50: #faf5ff;
+  --color-primary-100: #f3e8ff;
+  --color-primary-200: #e9d5ff;   /* Lightest version */
+  --color-primary-300: #d8b4fe;   /* Light version */
+  --color-primary-400: #c084fc;   /* Medium-light */
+  --color-primary-500: #a855f7;   /* Base primary color */
+  --color-primary-600: #9333ea;   /* Medium-dark */
+  --color-primary-700: #7c3aed;   /* Dark version */
+  --color-primary-800: #6b21a8;   /* Darkest version */
+  --color-primary-900: #581c87;
+  --color-primary-950: #3b0764;
+
+  /* Secondary Color System - Emerald green */
+  --color-secondary-50: #ecfdf5;
+  --color-secondary-100: #d1fae5;
+  --color-secondary-200: #a7f3d0;
+  --color-secondary-300: #6ee7b7;
+  --color-secondary-400: #34d399;
+  --color-secondary-500: #10b981;
+  --color-secondary-600: #059669;
+  --color-secondary-700: #047857;
+  --color-secondary-800: #065f46;
+  --color-secondary-900: #064e3b;
+  --color-secondary-950: #022c22;
+
+  /* Accent Color System - Orange */
+  --color-accent-50: #fff7ed;
+  --color-accent-100: #ffedd5;
+  --color-accent-200: #fed7aa;
+  --color-accent-300: #fdba74;
+  --color-accent-400: #fb923c;
+  --color-accent-500: #f97316;
+  --color-accent-600: #ea580c;
+  --color-accent-700: #c2410c;
+  --color-accent-800: #9a3412;
+  --color-accent-900: #7c2d12;
+  --color-accent-950: #431407;
+
+
+  /* Neutral Colors */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+  --color-neutral-950: #0a0a0a;
+
+
+  /* Background Colors */
+  --color-background: #ffffff;
+  --color-foreground: var(--color-neutral-900);
+  --font-sans: var(--font-sans);
+  --font-content: var(--font-content);
+}
+
+/* Base Styles */
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-content), Helvetica, sans-serif;
+}
+
+/* Form Controls */
+:where(input, textarea, select) {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-primary);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-neutral-400);
+}
+
+/* Typography */
+.font-content {
+  font-family: var(--font-content);
+}
+
+.txt-sub-title,
+.txt-content {
+  color: var(--text-primary);
+  font-feature-settings: 'cv01' on, 'cv02' on, 'cv03' on, 'cv04' on, 'cv10' on;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%;
+  letter-spacing: -0.32px;
+}
+
+/* Utility Classes */
+.light-box {
+  background-color: var(--bg-primary-light);
+}
+
+.btn-primary {
+  background-image: url('/imgs/bare/button.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  color: white;
+}
+
+.btn-primary-disable {
+  background-image: url('/imgs/bare/button_disable.png');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  color: var(--color-neutral-400);
+}
+
+.item-border {
+  border: 6px solid transparent;
+  border-image: url('/imgs/bare/item_border.svg') 6 stretch;
+}
+
+.item-border-active {
+  border: 6px solid transparent;
+  border-image: url('/imgs/bare/item_border_active.svg') 6 stretch;
+}
+
+/* Custom Utilities */
+@layer utilities {
+  .figma-difficulty-level-1 { background-color: var(--difficulty-level-1); }
+  .figma-difficulty-level-2 { background-color: var(--difficulty-level-2); }
+  .figma-difficulty-level-3 { background-color: var(--difficulty-level-3); }
+  .figma-difficulty-level-4 { background-color: var(--difficulty-level-4); }
+}
+
+/* Progress Indicator Classes */
+.progress-completed {
+  background-color: var(--progress-completed);
+  border-color: var(--progress-completed);
+}
+
+.progress-text { color: var(--progress-text); }
+.progress-inactive {
+  background-color: var(--progress-inactive);
+  border-color: var(--progress-inactive);
+}
+
+.progress-line-inactive { background-color: var(--progress-line-inactive); }
+.progress-checkmark { color: var(--progress-checkmark); }
+
+/* Custom utility classes are now automatically generated by @theme directive above */

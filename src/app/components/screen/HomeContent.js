@@ -10,19 +10,23 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import PathList from './PathList';
 import ProgressIndicator from '../ProgressIndicator';
 import { genQueryParamsForRequest } from '@/lib/frontend/utils';
+import { useAuth } from '../../../lib/frontend/auth';
 
 const HomeContent = ({ }) => {
     const [items, setItems] = useState([]);
     const [imageErrors, setImageErrors] = useState(new Set());
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
+    const { isAuthenticated, loading: authLoading } = useAuth();
 
     useEffect(() => {
-        onLoaded()
-    }, [])
+        // Wait for authentication to complete before loading data
+        if (!authLoading) {
+            onLoaded();
+        }
+    }, [authLoading])
 
     const onLoaded = async () => {
         // Get all query fields of the current URL
@@ -64,7 +68,12 @@ const HomeContent = ({ }) => {
     }
 
     const applyProgressForCollections = async (collections) => {
-        // TODO: must  fetch course progress by course_ids
+        // Only fetch progress data for authenticated users
+        if (!isAuthenticated) {
+            console.log('User not authenticated, skipping progress fetch');
+            return;
+        }
+
         try {
             const allCourseIds = collections.reduce((acc, collection) => {
                 if (collection.paths) {
@@ -82,7 +91,11 @@ const HomeContent = ({ }) => {
                 }
                 return acc;
             }, []);
-            // return allCourseIds;
+
+            if (allCourseIds.length === 0) {
+                return;
+            }
+
             const courseProgresses = await fetchProgressForCourses(allCourseIds.join(','));
             if (courseProgresses && courseProgresses.success && courseProgresses.data) {
                 const progresses = courseProgresses.data;
@@ -105,7 +118,7 @@ const HomeContent = ({ }) => {
                 });
             }
         } catch (err) {
-            console.log(err)
+            console.log('Error fetching progress:', err)
         }
     }
 
@@ -182,12 +195,21 @@ const HomeContent = ({ }) => {
     };
 
     const getProgressData = (path) => {
+        // For unauthenticated users, show no progress
+        if (!isAuthenticated) {
+            return {
+                totalSteps: path.courses?.length || 5,
+                completedSteps: 0,
+                activeStep: 1
+            };
+        }
+
         // Get real progress data from path courses
         if (path.courses && path.courses.length > 0) {
             const totalCourses = path.courses.length;
             let completedCourses = 0;
             let activeCourse = 0;
-            
+
             path.courses.forEach((course, index) => {
                 if (course.context && course.context.state === 'completed') {
                     completedCourses++;
@@ -195,19 +217,19 @@ const HomeContent = ({ }) => {
                     activeCourse = index + 1;
                 }
             });
-            
+
             return {
                 totalSteps: totalCourses,
                 completedSteps: completedCourses,
                 activeStep: activeCourse || completedCourses + 1
             };
         }
-        
-        // Fallback to mock data if no courses
+
+        // Fallback for authenticated users with no course data
         return {
             totalSteps: 5,
-            completedSteps: 2,
-            activeStep: 3
+            completedSteps: 0,
+            activeStep: 1
         };
     };
 
@@ -303,15 +325,29 @@ const HomeContent = ({ }) => {
                                                 </p>
                                             </div>
 
-                                            {/* Progress Section - Exact Figma Layout */}
-                                            <div className="flex items-center gap-2 mt-2">
-                                                <p className="font-medium text-sm leading-[1.4] text-neutral-600">Progress</p>
-                                                <ProgressIndicator 
-                                                    steps={getProgressData(path).totalSteps}
-                                                    completedSteps={getProgressData(path).completedSteps}
-                                                    activeStep={getProgressData(path).activeStep}
-                                                />
-                                            </div>
+                                            {/* Progress Section - Only show for authenticated users */}
+                                            {isAuthenticated && (
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <p className="font-medium text-sm leading-[1.4] text-neutral-600">Progress</p>
+                                                    <ProgressIndicator
+                                                        steps={getProgressData(path).totalSteps}
+                                                        completedSteps={getProgressData(path).completedSteps}
+                                                        activeStep={getProgressData(path).activeStep}
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {/* Show "Not Started" for unauthenticated users */}
+                                            {!isAuthenticated && !authLoading && (
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <p className="font-medium text-sm leading-[1.4] text-neutral-500">Not Started</p>
+                                                    <ProgressIndicator
+                                                        steps={getProgressData(path).totalSteps}
+                                                        completedSteps={0}
+                                                        activeStep={1}
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
