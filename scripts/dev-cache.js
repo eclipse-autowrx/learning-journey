@@ -6,8 +6,12 @@
 //
 // SPDX-License-Identifier: MIT
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Development cache optimization script
@@ -143,6 +147,7 @@ function main() {
   }
 }
 
-if (require.main === module) {
+// Run main function if this is the main module
+if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
