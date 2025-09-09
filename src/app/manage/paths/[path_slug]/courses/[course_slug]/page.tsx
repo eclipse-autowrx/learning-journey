@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { showToast, showDeleteConfirm } from '@/lib/utils/notifications';
@@ -313,6 +313,9 @@ export default function CourseDetailPage() {
   const [lessonDetailTab, setLessonDetailTab] = useState<'info' | 'edit' | 'view'>('info');
   const [isLessonDirty, setIsLessonDirty] = useState(false);
 
+  // Track previous selected lesson slug to avoid resetting tab on data updates
+  const prevSelectedLessonSlug = useRef<string | null>(null);
+
   const fetchCourseData = async () => {
     try {
       // Fetch path data first
@@ -371,16 +374,20 @@ export default function CourseDetailPage() {
      };
    }, []);
 
-   // This useEffect must be called unconditionally to follow Rules of Hooks
-   useEffect(() => {
-     if (selectedLessonSlug && lessons.length > 0) {
-       const foundLesson = lessons.find(l => l.slug === selectedLessonSlug);
-       if (foundLesson) {
-         setEditableLesson(foundLesson);
-         setLessonDetailTab('info');
-       }
-     }
-   }, [selectedLessonSlug, lessons]);
+    // This useEffect must be called unconditionally to follow Rules of Hooks
+    useEffect(() => {
+      if (selectedLessonSlug && lessons.length > 0) {
+        const foundLesson = lessons.find(l => l.slug === selectedLessonSlug);
+        if (foundLesson) {
+          setEditableLesson(foundLesson);
+          // Only set tab to 'info' when selecting a different lesson, not when lesson data updates
+          if (prevSelectedLessonSlug.current !== selectedLessonSlug) {
+            setLessonDetailTab('info');
+          }
+          prevSelectedLessonSlug.current = selectedLessonSlug;
+        }
+      }
+    }, [selectedLessonSlug, lessons]);
 
    useEffect(() => {
     // Select the first lesson by default if no lesson is selected

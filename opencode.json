@@ -1,0 +1,18 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "chrome": {
+      "type": "remote",
+      "url": "http://127.0.0.1:12306/mcp",
+      "enabled": true
+    },
+    "mongo": {
+      "type": "local",
+      "command": ["npx", "-y", "mongo-mcp"],
+      "enabled": true,
+      "environment": {
+        "MONGO_URI": "mongodb://admin:password123@localhost:27000/learning_journey?authSource=admin"
+      }
+    }
+  }
+}

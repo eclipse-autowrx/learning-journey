@@ -137,6 +137,9 @@ const PathScreen = ({ path }) => {
           } else if (map.certificate_id) {
             // Certificate item - no course needed
             map.course = null
+          } else if (map.type === 'text_markdown' || map.type === 'icon') {
+            // New node types - no course needed
+            map.course = null
           }
         })
       }
@@ -226,7 +229,7 @@ const PathScreen = ({ path }) => {
                 hasChanged = true
               }
             }
-            // Certificate items don't need course updates
+            // Certificate items and new node types don't need course updates
           })
           if (hasChanged) {
             setMaps(tmpMaps)

@@ -9,7 +9,7 @@ export default function TopRightControls() {
   const { hasAdminAccess, loading } = useAdminPermission();
 
   return (
-    <div className="absolute top-0 right-2 z-[100] flex items-center gap-3">
+    <div className="absolute top-1 right-4 z-[100] flex items-center gap-3">
       {/* Admin Link - only show if user has admin access */}
       {!loading && hasAdminAccess && (
         <Link 
