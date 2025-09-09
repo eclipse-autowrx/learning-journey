@@ -20,7 +20,9 @@ export const config = {
     },
 };
 
-const MEDIA_STORE_PATH = path.join(process.cwd(), 'public', 'images');
+const MEDIA_STORE_PATH = process.env.MEDIA_STORE_PATH
+    ? path.join(process.env.MEDIA_STORE_PATH, 'images')
+    : path.join(process.cwd(), 'public', 'images');
 
 async function generateUniqueSlug(name, Model) {
     if (!name) return '';
