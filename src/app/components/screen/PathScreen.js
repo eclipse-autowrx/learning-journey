@@ -74,7 +74,7 @@ function addMediaUrlForCourses(path, courses) {
       default:
         course.icon = ICONS.not_started;
     }
-    // console.log(course.icon)
+
   });
 }
 
@@ -107,22 +107,15 @@ const PathScreen = ({ path }) => {
   const [pathStats, setPathStats] = useState({ num_learners: 0, num_certified_learners: 0 })
 
   useEffect(() => {
-    console.log(`path`, path)
-    if (path && path.courses) {
-      console.log("Courses with progress context:", JSON.stringify(path.courses.map(c => ({
-        _id: c._id,
-        name: c.name,
-        context: c.context
-      })), null, 2));
-    }
+
   }, [path])
 
   useEffect(() => {
-    console.log(`courses`, courses)
+
   }, [courses])
 
   useEffect(() => {
-    console.log(`maps`, maps)
+
   }, [maps])
 
   useEffect(() => {
@@ -168,7 +161,7 @@ const PathScreen = ({ path }) => {
       let res = await fetchProgressForCourses(path?.course_ids.join(','))
       if (res.success && res.data) {
         let progresses = res.data
-        // console.log(`progresses`, progresses)
+
         let tmpCourses = JSON.parse(JSON.stringify(courses))
         // TODO: temp solutions, set award state on frontend base on other course state, later: no need, backend will do that
         let isPathFinish = true
@@ -235,16 +228,16 @@ const PathScreen = ({ path }) => {
             setMaps(tmpMaps)
           }
         } else {
-          console.log(`no maps or courses`)
+
           setMaps([])
         }
       } else {
-        console.log(`no course_ids`)
+
         setMaps([])
         setCourses([])
       }
     } catch (err) {
-      console.log(`error`, err)
+
     }
   }
 

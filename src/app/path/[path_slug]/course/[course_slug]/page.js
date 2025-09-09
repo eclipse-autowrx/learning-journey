@@ -34,10 +34,8 @@ const Page = async ({ params }) => {
     const proto = hdrs.get('x-forwarded-proto') || 'http';
     const origin = host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_BASE_URL || undefined);
 
-    dbPath = await fetchPathBySlug(path_slug, user_id, token, origin);
-    dbCourse = await fetchCourseBySlug(course_slug, `user_id=${user_id}&token=${token}`, origin);
-    
-    console.log(`dbCourse`, dbCourse)
+     dbPath = await fetchPathBySlug(path_slug, user_id, token, origin);
+     dbCourse = await fetchCourseBySlug(course_slug, `user_id=${user_id}&token=${token}`, origin);
 
   } catch (err) {
     console.error('Error fetching path or course:', err);

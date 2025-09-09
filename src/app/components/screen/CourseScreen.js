@@ -9,25 +9,19 @@
 "use client"
 
 import { useEffect, useState, useRef } from 'react';
-import { MdOutlineQuiz } from "react-icons/md";
-import { GoVideo } from "react-icons/go";
-import { SlNotebook } from "react-icons/sl";
 import QuizLesson from '../lessons/QuizLesson';
-import VideoLesson from '../lessons/VideoLesson';
 import TextMarkdownLesson from '../lessons/TextMarkdownLesson';
 import { STATE_COMPLETED, STATE_IN_PROGRESS, STATE_NOT_STARTED } from "@/lib/const";
-import { FaCheckCircle } from "react-icons/fa";
-import BtnFullRounded from '../atom/BtnFullRounded';
-import { useRouter } from "next/navigation";
+
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { genQueryParamsForRequest } from '@/lib/frontend/utils';
 import InteractiveLesson from '../lessons/InteractiveLesson';
-import { showToast } from "@/lib/utils/notifications";
 import { saveStateCourseStarted } from "@/lib/frontend/course";
 
 const saveStateLessonFinish = async (course, lesson_slug, data) => {
     if (!course || !course._id || !lesson_slug) return null
-    // console.log('saveStateLessonFinish', course, lesson_slug, data)
+
     try {
 
         let payload = {
@@ -41,7 +35,7 @@ const saveStateLessonFinish = async (course, lesson_slug, data) => {
             }
         }
 
-        // console.log("Set Lesson Finished", lesson_slug)
+
         const res = await fetch(`/api/progress/courses/${course._id}/lessons/${lesson_slug}?${genQueryParamsForRequest()}`, {
             method: "PUT",
             headers: {
@@ -92,12 +86,12 @@ const saveStateLessonStart = async (course, lesson_slug, data) => {
 const LessonListItem = ({ lesson, isActive, onActive, index }) => {
     return <div
         className={`px-1 py-1 flex items-center cursor-pointer hover:item-border-active
-            
+
             ${isActive ? 'item-border-active' : 'item-border'}`}
-        onClick={(e) => {
+        onClick={() => {
             if (lesson.lock) return
             if (onActive) {
-                onActive(e)
+                onActive()
             }
         }}>
         <div className={`w-[42px] min-w-[42px] ${isActive && 'light-box' } aspect-square rounded-lg grid place-items-center`}>
@@ -118,21 +112,90 @@ const LessonListItem = ({ lesson, isActive, onActive, index }) => {
 
 const CourseScreen = ({ course, path_slug }) => {
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     if (!course) return <></>
 
     const [activeLessonIndex, setActiveLessonIndex] = useState(0)
     const [activeLesson, setActiveLesson] = useState()
     const [lessonsTable, setLessonsTable] = useState([])
-    const [showCourseFinishAnnounce, setShowCourseFinishAnnounce] = useState(false)
+    const [isCourseFinished, setIsCourseFinished] = useState(false);
+
+    const toastCountRef = useRef(0)
+    const lastToastTimeRef = useRef(0)
     const scrollContainerRef = useRef(null)
+    const isUserInteractionRef = useRef(false)
+    const lastProcessedLessonParamRef = useRef(null)
+    const hasProcessedInitialUrlRef = useRef(false)
+    const lastCourseIdRef = useRef(null)
+
+    // Function to limit toast notifications (max 3 per 30 seconds)
+    const showLimitedToast = (type, message) => {
+        const now = Date.now();
+        const timeSinceLastToast = now - lastToastTimeRef.current;
+
+        // Reset counter if more than 30 seconds have passed
+        if (timeSinceLastToast > 30000) {
+            toastCountRef.current = 0;
+        }
+
+        // Only show toast if under the limit
+        if (toastCountRef.current < 3) {
+            showToast[type](message);
+            toastCountRef.current += 1;
+            lastToastTimeRef.current = now;
+        }
+    };
+
+    // Function to update URL with lesson parameter
+    const updateLessonUrl = (lessonSlug) => {
+        const currentUrl = new URL(window.location.href);
+        const currentLessonParam = currentUrl.searchParams.get('lesson');
+
+        // Only update if the lesson parameter is actually different
+        if (lessonSlug !== currentLessonParam) {
+            if (lessonSlug) {
+                currentUrl.searchParams.set('lesson', lessonSlug);
+            } else {
+                currentUrl.searchParams.delete('lesson');
+            }
+            router.replace(currentUrl.pathname + currentUrl.search, { scroll: false });
+        }
+    };
+
+    // Function to handle lesson selection from UI
+    const selectLesson = (lessonIndex) => {
+        isUserInteractionRef.current = true;
+        setActiveLessonIndex(lessonIndex);
+        // Reset the processed lesson param ref since user is manually selecting
+        lastProcessedLessonParamRef.current = null;
+        hasProcessedInitialUrlRef.current = true; // Mark as processed to prevent URL override
+
+        // Update URL immediately for user selection
+        if (lessonsTable && lessonsTable[lessonIndex]) {
+            updateLessonUrl(lessonsTable[lessonIndex].slug);
+            lastProcessedLessonParamRef.current = lessonsTable[lessonIndex].slug;
+        }
+
+        // Reset the flag after a short delay to allow effects to complete
+        setTimeout(() => {
+            isUserInteractionRef.current = false;
+        }, 100);
+    };
+
+
 
     useEffect(() => {
-        // console.log("[CourseScreen] Course prop updated:", course);
         if (!course || !course.lessons) {
-            // console.log("[CourseScreen] No course or lessons, setting empty table.");
             setLessonsTable([]);
             return;
+        }
+
+        // Only reset URL processing flags if this is a different course
+        if (course._id !== lastCourseIdRef.current) {
+            hasProcessedInitialUrlRef.current = false;
+            lastProcessedLessonParamRef.current = null;
+            lastCourseIdRef.current = course._id;
         }
 
         const lessonsWithProgress = course.lessons.map(lesson => {
@@ -145,22 +208,60 @@ const CourseScreen = ({ course, path_slug }) => {
                         progress: progress
                     }
                 };
-            } else {
-                console.log(`lesson ${lesson.slug} has no progress`)
             }
             return lesson;
         });
         
-        console.log("[CourseScreen] lessonsWithProgress", lessonsWithProgress);
+
         setLessonsTable(lessonsWithProgress);
 
     }, [course]);
+
+    // Handle URL lesson parameter first - this should run before other effects
+    useEffect(() => {
+        if (lessonsTable && lessonsTable.length > 0) {
+            // Check if there's a lesson parameter in the URL
+            const lessonParam = searchParams.get('lesson');
+
+
+            if (lessonParam) {
+                // Find the lesson with this slug
+                const lessonIndex = lessonsTable.findIndex(lesson => lesson.slug === lessonParam);
+                if (lessonIndex >= 0) {
+                    // Only set if we haven't processed the initial URL yet or if it's different from current
+                    if (!hasProcessedInitialUrlRef.current || lessonIndex !== activeLessonIndex) {
+                        console.log("[CourseScreen] Setting lesson index to", lessonIndex, "for lesson", lessonParam);
+                        setActiveLessonIndex(lessonIndex);
+                        lastProcessedLessonParamRef.current = lessonParam;
+                        hasProcessedInitialUrlRef.current = true;
+                    }
+                } else if (!hasProcessedInitialUrlRef.current) {
+                    console.log("[CourseScreen] lesson parameter not found and we haven't processed initial URL - default to first lesson")
+                    // Lesson parameter not found, default to first lesson
+                    setActiveLessonIndex(0);
+                    lastProcessedLessonParamRef.current = null;
+                    hasProcessedInitialUrlRef.current = true;
+                }
+            } else if (!hasProcessedInitialUrlRef.current) {
+                console.log("[CourseScreen] no lesson parameter and we haven't processed initial URL - default to first lesson")
+                // No lesson parameter and we haven't processed initial URL - default to first lesson
+                setActiveLessonIndex(0);
+                lastProcessedLessonParamRef.current = null;
+                hasProcessedInitialUrlRef.current = true;
+            }
+        }
+    }, [lessonsTable, searchParams])
 
     useEffect(() => {
         if (!lessonsTable || lessonsTable.length === 0) return;
         try {
             const lesson = lessonsTable[activeLessonIndex];
             setActiveLesson(lesson);
+            // Update URL when lesson changes (but not during user interaction or if already processed)
+            if (lesson && !isUserInteractionRef.current && lesson.slug !== lastProcessedLessonParamRef.current) {
+                updateLessonUrl(lesson.slug);
+                lastProcessedLessonParamRef.current = lesson.slug;
+            }
         } catch (err) {
             setActiveLesson(null);
         }
@@ -183,7 +284,6 @@ const CourseScreen = ({ course, path_slug }) => {
     }, [activeLesson?.slug]);
     
     useEffect(() => {
-        console.log('activeLesson', activeLesson)
         // When switching to a lesson that has not started, mark as in_progress
         try {
             if (course && activeLesson && activeLesson?.context?.state === STATE_NOT_STARTED) {
@@ -194,13 +294,9 @@ const CourseScreen = ({ course, path_slug }) => {
                 }).catch(() => {})
             }
         } catch(_) {}
-    }, [activeLesson])
+    }, [activeLesson, activeLessonIndex])
 
-    useEffect(() => {
-        if (lessonsTable && lessonsTable.length > 0) {
-            setActiveLessonIndex(0)
-        }
-    }, [lessonsTable])
+
 
     // Mark course as started when entering if not started yet
     useEffect(() => {
@@ -212,17 +308,29 @@ const CourseScreen = ({ course, path_slug }) => {
 
     const gotoNextLesson = () => {
         if (activeLessonIndex < lessonsTable.length - 1) {
-            setActiveLessonIndex((v) => v + 1)
-        }
-        if (activeLessonIndex == lessonsTable.length - 1) {
-            setShowCourseFinishAnnounce(true)
-            setActiveLessonIndex(-1)
+            const nextIndex = activeLessonIndex + 1;
+            setActiveLessonIndex(nextIndex);
+            // Reset processed lesson param since we're navigating programmatically
+            lastProcessedLessonParamRef.current = null;
+            hasProcessedInitialUrlRef.current = true;
+            // Update URL immediately for programmatic navigation
+            if (lessonsTable && lessonsTable[nextIndex]) {
+                updateLessonUrl(lessonsTable[nextIndex].slug);
+                lastProcessedLessonParamRef.current = lessonsTable[nextIndex].slug;
+            }
+        } else {
+            setIsCourseFinished(true);
+            setActiveLessonIndex(-1);
+            // Clear lesson parameter when course is finished
+            updateLessonUrl(null);
+            lastProcessedLessonParamRef.current = null;
+            hasProcessedInitialUrlRef.current = true;
         }
     }
 
     const applyNewProgressToCourse = async (progress) => {
         if (!progress || !progress.lessons) return;
-    
+
         const updatedLessons = lessonsTable.map(lesson => {
             const matchProgress = progress.lessons[lesson.slug];
             if (matchProgress) {
@@ -236,124 +344,132 @@ const CourseScreen = ({ course, path_slug }) => {
             }
             return lesson;
         });
-    
+
         setLessonsTable(updatedLessons);
     }
 
 
-    return <div className='w-full h-full flex flex-col'>
-        
-
-        <div className='flex w-full h-full text-base space-x-4 overflow-auto'>
-            <div className='w-1/4 min-w-[400px] px-0 rounded flex flex-col space-y-2'>
-                <div className='w-full flex flex-col pb-2'>
-                    <div className='text-xl leading-tight font-bold text-neutral-900'>
-                        {course.name}
+    // Handle case when there are no lessons
+    if (lessonsTable.length === 0) {
+        return <div className='w-full h-full flex flex-col'>
+            <div className='flex w-full h-full text-base items-center justify-center'>
+                <div className='text-center space-y-4'>
+                    <div className='text-2xl font-bold text-neutral-800'>
+                        No Lessons Available
                     </div>
-                    { course.description && <div className='text-sm text-neutral-600 leading-tight'>
-                        {course.description}
-                    </div> }
+                    <div className='text-neutral-600'>
+                        This course doesn't have any lessons yet.
+                    </div>
+                    <button
+                        onClick={() => router.push(`/path/${path_slug}`)}
+                        className='px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors'
+                    >
+                        Back to Path
+                    </button>
                 </div>
-                {
-                    lessonsTable.length > 0 && lessonsTable.map((lesson, lIndex) => <LessonListItem key={lIndex}
+            </div>
+        </div>
+    }
+
+    return <div className='w-full h-full flex flex-col'>
+
+
+        <div className={`flex w-full h-full text-base ${lessonsTable.length === 1 ? 'justify-center' : 'space-x-4'} overflow-auto`}>
+            {/* Only show lesson list if there are more than 1 lessons */}
+            {lessonsTable.length > 1 && (
+                <div className='w-1/4 min-w-[400px] px-0 rounded flex flex-col space-y-2'>
+                    <div className='w-full flex flex-col pb-2'>
+                        <div className='text-xl leading-tight font-bold text-neutral-900'>
+                            {course.name}
+                        </div>
+                        { course.description && <div className='text-sm text-neutral-600 leading-tight'>
+                            {course.description}
+                        </div> }
+                    </div>
+                    {lessonsTable.map((lesson, lIndex) => <LessonListItem key={lIndex}
                         index={lIndex}
                         lesson={lesson}
                         isActive={lIndex == activeLessonIndex}
-                        onActive={(e) => {
-                            setActiveLessonIndex(lIndex)
-                        }} />
-                    )}
-            </div>
+                        onActive={() => {
+                            selectLesson(lIndex)
+                        }}
+                    />)}
+                </div>
+            )}
 
-            <div className='grow border border-neutral-200 bg-white rounded flex flex-col relative' 
+            <div className={`${lessonsTable.length === 1 ? 'w-full max-w-6xl' : 'grow'} border border-neutral-200 bg-white rounded flex flex-col relative`}
                 style={{ maxHeight: 'calc(100vh - 40px)' }}>
                 <div ref={scrollContainerRef} className='absolue w-full h-full top-0 left-0 bottom-0 right-0 overflow-y-auto'>
-                    {showCourseFinishAnnounce && <div className='w-full h-full grid place-items-center'>
-                        <div className='flex flex-col px-4 py-4 w-fit h-fit'>
-                            <div className="text-center">
-                                <h2 className="text-3xl font-bold text-primary-600 mb-4">Congratulations! 🎉</h2>
-                                <p className="text-xl text-neutral-700 mb-2">You have successfully completed course:</p>
-                                <p className="text-2xl font-semibold text-neutral-800 mb-4">{course.name}</p>
-                                <p className="text-neutral-600">Keep up the great work and continue your learning journey!</p>
+                    {isCourseFinished ? (
+                        <div className='w-full h-full flex flex-col items-center justify-center text-center p-8'>
+                            <div className='text-2xl font-bold text-neutral-800 mb-4'>
+                                Congratulations!
                             </div>
-                            <div className='mt-10 w-full flex items-center justify-center'>
-                                <BtnFullRounded onClick={() => {
-                                    router.push(`/path/${path_slug}`)
-                                }}>
-                                    Continue Learning
-                                </BtnFullRounded>
+                            <div className='text-neutral-600 mb-8'>
+                                You have completed the course "{course.name}".
                             </div>
+                            <button
+                                onClick={() => router.push(`/path/${path_slug}`)}
+                                className='px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors'
+                            >
+                                Back to Path
+                            </button>
                         </div>
-                    </div>}
-
-                    {activeLesson && <div className='w-full h-full'>
-
-                        {activeLesson.lesson_type === 'quiz' && <QuizLesson lesson={activeLesson}
-                            onCloseRequest={() => {
-                                gotoNextLesson()
-                            }}
-                            onSumbitLesson={async (data) => {
-                                const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
-                                if (res && res.success) {
-                                    showToast.success(`Lesson "${activeLesson.name}" completed!`)
-                                }
-                                let newCourseProgress = res.data
-                                applyNewProgressToCourse(newCourseProgress)
-                            }} />}
-
-                        {activeLesson.lesson_type === 'video' && <VideoLesson lesson={activeLesson}
-                            onCloseRequest={() => {
-                                gotoNextLesson()
-                            }}
-                            onSumbitLesson={async (data) => {
-                                const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
-                                if (res && res.success) {
-                                    showToast.success(`Lesson "${activeLesson.name}" completed!`)
-                                }
-                                let newCourseProgress = res.data
-                                applyNewProgressToCourse(newCourseProgress)
-                            }}
-                        />}
-
-                        {activeLesson.lesson_type === 'text-markdown' && <TextMarkdownLesson lesson={activeLesson}
-                            onCloseRequest={() => {
-                                gotoNextLesson()
-                            }}
-                            onSumbitLesson={async (data) => {
-                                let lessonInTable = lessonsTable.find(l => l.slug == activeLesson.slug)
-                                // console.log('lessonInTable', lessonInTable)
-                                if (lessonInTable && lessonInTable.context?.state != 'completed') {
-                                    try {
-                                        const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
-                                        if (res && res.success) {
-                                            showToast.success(`Lesson "${activeLesson.name}" completed!`)
-                                        }
-                                        let newCourseProgress = res.data
-                                        applyNewProgressToCourse(newCourseProgress)
-                                    } catch (e) { }
-                                }
-
-                            }}
-                        />}
-
-                        {activeLesson.lesson_type === 'interactive' && <InteractiveLesson lesson={activeLesson}
-                            onCloseRequest={() => {
-                                gotoNextLesson()
-                            }}
-                            onSumbitLesson={async (data) => {
-                                let lessonInTable = lessonsTable.find(l => l.slug == activeLesson.slug)
-                                if (lessonInTable && lessonInTable.context?.state != 'completed') {
+                    ) : (
+                        activeLesson && <div className='w-full h-full'>
+                            {activeLesson.lesson_type === 'quiz' && <QuizLesson lesson={activeLesson}
+                                onCloseRequest={() => {
+                                    gotoNextLesson()
+                                }}
+                                onSubmitLesson={async (data) => {
                                     const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
                                     if (res && res.success) {
-                                        showToast.success(`Lesson "${activeLesson.name}" completed!`)
+                                        showLimitedToast('success', `Lesson "${activeLesson.name}" completed!`)
                                     }
                                     let newCourseProgress = res.data
-                                    applyNewProgressToCourse(newCourseProgress) 
-                                }
-                            }}
-                        />}
+                                    applyNewProgressToCourse(newCourseProgress)
+                                }}
+                            />}
 
-                    </div>}
+                            {activeLesson.lesson_type === 'text-markdown' && <TextMarkdownLesson lesson={activeLesson}
+                                onCloseRequest={() => {
+                                    gotoNextLesson()
+                                }}
+                                onSumbitLesson={async (data) => {
+                                    let lessonInTable = lessonsTable.find(l => l.slug == activeLesson.slug)
+                                    // console.log('lessonInTable', lessonInTable)
+                                    if (lessonInTable && lessonInTable.context?.state != 'completed') {
+                                        try {
+                                            const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
+                                            // if (res && res.success) {
+                                            //     showLimitedToast('success', `Lesson "${activeLesson.name}" completed!`)
+                                            // }
+                                            let newCourseProgress = res.data
+                                            applyNewProgressToCourse(newCourseProgress)
+                                        } catch (e) { }
+                                    }
+
+                                }}
+                            />}
+
+                            {activeLesson.lesson_type === 'interactive' && <InteractiveLesson lesson={activeLesson}
+                                onCloseRequest={() => {
+                                    gotoNextLesson()
+                                }}
+                                onSumbitLesson={async (data) => {
+                                    let lessonInTable = lessonsTable.find(l => l.slug == activeLesson.slug)
+                                    if (lessonInTable && lessonInTable.context?.state != 'completed') {
+                                        const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
+                                        // if (res && res.success) {
+                                        //     showLimitedToast('success', `Lesson "${activeLesson.name}" completed!`)
+                                        // }
+                                        let newCourseProgress = res.data
+                                        applyNewProgressToCourse(newCourseProgress)
+                                    }
+                                }}
+                            />}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

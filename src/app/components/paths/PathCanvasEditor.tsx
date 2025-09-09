@@ -65,7 +65,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
   const [markdownWidth, setMarkdownWidth] = useState('200px');
   const [markdownHeight, setMarkdownHeight] = useState('auto');
   const [editingMarkdownNode, setEditingMarkdownNode] = useState<MapItem | null>(null);
-  const [iconUrl, setIconUrl] = useState('/icons/pin.png');
+  const [iconUrl, setIconUrl] = useState('/icons/info.png');
   const [iconHoverText, setIconHoverText] = useState('');
   const [iconWidth, setIconWidth] = useState('40px');
   const [iconHeight, setIconHeight] = useState('40px');
@@ -328,7 +328,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
   };
 
   const handleEditIcon = (item: MapItem) => {
-    setIconUrl(item.icon_url || '/icons/pin.png');
+    setIconUrl(item.icon_url || '/icons/info.png');
     setIconHoverText(item.hover_content || '');
     setIconWidth(item.width || '40px');
     setIconHeight(item.height || '40px');
@@ -894,14 +894,14 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
                     className="w-full h-16 px-2 py-1 border border-gray-300 rounded-md text-xs"
                     placeholder="https://example.com/icon.png"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Default: /icons/pin.png</p>
+                  <p className="text-xs text-gray-500 mt-1">Default: /icons/info.png</p>
                 </div>
                 <div className="w-30">
                   <div className="">
                     <ImageEditor
                       label=""
-                      imageUrl={iconUrl || '/icons/pin.png'}
-                      onImageUrlChange={(url) => setIconUrl(url || '/icons/pin.png')}
+                      imageUrl={iconUrl || '/icons/info.png'}
+                      onImageUrlChange={(url) => setIconUrl(url || '/icons/info.png')}
                       mode="avatar"
                       allowDelete={false}
                     />
@@ -1011,7 +1011,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
               <button
                 onClick={() => {
                   setShowIconForm(false);
-                  setIconUrl('/icons/pin.png');
+                  setIconUrl('/icons/info.png');
                   setIconHoverText('');
                   setIconWidth('40px');
                   setIconHeight('40px');
@@ -1064,7 +1064,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
                   }
 
                   setShowIconForm(false);
-                  setIconUrl('/icons/pin.png');
+                  setIconUrl('/icons/info.png');
                   setIconHoverText('');
                   setIconWidth('40px');
                   setIconHeight('40px');

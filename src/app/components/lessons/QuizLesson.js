@@ -68,6 +68,7 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
   const [testResult, setTextResult] = useState('')
   const [quizResult, setQuizResult] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userPassed, setUserPassed] = useState(false);
 
   useEffect(() => {
     // console.log(`Lesson changed`, lesson)
@@ -84,9 +85,11 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
 
     if (lesson.context?.state == STATE_COMPLETED) {
       setTextResult("Your already finish this quiz.")
+      setUserPassed(true); // If already completed, consider it passed
     } else {
       setTextResult("")
       setQuizResult(null);
+      setUserPassed(false);
     }
   }, [lesson])
 
@@ -117,6 +120,7 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
     setQuestions(tmpQuestions)
     setTextResult("")
     setQuizResult(null);
+    setUserPassed(false);
   }
 
   const setAnswerForThisQuestion = (answerIndex) => {
@@ -146,7 +150,7 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
   if (!lesson) return <></>
 
   return <div className="w-full px-2 overflow-auto">
-    <div className="mt-2 flex pl-2 min-h-[12vh] max-h-[12vh] overflow-auto">
+    <div className="mt-2 flex pl-2 py-3 h-fit overflow-auto">
       <div className="grow">
         <div className="text-xl font-bold text-neutral-900">{lesson.name}</div>
         <div className="mt-0 text-neutral-500 text-sm leading-tight">{lesson.description}</div>
@@ -168,19 +172,21 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
                 body: JSON.stringify({ answers }),
               });
 
-              const resultData = await res.json();
-              if (resultData.success) {
-                setQuizResult(resultData);
-                const scorePercentage = (resultData.score / resultData.total) * 100;
-                if (scorePercentage >= PASSING_SCORE_PERCENTAGE) {
-                  setTextResult(`You passed! You answered ${resultData.score} out of ${resultData.total} questions correctly.`);
-                  if (onSumbitLesson) {
-                    let data = questions.map(q => { return { answerIndex: q.answerIndex } })
-                    onSumbitLesson(data)
-                  }
-                } else {
-                  setTextResult(`You did not pass. You answered ${resultData.score} out of ${resultData.total} questions correctly. You need at least ${PASSING_SCORE_PERCENTAGE}% to pass.`);
-                }
+               const resultData = await res.json();
+               if (resultData.success) {
+                 setQuizResult(resultData);
+                 const scorePercentage = (resultData.score / resultData.total) * 100;
+                 if (scorePercentage >= PASSING_SCORE_PERCENTAGE) {
+                   setUserPassed(true);
+                   setTextResult(`You passed! You answered ${resultData.score} out of ${resultData.total} questions correctly.`);
+                   if (onSumbitLesson) {
+                     let data = questions.map(q => { return { answerIndex: q.answerIndex } })
+                     onSumbitLesson(data)
+                   }
+                 } else {
+                   setUserPassed(false);
+                   setTextResult(`You did not pass. You answered ${resultData.score} out of ${resultData.total} questions correctly. You need at least ${PASSING_SCORE_PERCENTAGE}% to pass.`);
+                 }
               } else {
                 showToast.error(resultData.error || 'Failed to submit quiz.');
               }
@@ -237,7 +243,7 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
             Start again
           </BtnFullRounded>
 
-          {showNextButton && <BtnFullRounded onClick={() => {
+          {showNextButton && userPassed && <BtnFullRounded onClick={() => {
             if (onCloseRequest) {
               onCloseRequest()
             }
@@ -250,14 +256,7 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
       <>
         <div className="bg-white">
 
-          <div className="mt-0 px-2 py-2 lg:px-8 h-[64vh] overflow-auto ">
-            {/* Question Area */}
-            {activeQuestion && <QuizQuestion question={activeQuestion} index={curQuestionIndex + 1}
-              onGotAnswer={setAnswerForThisQuestion}
-            />}
-          </div>
-
-          <div className="mt-2 px-2 pt-2 pb-2 flex items-center space-x-2 h-[12vh]">
+          <div className="mt-0 px-2 py-3 flex items-center space-x-2 h-fit">
             <div className="grow"></div>
             <BtnFullRounded disable={curQuestionIndex <= 0}
               onClick={() => {
@@ -282,11 +281,15 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
 
           </div>
 
+          <div className="mt-0 px-2 py-2 lg:px-8 h-[64vh] overflow-auto ">
+            {/* Question Area */}
+            {activeQuestion && <QuizQuestion question={activeQuestion} index={curQuestionIndex + 1}
+              onGotAnswer={setAnswerForThisQuestion}
+            />}
+          </div>
         </div>
       </>
     )}
-
-
   </div>
 }
 

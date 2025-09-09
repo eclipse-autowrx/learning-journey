@@ -18,7 +18,6 @@ import { FaLock, FaGraduationCap} from "react-icons/fa";
 import MarkdownRender from "../atom/MarkdownRender";
 
 import { saveStateCourseStarted } from "@/lib/frontend/course"
-import { showToast } from "@/lib/utils/notifications";
 
 // Helper function to determine if path is completed
 const isPathCompleted = (path, maps) => {
@@ -91,7 +90,7 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
 
             if (currentItem.course?.state != 'completed') {
               await saveStateCourseStarted(currentItem.course)
-              showToast.success(`Course "${currentItem.course?.name}" marked as completed!`)
+              // Removed toast notification for path page
             }
           }}>
             Launch
@@ -150,14 +149,14 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
                 }
 
                 if (!item.course || !item.course?.slug) {
-                  showToast.warning("Course is not available now!");
+                  // Removed toast notification for path page
                   return;
                 }
 
                 // Start the course if not already started
                 if (!item.course?.context?.state || item.course?.context?.state === 'not_started') {
                   await saveStateCourseStarted(item.course)
-                  showToast.info(`Started course: ${item.course?.name}`)
+                  // Removed toast notification for path page
                 }
                 router.push(
                   `/path/${path.slug}/course/${item.course?.slug}`
@@ -201,7 +200,7 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
                   setCurrentItem(item);
                   setShowCert(true);
                 } else {
-                  showToast.info("Complete all required courses to unlock the certificate!");
+                  // Removed toast notification for path page
                 }
               }}
             >

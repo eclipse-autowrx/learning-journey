@@ -24,6 +24,8 @@
   --border-secondary: var(--color-neutral-300);
   --border-focus: var(--color-primary-500);
 
+
+
   /* Difficulty Level Colors */
   --difficulty-level-1: var(--color-primary-800);
   --difficulty-level-2: var(--color-primary-600);
@@ -166,6 +168,8 @@ textarea::placeholder {
   border: 6px solid transparent;
   border-image: url('/imgs/bare/item_border_active.svg') 6 stretch;
 }
+
+
 
 /* Custom Utilities */
 @layer utilities {
