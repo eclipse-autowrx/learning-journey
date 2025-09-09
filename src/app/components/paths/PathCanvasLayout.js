@@ -119,18 +119,17 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
           // Render course item
           const course = path.courses.find(c => c._id === item.course_id);
           return (
-            <div
-              key={`course-${item.course_id}`}
-              className={`absolute flex flex-col items-center cursor-pointer hover:shadow-xl transform transition-all origin-center z-20
-                ${["locked"].includes(item.course?.state) && "opacity-50"}
-                ${["locked-highlight"].includes(item.course?.state) && "opacity-70"}
-                `}
-              style={{
-                top: item.y,
-                left: item.x,
-                width: "11vw",
-                transform: 'translate(-50%, -50%)',
-              }}
+             <div
+               key={`course-${item.course_id}`}
+               className={`absolute flex flex-col items-center cursor-pointer hover:shadow-xl transform transition-all origin-center z-20
+                 ${["locked"].includes(item.course?.state) && "opacity-50"}
+                 ${["locked-highlight"].includes(item.course?.state) && "opacity-70"}
+                 `}
+               style={{
+                 top: item.y,
+                 left: item.x,
+                 width: "11vw",
+               }}
               onClick={async () => {
                 if (item.course?.state === "locked") {
                   return;
@@ -190,14 +189,13 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
         } else if (item.certificate_id) {
           // Render certificate item
           return (
-            <div
-              className="absolute flex flex-col items-center cursor-pointer hover:shadow-xl transform transition-all origin-center z-20"
-              style={{
-                top: item.y,
-                left: item.x,
-                width: "11vw",
-                transform: 'translate(-50%, -50%)',
-              }}
+             <div
+               className="absolute flex flex-col items-center cursor-pointer hover:shadow-xl transform transition-all origin-center z-20"
+               style={{
+                 top: item.y,
+                 left: item.x,
+                 width: "11vw",
+               }}
               onClick={() => {
                 if (pathCompleted) {
                   setCurrentItem(item);
@@ -232,19 +230,18 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
         } else if (item.type === 'text_markdown') {
           // Render text_markdown item
           return (
-            <div
-              className="absolute cursor-pointer transform transition-all origin-center z-20"
-              style={{
-                top: item.y,
-                left: item.x,
-                transform: 'translate(-50%, -50%)',
-                backgroundColor: item.background_color || 'transparent',
-                padding: '8px',
-                borderRadius: '4px',
-                width: item.width || '200px',
-                maxWidth: item.width || '200px',
-                minHeight: item.height || 'auto',
-              }}
+             <div
+               className="absolute cursor-pointer transform transition-all origin-center z-20"
+               style={{
+                 top: item.y,
+                 left: item.x,
+                 backgroundColor: item.background_color || 'transparent',
+                 padding: '8px',
+                 borderRadius: '4px',
+                 width: item.width || '200px',
+                 maxWidth: item.width || '200px',
+                 minHeight: item.height || 'auto',
+               }}
               onClick={() => {
                 // setCurrentItem(item);
                 // setShowMarkdownPopup(true);
@@ -261,13 +258,12 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
         } else if (item.type === 'icon') {
           // Render icon item
           return (
-            <div
-              className="absolute cursor-pointer transform transition-all origin-center z-20"
-              style={{
-                top: item.y,
-                left: item.x,
-                transform: 'translate(-50%, -50%)',
-              }}
+             <div
+               className="absolute cursor-pointer transform transition-all origin-center z-20"
+               style={{
+                 top: item.y,
+                 left: item.x,
+               }}
               onClick={() => {
                 if (item.link_url) {
                   window.open(item.link_url, "_blank");

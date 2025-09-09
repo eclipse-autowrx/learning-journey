@@ -72,6 +72,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
   const [iconLinkUrl, setIconLinkUrl] = useState('');
   const [iconPopupMarkdown, setIconPopupMarkdown] = useState('');
   const [actionType, setActionType] = useState<'link' | 'popup' | ''>('');
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number } | null>(null);
 
   // JSON Editor functions
   const switchToJsonMode = () => {
@@ -171,8 +172,48 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
 
     if (canvasRef.current) {
       const canvasRect = canvasRef.current.getBoundingClientRect();
-      const x = Math.round(((e.clientX - canvasRect.left) / canvasRect.width) * 100);
-      const y = Math.round(((e.clientY - canvasRect.top) / canvasRect.height) * 100);
+
+      // Adjust for the offset within the node where the user clicked
+      let adjustedClientX = e.clientX;
+      let adjustedClientY = e.clientY;
+
+      // For existing nodes being repositioned, use the drag offset
+      // For new nodes from sidebar, center them at the drop location
+      if (dragOffset && nodeData) {
+        // Existing node: subtract the offset so the same relative point within the node
+        // ends up at the drop location
+        adjustedClientX -= dragOffset.x;
+        adjustedClientY -= dragOffset.y;
+      } else if (!nodeData) {
+        // New node from sidebar: center it at the drop location
+        let nodeWidth = 11; // vw (default for courses/certificates)
+        let nodeHeight = 11; // vw
+
+        // Adjust dimensions based on node type
+        if (nodeType === 'text_markdown') {
+          nodeWidth = 20; // 200px default width
+          nodeHeight = 10; // auto height, approximate
+        } else if (nodeType === 'icon') {
+          nodeWidth = 4; // 40px default
+          nodeHeight = 4;
+        }
+
+        const canvasWidth = canvasRect.width;
+        const canvasHeight = canvasRect.height;
+
+        adjustedClientX -= (nodeWidth / 100) * canvasWidth / 2;
+        adjustedClientY -= (nodeHeight / 100) * canvasHeight / 2;
+      }
+
+      let x = Math.round(((adjustedClientX - canvasRect.left) / canvasRect.width) * 100);
+      let y = Math.round(((adjustedClientY - canvasRect.top) / canvasRect.height) * 100);
+
+      // Ensure position stays within canvas bounds
+      x = Math.max(0, Math.min(100, x));
+      y = Math.max(0, Math.min(100, y));
+
+      // Reset drag offset after use
+      setDragOffset(null);
 
       if (courseId) {
         const newMapItem: MapItem = {
@@ -236,6 +277,11 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
     e.preventDefault();
   };
 
+  const handleDragEnd = () => {
+    // Reset drag offset when drag operation ends
+    setDragOffset(null);
+  };
+
   const handleRemove = async (itemId: string, isCertificate: boolean = false) => {
     const itemType = isCertificate ? 'certificate' : 'course';
     const result = await showDeleteConfirm(itemType);
@@ -296,6 +342,12 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
 
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, item: MapItem) => {
+    // Calculate the offset within the node where the user clicked
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    setDragOffset({ x: offsetX, y: offsetY });
+
     if (item.course_id) {
       e.dataTransfer.setData('courseId', item.course_id);
     } else if (item.certificate_id) {
@@ -366,10 +418,11 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
         <div className="flex gap-2 overflow-x-auto overflow-y-hidden h-[110px]">
           {/* Certificate Item */}
           {!isCertificatePlaced && (
-            <div
-              draggable
-              onDragStart={(e) => e.dataTransfer.setData('certificateId', 'certificate')}
-              className="flex flex-col items-center cursor-pointer flex-shrink-0"
+             <div
+               draggable
+               onDragStart={(e) => e.dataTransfer.setData('certificateId', 'certificate')}
+               onDragEnd={handleDragEnd}
+               className="flex flex-col items-center cursor-pointer flex-shrink-0"
               style={{ width: "11vw" }}
             >
               <div className="relative" style={{
@@ -402,11 +455,12 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
             </div>
           ) : (
             availableCourses.map((course) => (
-              <div
-                key={course._id}
-                draggable
-                onDragStart={(e) => e.dataTransfer.setData('courseId', course._id)}
-                className="flex flex-col items-center cursor-pointer flex-shrink-0"
+               <div
+                 key={course._id}
+                 draggable
+                 onDragStart={(e) => e.dataTransfer.setData('courseId', course._id)}
+                 onDragEnd={handleDragEnd}
+                 className="flex flex-col items-center cursor-pointer flex-shrink-0"
                 style={{ width: "11vw" }}
               >
                 <div className="relative" style={{
@@ -476,17 +530,17 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
               // Render course item
               const course = path.courses.find(c => c._id === item.course_id);
                return (
-                 <div
-                   key={`course-${item.course_id}`}
-                   draggable
-                   onDragStart={(e) => handleDragStart(e, item)}
-                   className="absolute flex flex-col items-center cursor-pointer group hover:shadow-xl transform transition-all origin-center z-20"
-                  style={{
-                    top: item.y,
-                    left: item.x,
-                    width: "11vw",
-                    transform: 'translate(-50%, -50%)',
-                  }}
+                  <div
+                    key={`course-${item.course_id}`}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, item)}
+                    onDragEnd={handleDragEnd}
+                    className="absolute flex flex-col items-center cursor-pointer group hover:shadow-xl transform transition-all origin-center z-20"
+                   style={{
+                     top: item.y,
+                     left: item.x,
+                     width: "11vw",
+                   }}
                 >
                   <div className="relative" style={{
                     width: "5.5vw",
@@ -518,17 +572,17 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
             } else if (item.certificate_id) {
               // Render certificate item
                return (
-                 <div
-                   key={`certificate-${item.certificate_id}`}
-                   draggable
-                   onDragStart={(e) => handleDragStart(e, item)}
-                   className="absolute flex flex-col items-center cursor-pointer group hover:shadow-xl transform transition-all origin-center z-20"
-                  style={{
-                    top: item.y,
-                    left: item.x,
-                    width: "11vw",
-                    transform: 'translate(-50%, -50%)',
-                  }}
+                  <div
+                    key={`certificate-${item.certificate_id}`}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, item)}
+                    onDragEnd={handleDragEnd}
+                    className="absolute flex flex-col items-center cursor-pointer group hover:shadow-xl transform transition-all origin-center z-20"
+                   style={{
+                     top: item.y,
+                     left: item.x,
+                     width: "11vw",
+                   }}
                 >
                   <div className="relative p-2" style={{
                     width: "5.5vw",
@@ -559,26 +613,26 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
             } else if (item.type === 'text_markdown') {
               // Render text_markdown item
               return (
-                  <div
-                    key={`markdown-${item.x}-${item.y}`}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, item)}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditMarkdown(item);
+                   <div
+                     key={`markdown-${item.x}-${item.y}`}
+                     draggable
+                     onDragStart={(e) => handleDragStart(e, item)}
+                     onDragEnd={handleDragEnd}
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       handleEditMarkdown(item);
+                     }}
+                     className="absolute cursor-pointer group hover:shadow-xl hover:ring-2 hover:ring-blue-400 hover:ring-opacity-50 transform transition-all origin-center z-20"
+                    style={{
+                      top: item.y,
+                      left: item.x,
+                      backgroundColor: item.background_color || 'transparent',
+                      padding: '8px',
+                      borderRadius: '4px',
+                      width: item.width || '200px',
+                      maxWidth: item.width || '200px',
+                      minHeight: item.height || 'auto',
                     }}
-                    className="absolute cursor-pointer group hover:shadow-xl hover:ring-2 hover:ring-blue-400 hover:ring-opacity-50 transform transition-all origin-center z-20"
-                   style={{
-                     top: item.y,
-                     left: item.x,
-                     transform: 'translate(-50%, -50%)',
-                     backgroundColor: item.background_color || 'transparent',
-                     padding: '8px',
-                     borderRadius: '4px',
-                     width: item.width || '200px',
-                     maxWidth: item.width || '200px',
-                     minHeight: item.height || 'auto',
-                   }}
                    title="Markdown Node"
                  >
                   <div className="text-sm text-gray-800">
@@ -598,16 +652,16 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
             } else if (item.type === 'icon') {
               // Render icon item
               return (
-                  <div
-                    key={`icon-${item.x}-${item.y}`}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, item)}
-                    className="absolute cursor-pointer group hover:shadow-xl transform transition-all origin-center z-20"
-                    style={{
-                      top: item.y,
-                      left: item.x,
-                      transform: 'translate(-50%, -50%)',
-                    }}
+                   <div
+                     key={`icon-${item.x}-${item.y}`}
+                     draggable
+                     onDragStart={(e) => handleDragStart(e, item)}
+                     onDragEnd={handleDragEnd}
+                     className="absolute cursor-pointer group hover:shadow-xl transform transition-all origin-center z-20"
+                     style={{
+                       top: item.y,
+                       left: item.x,
+                     }}
                     title={item.hover_content || 'Icon Node'}
                     onClick={(e) => {
                       e.stopPropagation();
