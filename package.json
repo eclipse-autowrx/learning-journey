@@ -11,6 +11,7 @@
     "dev:setup": "node scripts/dev-cache.js setup",
     "dev": "next dev --turbopack --port 3090",
     "build": "next build",
+    "postbuild": "cp -rL public .next/standalone/public",
     "start": "PORT=3099 next start",
     "start:prewarmed": "PORT=3099 next start & sleep 3 && node scripts/prewarm-pages.js",
     "lint": "next lint",
