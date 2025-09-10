@@ -20,7 +20,7 @@ const HomeContent = ({ }) => {
     const [imageErrors, setImageErrors] = useState(new Set());
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
-    const { isAuthenticated, loading: authLoading } = useAuth();
+    const { isAuthenticated, loading: authLoading, refreshAuth } = useAuth();
 
     useEffect(() => {
         // Wait for authentication to complete before loading data
@@ -39,10 +39,26 @@ const HomeContent = ({ }) => {
             }
         }
 
+        // Priority 1: Try authentication with query params first
         if (queryParams.user_id) {
-            await auth(queryParams.user_id, queryParams.token || '')
+            try {
+                await auth(queryParams.user_id, queryParams.token || '')
+                
+                // Refresh auth state to update UI components like UserBadge
+                await refreshAuth()
+            } catch (error) {
+                // Authentication failed, continue with existing auth state
+            }
+            
+            // Clean up URL by removing user_id and token from query params
+            // This prevents multiple authentication attempts
+            if (typeof window !== "undefined") {
+                const url = new URL(window.location);
+                url.searchParams.delete('user_id');
+                url.searchParams.delete('token');
+                window.history.replaceState({}, '', url.toString());
+            }
         }
-
         await fetchPaths()
     }
 
@@ -163,7 +179,6 @@ const HomeContent = ({ }) => {
             if (data && data.success) {
                 let collections = data.data
                 await applyProgressForCollections(collections)
-                // console.log("Fetched collections:", collections)
                 setItems(collections)
             } else {
                 setItems([])
@@ -177,11 +192,18 @@ const HomeContent = ({ }) => {
 
     const auth = async (user_id, token) => {
         try {
-            await fetch(`/api/user/auth?user_id=${encodeURIComponent(user_id)}&token=${encodeURIComponent(token)}`, {
+            const response = await fetch(`/api/user/auth?user_id=${encodeURIComponent(user_id)}&token=${encodeURIComponent(token)}`, {
                 method: "POST"
             });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `Authentication failed with status ${response.status}`);
+            }
+            
+            return true; // Authentication successful
         } catch (error) {
-            // Learning auth failed
+            throw error; // Re-throw to be caught by the caller
         }
     }
 
@@ -223,8 +245,6 @@ const HomeContent = ({ }) => {
         // Navigate to path page using the slug
         if (path.slug) {
             router.push(`/path/${path.slug}`);
-        } else {
-            console.error('Path slug is missing:', path);
         }
     };
 

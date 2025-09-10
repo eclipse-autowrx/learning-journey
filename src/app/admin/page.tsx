@@ -113,15 +113,28 @@ function AdminPageInner() {
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="border-b mb-8" style={{ borderColor: 'var(--border-primary)' }}>
-            <div className="flex justify-between items-center">
-            <div>
-                <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Admin Panel</h1>
-                <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  Manage system settings, collections, and paths
-              </p>
-            </div>
-              <UserBadge />
-        </div>
+             <div className="flex justify-between items-center">
+             <div>
+                 <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Admin Panel</h1>
+                 <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                   Manage system settings, collections, and paths
+               </p>
+             </div>
+               <div className="flex items-center space-x-4">
+                 <Link
+                   href="/"
+                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md"
+                   style={{
+                     backgroundColor: 'var(--color-primary-500)',
+                     color: 'var(--text-inverse)'
+                   }}
+                 >
+                   <FaHome className="mr-2" />
+                   Home
+                 </Link>
+                 <UserBadge />
+               </div>
+         </div>
       </div>
 
           {/* Tab Navigation */}

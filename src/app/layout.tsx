@@ -11,6 +11,7 @@ import { Quicksand } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import ColorThemeProvider from "../components/ColorThemeProvider";
+import { AuthProvider } from "../lib/frontend/auth";
 import { getThemeStyles } from "../lib/theme-server";
 
 
@@ -75,7 +76,9 @@ export default async function RootLayout({
         {/* ${shantell_sans.variable} */}
         {/* <div className="w-full h-20 bg-slate-500 text-white flex items-center justify-center">I am header </div> */}
         <ColorThemeProvider>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </ColorThemeProvider>
         <Toaster position="top-right" richColors />
       </body>
