@@ -24,13 +24,41 @@ const isPathCompleted = (path, maps) => {
   if (!path?.required_course_ids || path.required_course_ids.length === 0) {
     return false;
   }
-  
-  // Check if all required courses are completed
-  return path.required_course_ids.every(courseId => {
+
+  // Get all mandatory courses with their names
+  const mandatoryCourses = path.required_course_ids.map(courseId => {
     const mapItem = maps.find(map => map.course_id === courseId);
-    if (!mapItem?.course) return false;
-    return mapItem.course.context?.state === 'completed';
+    const course = path.courses?.find(c => c._id === courseId);
+    return {
+      id: courseId,
+      name: course?.name || 'Unknown Course',
+      foundInMaps: !!mapItem,
+      state: mapItem?.course?.context?.state || 'not_found'
+    };
   });
+
+  // Check completion status and collect unfinished courses
+  const unfinishedCourses = [];
+  const result = path.required_course_ids.every(courseId => {
+    const course = path.courses?.find(c => c._id === courseId);
+    
+    if (!course) {
+      unfinishedCourses.push({ id: courseId, name: 'Not found in path.courses', reason: 'not_in_path_courses' });
+      return false;
+    }
+    const isCompleted = course.context?.state === 'completed';
+    if (!isCompleted) {
+      unfinishedCourses.push({
+        id: courseId,
+        name: course?.name || 'Unknown Course',
+        currentState: course.context?.state || 'not_started',
+        reason: 'not_completed'
+      });
+    }
+    return isCompleted;
+  });
+
+  return result;
 };
 
 
@@ -43,6 +71,13 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
   const [currentItem, setCurrentItem] = useState(null)
 
   const pathCompleted = isPathCompleted(path, maps);
+
+  // Function to handle certificate click
+  const handleCertificateClick = () => {
+    if (pathCompleted) {
+      setShowCert(true);
+    }
+  };
 
   return <div className="px-2 lg:px-4">
     <div className="relative w-full h-[560px] rounded-sm border-2 border-neutral-200"
@@ -63,7 +98,9 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
       <div className="absolute top-0 left-0 right-0 bottom-0 opacity-10 bg-white z-10"></div>
 
       {/* Certificate Screen */}
-      {showCert && currentItem && <CertificateScreen image={currentItem.course?.image} requestClose={() => setShowCert(false)} />}
+      {showCert && <CertificateScreen 
+        requestClose={() => setShowCert(false)} 
+      />}
 
       {/* External Launch Popup */}
       {popupExternalLaunch && currentItem && <Popup>
@@ -76,7 +113,7 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
         <div className="flex text-sm items-center justify-center mt-2 px-8 py-4">
           <p className="text-neutral-600 text-center">
             <span><i>You are about to be redirected to an external course at: </i></span>
-            <div className="mt-2 text-neutral-600 break-all text-base text-neutral-900">
+            <div className="mt-2 text-neutral-900 break-all text-base">
               {currentItem.course?.extends?.external_link}
             </div>
           </p>
@@ -196,14 +233,7 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
                  left: item.x,
                  width: "11vw",
                }}
-               onClick={() => {
-                 if (pathCompleted) {
-                   setCurrentItem(item);
-                   setShowCert(true);
-                 } else {
-                   // Removed toast notification for path page
-                 }
-               }}
+               onClick={handleCertificateClick}
              >
               <div className="relative p-2" style={{
                 width: "5.5vw",
@@ -212,7 +242,7 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
                 <div className={`h-full w-full bg-gradient-to-br from-accent-400 to-accent-600 rounded-full
                   flex items-center justify-center relative ${pathCompleted ? "" : "opacity-30"}`}>
                   <div className="text-white text-3xl">
-                    {pathCompleted ? <FaGraduationCap className="text-white text-3xl" /> : <FaLock className="text-white text-2xl" />}
+                    {pathCompleted ? <FaGraduationCap className="text-white text-[2.2vw]" /> : <FaLock className="text-white text-2xl" />}
                   </div>
                 </div>
               </div>

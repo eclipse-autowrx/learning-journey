@@ -145,6 +145,9 @@ export default function PathDetailPage() {
 
   // Certificate configuration states
   const [requiredCourseIds, setRequiredCourseIds] = useState<string[]>([]);
+  
+  // Lesson counts for each course
+  const [courseLessonCounts, setCourseLessonCounts] = useState<Record<string, number>>({});
 
   const handleSaveCanvas = async (maps: MapItem[]) => {
     try {
@@ -225,6 +228,8 @@ export default function PathDetailPage() {
         // Set courses from the path data if available
         if (pathData.data.courses && Array.isArray(pathData.data.courses)) {
           setCourses(pathData.data.courses);
+          // Fetch lesson counts for all courses
+          fetchLessonCounts(pathData.data.courses);
         }
         // Set required course IDs for certificate
         setRequiredCourseIds(pathData.data.required_course_ids || []);
@@ -523,6 +528,99 @@ export default function PathDetailPage() {
       // Revert the state on error
       setRequiredCourseIds(requiredCourseIds);
     }
+  };
+
+  // Clear all required courses
+  const handleClearAllRequiredCourses = async () => {
+    setRequiredCourseIds([]);
+
+    try {
+      const response = await fetch(`/api/creator/paths/${pathSlug}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ required_course_ids: [] }),
+      });
+
+      if (response.ok) {
+        showToast.success('All required courses cleared successfully');
+        fetchPathData(); // Refresh data to ensure consistency
+      } else {
+        const error = await response.json();
+        showToast.error(`Error: ${error.error || 'Failed to clear required courses'}`);
+        // Revert the state on error
+        setRequiredCourseIds(requiredCourseIds);
+      }
+    } catch (error) {
+      console.error('Error clearing required courses:', error);
+      showToast.error('Failed to clear required courses');
+      // Revert the state on error
+      setRequiredCourseIds(requiredCourseIds);
+    }
+  };
+
+  // Clean up ghost course IDs
+  const handleCleanupGhostCourses = async () => {
+    const availableCourseIds = courses.map(course => course._id);
+    const validRequiredIds = requiredCourseIds.filter(id => availableCourseIds.includes(id));
+    
+    setRequiredCourseIds(validRequiredIds);
+
+    try {
+      const response = await fetch(`/api/creator/paths/${pathSlug}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ required_course_ids: validRequiredIds }),
+      });
+
+      if (response.ok) {
+        showToast.success('Ghost course IDs removed successfully');
+        fetchPathData(); // Refresh data to ensure consistency
+      } else {
+        const error = await response.json();
+        showToast.error(`Error: ${error.error || 'Failed to clean up ghost courses'}`);
+        // Revert the state on error
+        setRequiredCourseIds(requiredCourseIds);
+      }
+    } catch (error) {
+      console.error('Error cleaning up ghost courses:', error);
+      showToast.error('Failed to clean up ghost courses');
+      // Revert the state on error
+      setRequiredCourseIds(requiredCourseIds);
+    }
+  };
+
+  // Detect ghost course IDs
+  const getGhostCourseIds = () => {
+    const availableCourseIds = courses.map(course => course._id);
+    return requiredCourseIds.filter(id => !availableCourseIds.includes(id));
+  };
+
+  // Fetch lesson counts for all courses
+  const fetchLessonCounts = async (coursesList: Course[]) => {
+    const lessonCounts: Record<string, number> = {};
+    
+    // Fetch lesson counts for each course in parallel
+    const promises = coursesList.map(async (course) => {
+      try {
+        const response = await fetch(`/api/courses/${course.slug}/lessons`);
+        const data = await response.json();
+        if (data.success && Array.isArray(data.data)) {
+          lessonCounts[course._id] = data.data.length;
+        } else {
+          lessonCounts[course._id] = course.total_lessons || 0;
+        }
+      } catch (error) {
+        console.error(`Error fetching lessons for course ${course.slug}:`, error);
+        lessonCounts[course._id] = course.total_lessons || 0;
+      }
+    });
+    
+    await Promise.all(promises);
+    setCourseLessonCounts(lessonCounts);
   };
 
   // Bulk selection handlers
@@ -1175,6 +1273,48 @@ export default function PathDetailPage() {
                   </div>
                 </div>
 
+                {/* Ghost Course IDs Warning */}
+                {(() => {
+                  const ghostCourseIds = getGhostCourseIds();
+                  return ghostCourseIds.length > 0 && (
+                    <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                      <div className="flex">
+                        <div className="flex-shrink-0">
+                          <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="ml-3 flex-1">
+                          <h3 className="text-sm font-medium text-yellow-800">
+                            Invalid Required Course IDs Detected
+                          </h3>
+                          <div className="mt-2 text-sm text-yellow-700">
+                            <p>The following course IDs are marked as required but don't exist in the available courses:</p>
+                            <div className="mt-2">
+                              <div className="flex flex-wrap gap-2">
+                                {ghostCourseIds.map((courseId, index) => (
+                                  <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    {courseId}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="mt-3">
+                              <button
+                                onClick={handleCleanupGhostCourses}
+                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-yellow-800 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                              >
+                                <FaTrash className="mr-1.5 h-3 w-3" />
+                                Remove Invalid IDs
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {courses.length === 0 ? (
                   <div className="text-center py-12">
                     <FaGraduationCap className="mx-auto h-12 w-12 text-neutral-400" />
@@ -1301,7 +1441,10 @@ export default function PathDetailPage() {
                                 {requiredCourseIds.includes(course._id) ? 'Yes' : ''}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
-                                {course.total_lessons || 0}
+                                {courseLessonCounts[course._id] !== undefined 
+                                  ? courseLessonCounts[course._id] 
+                                  : (course.total_lessons || 0)
+                                }
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(course.state)}`}>

@@ -43,7 +43,6 @@ const Page = () => {
           throw new Error('Invalid API response structure');
         }
       } catch (err) {
-        console.error('Error fetching path:', err);
         setError(err.message);
       } finally {
         setLoading(false);
