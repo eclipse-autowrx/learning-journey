@@ -169,7 +169,6 @@ const InteractiveLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextBut
 
     const handleUpdateFromHost = (data) => {
         if (data.isShowedAutomationControl == false) {
-            console.log('hide automation control')
             let sequence = data.automationSequence
             if (sequence && sequence.actions && sequence.actions.length > 0) {
                 let _actions = [...actions]

@@ -27,7 +27,7 @@ const BreadCrumb = ({ items, rightSlot }) => {
         // TODO: implement later
         // config = getSiteConfig('BREADCRUMB_CONFIG')
     } catch (error) {
-        console.log('Error fetching BREADCRUMB_CONFIG:', error)
+
     }
 
     const processLabel = (label) => {

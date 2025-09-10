@@ -1,44 +1,77 @@
 // Copyright (c) 2025 Eclipse Foundation.
-// 
+//
 // This program and the accompanying materials are made available under the
 // terms of the MIT License which is available at
 // https://opensource.org/licenses/MIT.
 //
 // SPDX-License-Identifier: MIT
 
+'use client';
+
 import PathScreen from "@/app/components/screen/PathScreen"
 import { notFound } from 'next/navigation'
-import { fetchPathBySlug } from "@/lib/utils/consume_apis/api_path"
 import BreadCrumb from "@/app/components/atom/BreadCrumb"
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 
-import { cookies, headers } from 'next/headers';
+const Page = () => {
+  const params = useParams();
+  const { path_slug } = params;
+  const [curPath, setCurPath] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-// Revalidate every 10 minutes for dynamic paths
-export const revalidate = 600;
+  useEffect(() => {
+    if (!path_slug) {
+      notFound();
+      return;
+    }
 
-const Page = async ({ params }) => {
-  const cookieStore = await cookies();
+    const fetchPathData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/paths/${path_slug}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch path data: ${response.status}`);
+        }
+        const apiResponse = await response.json();
 
-  const { path_slug } = await params;
-  if (!path_slug) notFound()
-  let curPath
+        // Extract the actual path data from the API response
+        if (apiResponse.success && apiResponse.data) {
+          setCurPath(apiResponse.data);
+        } else {
+          throw new Error('Invalid API response structure');
+        }
+      } catch (err) {
+        console.error('Error fetching path:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  try {
-    // Build absolute origin for server-side fetch
-    const hdrs = await headers();
-    const host = hdrs.get('x-forwarded-host') || hdrs.get('host') || '';
-    const proto = hdrs.get('x-forwarded-proto') || 'http';
-    const origin = host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_BASE_URL || undefined);
-    curPath = await fetchPathBySlug(
-      path_slug,
-      cookieStore.get('user_id')?.value || "",
-      cookieStore.get('token')?.value || "",
-      origin);
-  } catch (err) {
-    console.log(err)
+    fetchPathData();
+  }, [path_slug]);
+
+  if (loading) {
+    return (
+      <div className="bg-neutral-100 text-neutral-600 text-2xl p-1 h-full w-full flex flex-col">
+        <div className="flex justify-center items-center min-h-screen">
+          <div>Loading path...</div>
+        </div>
+      </div>
+    );
   }
 
-  if (!curPath) notFound()
+  if (error || !curPath) {
+    return (
+      <div className="bg-neutral-100 text-neutral-600 text-2xl p-1 h-full w-full flex flex-col">
+        <div className="flex justify-center items-center min-h-screen">
+          <div>Path not found or error loading path.</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -46,7 +79,7 @@ const Page = async ({ params }) => {
             h-full w-full flex flex-col"
     >
       <BreadCrumb items={[
-        { label: curPath.name, link: `/path/${curPath.slug}` },
+        { label: curPath?.name || 'Loading...', link: `/path/${curPath?.slug || path_slug}` },
       ]} />
       { curPath && <PathScreen path={curPath} /> }
     </div>

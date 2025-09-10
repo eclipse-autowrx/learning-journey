@@ -9,7 +9,7 @@
 'use client'
 
 import { useEffect, useState } from "react"
-import { FaCheckCircle } from "react-icons/fa";
+
 import BtnFullRounded from "../atom/BtnFullRounded";
 import { STATE_COMPLETED } from "@/lib/const";
 import { showToast } from "@/lib/utils/notifications";
@@ -108,7 +108,7 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
       let question = questions[curQuestionIndex]
       setActiveQuestion(question)
     } catch (e) {
-      console.log(e)
+
     }
   }, [curQuestionIndex, questions])
 
@@ -157,7 +157,7 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
       </div>
 
       <div className="mt-2 px-1 py-2 flex items-center space-x-2">
-        <BtnFullRounded disable={!gotAllAnswer || isSubmitting}
+        <BtnFullRounded disable={!gotAllAnswer || isSubmitting || !!testResult}
           onClick={async () => {
             setIsSubmitting(true);
             try {
@@ -206,7 +206,7 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
 
     {testResult ? (
       <div className="w-full flex flex-col items-center justify-center px-4 py-4">
-        <div className="min-h-[200px] max-h-[60vh] overflow-auto w-full md:w-3/4 lg:w-2/3">
+        <div className="min-h-[200px] max-h-[60vh] overflow-auto w-full">
           <h2 className="text-2xl font-bold mb-4 text-center">{testResult}</h2>
           {quizResult && quizResult.results && (
             <div className="space-y-4">
@@ -215,7 +215,6 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
                 if (!question) return null;
 
                 const userAnswerLabel = question.answers[res.user_answer]?.label || 'Not answered';
-                const correctAnswerLabel = question.answers[res.correct_answer]?.label;
 
                 return (
                   <div key={index} className={`p-4 rounded-lg border ${res.is_correct ? 'bg-secondary-50 border-secondary-300' : 'bg-red-50 border-red-300'}`}>
@@ -223,11 +222,11 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
                     <p className={`mt-2 ${res.is_correct ? 'text-secondary-700' : 'text-red-700'}`}>
                       Your answer: <span className="font-semibold">{userAnswerLabel}</span> {res.is_correct ? '✅' : '❌'}
                     </p>
-                    {!res.is_correct && (
+                    {/* {!res.is_correct && (
                       <p className="mt-1 text-secondary-700">
                         Correct answer: <span className="font-semibold">{correctAnswerLabel}</span>
                       </p>
-                    )}
+                    )} */}
                   </div>
                 )
               })}

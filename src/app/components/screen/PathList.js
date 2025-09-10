@@ -31,7 +31,7 @@ const PathList = ({ paths, title, titleTag, description }) => {
     const router = useRouter();
 
     useEffect(() => {
-        console.log(`paths`, paths)
+        // Paths updated
     }, [paths])
 
     return <div id={titleTag||null} className="bg-white w-full pt-4 pb-8 flex justify-center items-center">

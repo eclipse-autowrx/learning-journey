@@ -211,31 +211,18 @@ function ManagePageInner() {
 
   const fetchData = async () => {
     try {
-      console.log('Starting to fetch data...');
-      
       // Fetch each API separately to identify which one is failing
-      console.log('Fetching paths...');
       const pathsRes = await fetch('/api/creator/paths');
-      console.log('Paths response status:', pathsRes.status);
       const pathsData = await pathsRes.json();
-      console.log('Paths data:', pathsData);
-      
-      console.log('Fetching courses...');
+
       const coursesRes = await fetch('/api/creator/courses');
-      console.log('Courses response status:', coursesRes.status);
       const coursesData = await coursesRes.json();
-      console.log('Courses data:', coursesData);
-      
-      console.log('Fetching lessons...');
+
       const lessonsRes = await fetch('/api/creator/lessons');
-      console.log('Lessons response status:', lessonsRes.status);
       const lessonsData = await lessonsRes.json();
-      console.log('Lessons data:', lessonsData);
 
       // Collections are managed by admin; do not load here
       setPaths(pathsData.success ? pathsData.data : []);
-      
-      console.log('Data fetching completed successfully');
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {

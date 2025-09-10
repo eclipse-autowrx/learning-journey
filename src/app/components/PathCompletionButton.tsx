@@ -48,7 +48,6 @@ export default function PathCompletionButton({
         }
         
         // Show success message or redirect
-        console.log('Path completed and certificate generated:', data.certificate);
       } else {
         setError(data.error || 'Failed to complete path');
       }

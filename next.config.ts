@@ -58,7 +58,7 @@ const nextConfig: NextConfig = {
           // Cache pages for 2 minutes, allow stale-while-revalidate for 1 day
           source: '/:path((?!api/).*)',
           headers: [
-            { key: 'Cache-Control', value: 'public, max-age=120, s-maxage=120, stale-while-revalidate=86400' },
+            { key: 'Cache-Control', value: 'public, max-age=4800, s-maxage=4800, stale-while-revalidate=86400' },
           ],
         }
       );

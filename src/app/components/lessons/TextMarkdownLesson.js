@@ -31,7 +31,6 @@ const TextMarkdownLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextBu
             </MarkdownRender>
 
             <ViewportVisibleDetect onVisible={() => {
-                console.log("onVisible")
                 onSumbitLesson && onSumbitLesson({})
             }}/>
         </div>

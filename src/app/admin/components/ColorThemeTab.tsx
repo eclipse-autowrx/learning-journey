@@ -44,7 +44,6 @@ export default function ColorThemeTab({ hasManageUsers }: ColorThemeTabProps) {
     const success = await colorThemeManager.saveBaseColorsToSettings(localBaseColors);
     if (success) {
       setHasChanges(false);
-      console.log('Theme saved successfully');
     } else {
       console.error('Failed to save theme');
     }

@@ -230,20 +230,17 @@ const CourseScreen = ({ course, path_slug }) => {
                 if (lessonIndex >= 0) {
                     // Only set if we haven't processed the initial URL yet or if it's different from current
                     if (!hasProcessedInitialUrlRef.current || lessonIndex !== activeLessonIndex) {
-                        console.log("[CourseScreen] Setting lesson index to", lessonIndex, "for lesson", lessonParam);
                         setActiveLessonIndex(lessonIndex);
                         lastProcessedLessonParamRef.current = lessonParam;
                         hasProcessedInitialUrlRef.current = true;
                     }
                 } else if (!hasProcessedInitialUrlRef.current) {
-                    console.log("[CourseScreen] lesson parameter not found and we haven't processed initial URL - default to first lesson")
                     // Lesson parameter not found, default to first lesson
                     setActiveLessonIndex(0);
                     lastProcessedLessonParamRef.current = null;
                     hasProcessedInitialUrlRef.current = true;
                 }
             } else if (!hasProcessedInitialUrlRef.current) {
-                console.log("[CourseScreen] no lesson parameter and we haven't processed initial URL - default to first lesson")
                 // No lesson parameter and we haven't processed initial URL - default to first lesson
                 setActiveLessonIndex(0);
                 lastProcessedLessonParamRef.current = null;

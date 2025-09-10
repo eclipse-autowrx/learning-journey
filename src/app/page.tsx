@@ -1,8 +1,9 @@
+'use client';
+
 import HomeContent from "./components/screen/HomeContent";
 import { FaDiamond } from "react-icons/fa6";
-import connectToDatabase from '../lib/mongodb';
-import SystemSettings from '../lib/models/SystemSettings';
 import TopRightControls from './components/TopRightControls';
+import { useState, useEffect } from 'react';
 
 interface HomeConfig {
   title: string;
@@ -10,36 +11,49 @@ interface HomeConfig {
   imageUrl: string;
 }
 
-async function getHomeConfig(): Promise<HomeConfig> {
-  try {
-    await connectToDatabase();
-    const setting = await SystemSettings.findOne({ key: 'home_config' });
-    
-    if (setting?.value) {
-      return setting.value;
-    }
-  } catch (error) {
-    console.error('Error fetching home config:', error);
+const defaultHomeConfig: HomeConfig = {
+  title: 'Your SDV journey starts here.',
+  bulletPoints: [
+    'From zero to hero',
+    'Practice in our virtual lab and seamlessly transition to physical kit',
+    'Track your progress and get certificates',
+    'Stay in the loop with our community'
+  ],
+  imageUrl: '/imgs/sdv.png'
+};
+
+export default function Home() {
+  const [homeConfig, setHomeConfig] = useState<HomeConfig>(defaultHomeConfig);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHomeConfig = async () => {
+      try {
+        const response = await fetch('/api/settings/home_config');
+        if (response.ok) {
+          const data = await response.json();
+          setHomeConfig(data);
+        }
+      } catch (error) {
+        console.error('Error fetching home config:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHomeConfig();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-white text-slate-600 text-2xl p-0 h-full w-full flex flex-col gap-0 relative">
+        <TopRightControls />
+        <div className="w-full bg-gradient-to-br from-primary-800 via-primary-800 to-primary-700 text-white flex flex-col items-center justify-center pt-8 pb-8 px-6 lg:px-12 min-h-screen">
+          <div className="text-center">Loading...</div>
+        </div>
+      </div>
+    );
   }
-  
-  // Return default configuration if setting doesn't exist or error occurs
-  return {
-    title: 'Your SDV journey starts here.',
-    bulletPoints: [
-      'From zero to hero',
-      'Practice in our virtual lab and seamlessly transition to physical kit',
-      'Track your progress and get certificates',
-      'Stay in the loop with our community'
-    ],
-    imageUrl: '/imgs/sdv.png'
-  };
-}
-
-// Revalidate every 5 minutes (300 seconds)
-export const revalidate = 300;
-
-export default async function Home() {
-  const homeConfig = await getHomeConfig();
 
   return (
     <div className="bg-white text-slate-600 text-2xl p-0
@@ -57,7 +71,7 @@ export default async function Home() {
             <div className="text-sm sm:text-md leading-tight font-bold text-left pt-4 mt-4 flex flex-col gap-2">
               {homeConfig.bulletPoints.map((point, index) => (
                 <div key={index} className="flex items-center">
-                  <FaDiamond size={12} className="mr-4 text-white min-w-3" /> 
+                  <FaDiamond size={12} className="mr-4 text-white min-w-3" />
                   {point}
                 </div>
               ))}
@@ -65,9 +79,9 @@ export default async function Home() {
           </div>
 
           <div className="flex-2 px-2 grid place-items-center">
-            <img 
-              className="w-[40vw] h-[200px] sm:w-[40vw] object-contain" 
-              src={homeConfig.imageUrl} 
+            <img
+              className="w-[40vw] h-[200px] sm:w-[40vw] object-contain"
+              src={homeConfig.imageUrl}
               alt="Hero image"
             />
           </div>

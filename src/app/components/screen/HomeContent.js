@@ -49,22 +49,48 @@ const HomeContent = ({ }) => {
 
     const fetchProgressForCourses = async (course_ids) => {
         if (!course_ids) return null
+        
+        // Split course_ids into batches of 
+        const courseIdArray = course_ids.split(',').filter(id => id.trim());
+        const batchSize = 30;
+        const batches = [];
+        
+        for (let i = 0; i < courseIdArray.length; i += batchSize) {
+            batches.push(courseIdArray.slice(i, i + batchSize));
+        }
+        
         try {
-      
-          const res = await fetch(`/api/progress/courses/bulk/${course_ids}?${genQueryParamsForRequest()}`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json"
+            const allProgressData = [];
+            
+            // Process each batch sequentially to avoid overwhelming the server
+            for (const batch of batches) {
+                const batchCourseIds = batch.join(',');
+                const res = await fetch(`/api/progress/courses/bulk/${batchCourseIds}?${genQueryParamsForRequest()}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+                
+                if (!res.ok) {
+                    const error = await res.json();
+                    throw new Error(error.error || "Failed to fetch course progress");
+                }
+                
+                const batchData = await res.json();
+                if (batchData && batchData.success && batchData.data) {
+                    allProgressData.push(...batchData.data);
+                }
             }
-          });
-          if (!res.ok) {
-            const error = await res.json();
-            throw new Error(error.error || "Failed to update lesson state");
-          }
-          return await res.json();
+            
+            // Return the combined data in the same format as the original API
+            return {
+                success: true,
+                data: allProgressData
+            };
         } catch (err) {
-          console.error("Error saving lesson finish state:", err);
-          return null;
+            console.error("Error fetching course progress:", err);
+            return null;
         }
     }
 
@@ -125,7 +151,7 @@ const HomeContent = ({ }) => {
                 });
             }
         } catch (err) {
-            console.log('Error fetching progress:', err)
+            // Error fetching progress
         }
     }
 
@@ -143,7 +169,6 @@ const HomeContent = ({ }) => {
                 setItems([])
             }
         } catch (error) {
-            console.log(error)
             setItems([])
         } finally {
             setIsLoading(false);
@@ -156,7 +181,7 @@ const HomeContent = ({ }) => {
                 method: "POST"
             });
         } catch (error) {
-            console.log("Learning auth fail")
+            // Learning auth failed
         }
     }
 
@@ -186,7 +211,6 @@ const HomeContent = ({ }) => {
     const handlePathClick = (path) => {
         // Check if path is locked - don't navigate if locked
         if (path.state === "locked") {
-            console.log('Path is locked, navigation prevented:', path.name);
             return;
         }
 
@@ -300,16 +324,24 @@ const HomeContent = ({ }) => {
 
                                              {/* Progress Section - Only show for authenticated users */}
                                              {isAuthenticated && path.courses && path.courses.length > 0 && (
-                                                 <div className="flex items-center gap-2 mt-2">
-                                                     <p className="font-medium text-sm leading-[1.4] text-neutral-600">Progress</p>
+                                                 <div className="flex items-center gap-1 mt-2">
+                                                     <div className="flex items-center">
+                                                         <svg className="w-5 h-5 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                         </svg>
+                                                     </div>
                                                      <ProgressIndicator courses={path.courses} />
                                                  </div>
                                              )}
 
                                              {/* Show "Not Started" for unauthenticated users */}
                                              {!isAuthenticated && !authLoading && path.courses && path.courses.length > 0 && (
-                                                 <div className="flex items-center gap-2 mt-2">
-                                                     <p className="font-medium text-sm leading-[1.4] text-neutral-500">Not Started</p>
+                                                 <div className="flex items-center gap-1 mt-2">
+                                                     <div className="flex items-center">
+                                                         <svg className="w-5 h-5 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                         </svg>
+                                                     </div>
                                                      <ProgressIndicator courses={path.courses} />
                                                  </div>
                                              )}

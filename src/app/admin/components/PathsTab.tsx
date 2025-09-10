@@ -71,7 +71,6 @@ export default function PathsTab({ hasManageUsers }: PathsTabProps) {
       const result = await response.json();
       
       if (result.success) {
-        console.log(`Updated ${result.results.length} paths`);
         await fetchAllPaths();
         setSelectedPaths([]);
         setShowBulkActionModal(false);

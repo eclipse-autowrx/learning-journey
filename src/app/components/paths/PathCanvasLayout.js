@@ -189,21 +189,22 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
           // Render certificate item
           return (
              <div
+               key={`certificate-${item.certificate_id}`}
                className="absolute flex flex-col items-center cursor-pointer hover:shadow-xl transform transition-all origin-center z-20"
                style={{
                  top: item.y,
                  left: item.x,
                  width: "11vw",
                }}
-              onClick={() => {
-                if (pathCompleted) {
-                  setCurrentItem(item);
-                  setShowCert(true);
-                } else {
-                  // Removed toast notification for path page
-                }
-              }}
-            >
+               onClick={() => {
+                 if (pathCompleted) {
+                   setCurrentItem(item);
+                   setShowCert(true);
+                 } else {
+                   // Removed toast notification for path page
+                 }
+               }}
+             >
               <div className="relative p-2" style={{
                 width: "5.5vw",
                 height: "5.5vw",
@@ -230,6 +231,7 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
           // Render text_markdown item
           return (
              <div
+               key={`markdown-${item.id || item.x}-${item.y}`}
                className="absolute cursor-pointer transform transition-all origin-center z-20"
                style={{
                  top: item.y,
@@ -241,12 +243,12 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
                  maxWidth: item.width || '200px',
                  minHeight: item.height || 'auto',
                }}
-              onClick={() => {
-                // setCurrentItem(item);
-                // setShowMarkdownPopup(true);
-              }}
-              title="Markdown Node"
-            >
+               onClick={() => {
+                 // setCurrentItem(item);
+                 // setShowMarkdownPopup(true);
+               }}
+               title="Markdown Node"
+             >
               <div className="text-sm text-gray-800">
                 <MarkdownRender>
                   {item.markdown_content || 'Markdown content'}
@@ -258,21 +260,22 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
           // Render icon item
           return (
              <div
+               key={`icon-${item.id || item.x}-${item.y}`}
                className="absolute cursor-pointer transform transition-all origin-center z-20"
                style={{
                  top: item.y,
                  left: item.x,
                }}
-              onClick={() => {
-                if (item.link_url) {
-                  window.open(item.link_url, "_blank");
-                } else if (item.popup_markdown_content) {
-                  setCurrentItem(item);
-                  setShowMarkdownPopup(true);
-                }
-              }}
-              title={item.hover_content || 'Content'}
-            >
+               onClick={() => {
+                 if (item.link_url) {
+                   window.open(item.link_url, "_blank");
+                 } else if (item.popup_markdown_content) {
+                   setCurrentItem(item);
+                   setShowMarkdownPopup(true);
+                 }
+               }}
+               title={item.hover_content || 'Content'}
+             >
               <div
                 className="relative"
                 style={{

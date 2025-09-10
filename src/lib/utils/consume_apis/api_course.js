@@ -13,7 +13,6 @@ async function fetchCourseBySlug(slug, queryParams, origin) {
         const baseUrl = origin || (isServer
             ? (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000')
             : '');
-        console.log(`fetchCourseBySlug ${baseUrl}/api/courses/${slug}?${queryParams}`)
         const response = await fetch(`${baseUrl}/api/courses/${slug}?${queryParams}`)
         const data = await response.json();
         if (data && data.success) {
@@ -22,7 +21,6 @@ async function fetchCourseBySlug(slug, queryParams, origin) {
             throw ('Course not found')
         }
     } catch (error) {
-        console.log(error)
         return null
     }
 }

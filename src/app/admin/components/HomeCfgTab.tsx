@@ -97,7 +97,6 @@ export default function HomeCfgTab({ hasManageUsers }: HomeCfgTabProps) {
 
       if (response.ok) {
         setHasChanges(false);
-        console.log('Home config saved successfully');
       } else {
         const errorData = await response.json();
         console.error('Failed to save home config:', errorData.error);

@@ -39,7 +39,6 @@ async function fetchPathBySlug(slug, user_id, token, origin) {
             throw (data?.error || 'Path not found')
         }
     } catch (error) {
-        console.log(error)
         return null
     }
 }
