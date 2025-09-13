@@ -9,6 +9,18 @@ interface UserBadgeProps {
   variant?: 'default' | 'transparent';
 }
 
+const ExitLearningMode = ({ textStyle }: { textStyle: string }) => {
+  const inIframe = window.self !== window.top;
+  if (!inIframe) {
+    return null;
+  }
+  return (
+    <div className={`${textStyle} cursor-pointer text-sm font-medium`}>
+      <button className='cursor-pointer' onClick={() => window.parent.postMessage('exit_iframe', '*')}>Exit Learning Mode</button>
+    </div>
+  );
+};
+
 export default function UserBadge({ align = 'right', variant = 'default' }: UserBadgeProps) {
   const { isAuthenticated, userName, userId, loading, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -18,6 +30,8 @@ export default function UserBadge({ align = 'right', variant = 'default' }: User
   const subText = variant === 'transparent' ? 'text-white/80' : 'text-neutral-500';
   const iconColor = variant === 'transparent' ? 'text-white/90' : 'text-neutral-500';
   const containerAlign = align === 'right' ? 'ml-auto' : '';
+
+  const textStyle = variant === 'transparent' ? 'text-white hover:text-white/50 cursor-pointer' : 'text-neutral-700 bg-white border border-neutral-300 hover:bg-neutral-50 hover:border-neutral-400';
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -49,27 +63,26 @@ export default function UserBadge({ align = 'right', variant = 'default' }: User
 
   if (!isAuthenticated) {
     return (
-      <div className={`${containerAlign}`}>
+      <div className={`${containerAlign} gap-4`}>
+        <ExitLearningMode textStyle={textStyle}/>
         <button
           onClick={() => {
             // You can customize this to redirect to your login page or open a login modal
             window.location.href = '/login'; // or handle login logic here
           }}
-          className={`flex items-center gap-2 px-2 text-sm font-medium rounded-md transition-colors ${
-            variant === 'transparent' 
-              ? 'text-white hover:text-white/50 cursor-pointer' 
-              : 'text-neutral-700 bg-white border border-neutral-300 hover:bg-neutral-50 hover:border-neutral-400'
-          }`}
+          className={`flex items-center gap-2 px-2 text-sm font-medium rounded-md transition-colors ${textStyle}`}
         >
           Sign In
         </button>
+        
       </div>
     );
   }
 
-  return (
-    <div className={`relative ${containerAlign}`} ref={dropdownRef}>
-      <div 
+  return <div className={`relative ${containerAlign} flex items-center gap-4`}>
+    <ExitLearningMode textStyle={textStyle}/>
+    <div  ref={dropdownRef}>
+      <div
         className={`flex items-center gap-2 text-sm ${baseText} cursor-pointer hover:opacity-80 transition-opacity`}
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
       >
@@ -89,5 +102,5 @@ export default function UserBadge({ align = 'right', variant = 'default' }: User
         </div>
       )}
     </div>
-  );
+  </div>
 }
