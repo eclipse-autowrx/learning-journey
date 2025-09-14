@@ -285,7 +285,7 @@ const HomeContent = ({ }) => {
                                 </p>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                                 {collection.paths?.map((path, pathIndex) => (
                                     <div 
                                         key={pathIndex} 
