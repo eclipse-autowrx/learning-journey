@@ -99,7 +99,16 @@ export default function PathDetailPage() {
   const [path, setPath] = useState<Path | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'info' | 'courses' | 'canvas'>('info');
+  // Initialize activeTab from URL params
+  const getInitialTab = (): 'info' | 'courses' | 'canvas' => {
+    const tab = searchParams?.get('tab');
+    if (tab === 'courses' || tab === 'canvas') {
+      return tab;
+    }
+    return 'info';
+  };
+  
+  const [activeTab, setActiveTab] = useState<'info' | 'courses' | 'canvas'>(getInitialTab);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   
   // Edit mode states
@@ -248,6 +257,28 @@ export default function PathDetailPage() {
       fetchPathData();
     }
   }, [isAuthenticated, pathSlug]);
+
+  // Handle URL parameter changes
+  useEffect(() => {
+    const tab = searchParams?.get('tab');
+    if (tab === 'courses' || tab === 'canvas') {
+      setActiveTab(tab);
+    } else {
+      setActiveTab('info');
+    }
+  }, [searchParams]);
+
+  // Handle tab change with URL update
+  const handleTabChange = (tab: 'info' | 'courses' | 'canvas') => {
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    if (tab === 'info') {
+      url.searchParams.delete('tab');
+    } else {
+      url.searchParams.set('tab', tab);
+    }
+    window.history.pushState({}, '', url.toString());
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -816,7 +847,7 @@ export default function PathDetailPage() {
           <div className="border-b border-neutral-200">
             <nav className="-mb-px flex space-x-8 px-6">
               <button
-                onClick={() => setActiveTab('info')}
+                onClick={() => handleTabChange('info')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'info'
                     ? 'border-primary-500 text-primary-600'
@@ -827,7 +858,7 @@ export default function PathDetailPage() {
                 Path Information
               </button>
               <button
-                onClick={() => setActiveTab('courses')}
+                onClick={() => handleTabChange('courses')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'courses'
                     ? 'border-primary-500 text-primary-600'
@@ -838,7 +869,7 @@ export default function PathDetailPage() {
                 Courses ({courses.length})
               </button>
               <button
-                onClick={() => setActiveTab('canvas')}
+                onClick={() => handleTabChange('canvas')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'canvas'
                     ? 'border-primary-500 text-primary-600'
