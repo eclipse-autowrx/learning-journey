@@ -157,7 +157,7 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
           return (
              <div
                key={`course-${item.course_id}`}
-               className={`absolute flex flex-col items-center cursor-pointer hover:shadow-xl transform transition-all origin-center z-20
+               className={`absolute flex flex-col items-center cursor-pointer hover:shadow-xl transform transition-all origin-center z-40
                  ${["locked"].includes(item.course?.state) && "opacity-50"}
                  ${["locked-highlight"].includes(item.course?.state) && "opacity-70"}
                  `}
@@ -206,10 +206,10 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
               }}>
                 <img
                   src={item.course?.icon}
-                  className="absolute h-full w-full top-0 left-0 z-0 object-contain"
+                  className="absolute h-full w-full top-0 left-0 z-40 object-contain"
                 />
                 {item.course?.top_icon && <img src={item.course?.top_icon}
-                  className="absolute top-[32%] left-[35%] z-10 w-[30%] h-[30%]" />}
+                  className="absolute top-[32%] left-[35%] z-50 w-[30%] h-[30%]" />}
               </div>
 
               <div
@@ -227,7 +227,7 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
           return (
              <div
                key={`certificate-${item.certificate_id}`}
-               className="absolute flex flex-col items-center cursor-pointer hover:shadow-xl transform transition-all origin-center z-20"
+               className="absolute flex flex-col items-center cursor-pointer hover:shadow-xl transform transition-all origin-center z-50"
                style={{
                  top: item.y,
                  left: item.x,
@@ -262,16 +262,20 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
           return (
              <div
                key={`markdown-${item.id || item.x}-${item.y}`}
-               className="absolute cursor-pointer transform transition-all origin-center z-20"
+               className="absolute cursor-pointer transform transition-all origin-center z-10"
                style={{
                  top: item.y,
                  left: item.x,
                  backgroundColor: item.background_color || 'transparent',
-                 padding: '8px',
+                 padding: '0px 8px',
                  borderRadius: '4px',
                  width: item.width || '200px',
                  maxWidth: item.width || '200px',
                  minHeight: item.height || 'auto',
+                 border: item.border_style === 'none' ? 'none' : 
+                         item.border_style === 'solid' ? '2px solid #6b728066' :
+                         item.border_style === 'dash' ? '2px dashed #6b728066' :
+                         item.border_style === 'dot' ? '2px dotted #6b728066' : 'none',
                }}
                onClick={() => {
                  // setCurrentItem(item);
@@ -291,7 +295,7 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
           return (
              <div
                key={`icon-${item.id || item.x}-${item.y}`}
-               className="absolute cursor-pointer transform transition-all origin-center z-20"
+               className="absolute cursor-pointer transform transition-all origin-center z-[100]"
                style={{
                  top: item.y,
                  left: item.x,

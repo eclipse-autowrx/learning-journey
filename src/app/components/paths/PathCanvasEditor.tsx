@@ -30,6 +30,7 @@ interface MapItem {
   // For text_markdown nodes
   markdown_content?: string;
   background_color?: string;
+  border_style?: string; // Border style: 'none', 'solid', 'dash', 'dot'
   // For icon nodes
   width?: string;
   height?: string;
@@ -62,6 +63,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
   const [showIconForm, setShowIconForm] = useState(false);
   const [markdownContent, setMarkdownContent] = useState('# New Markdown\n\nAdd your content here.');
   const [markdownBackground, setMarkdownBackground] = useState('transparent');
+  const [markdownBorderStyle, setMarkdownBorderStyle] = useState('none');
   const [markdownWidth, setMarkdownWidth] = useState('200px');
   const [markdownHeight, setMarkdownHeight] = useState('auto');
   const [editingMarkdownNode, setEditingMarkdownNode] = useState<MapItem | null>(null);
@@ -237,6 +239,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
           y: `${y}%`,
           markdown_content: existingNode.markdown_content || '# New Markdown\n\nAdd your content here.',
           background_color: existingNode.background_color || 'transparent',
+          border_style: existingNode.border_style || 'none',
           width: existingNode.width || '200px',
           height: existingNode.height || 'auto',
         };
@@ -311,6 +314,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
     setEditingMarkdownNode(item);
     setMarkdownContent(item.markdown_content || '# New Markdown\n\nAdd your content here.');
     setMarkdownBackground(item.background_color || 'transparent');
+    setMarkdownBorderStyle(item.border_style || 'none');
     setMarkdownWidth(item.width || '200px');
     setMarkdownHeight(item.height || 'auto');
     setShowMarkdownForm(true);
@@ -419,7 +423,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
 
       <div className="w-full bg-gray-50 rounded-lg px-4 py-1">
         <div className="flex items-center gap-2 overflow-x-auto overflow-y-hidden h-[124px]">
-          
+
 
           {/* Available Courses */}
           <div className='grow px-2 flex items-center gap-1 overflow-x-auto overflow-y-hidden bg-secondary-50'>
@@ -463,11 +467,11 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
 
           {/* Certificate Item */}
           {!isCertificatePlaced && (
-             <div
-               draggable
-               onDragStart={(e) => e.dataTransfer.setData('certificateId', 'certificate')}
-               onDragEnd={handleDragEnd}
-               className="flex flex-col items-center cursor-pointer flex-shrink-0 w-fit px-2"
+            <div
+              draggable
+              onDragStart={(e) => e.dataTransfer.setData('certificateId', 'certificate')}
+              onDragEnd={handleDragEnd}
+              className="flex flex-col items-center cursor-pointer flex-shrink-0 w-fit px-2"
             >
               <div className="relative" style={{
                 width: "48px",
@@ -527,184 +531,192 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
           >
             <div className="absolute inset-0 bg-white opacity-50 z-0"></div>
             {maps.map((item) => {
-            if (item.course_id) {
-              // Render course item
-              const course = path.courses.find(c => c._id === item.course_id);
-               return (
+              if (item.course_id) {
+                // Render course item
+                const course = path.courses.find(c => c._id === item.course_id);
+                return (
                   <div
                     key={`course-${item.course_id}`}
                     draggable
                     onDragStart={(e) => handleDragStart(e, item)}
                     onDragEnd={handleDragEnd}
-                    className="absolute flex flex-col items-center cursor-pointer group hover:shadow-xl transform transition-all origin-center z-20"
-                   style={{
-                     top: item.y,
-                     left: item.x,
-                     width: "11vw",
-                   }}
-                >
-                  <div className="relative" style={{
-                    width: "5.5vw",
-                    height: "5.5vw",
-                  }}>
-                    <img
-                      src="/imgs/bare/course-notyet.png"
-                      className="absolute h-full w-full top-0 left-0 z-0 object-contain"
-                    />
-                    <button
-                      onClick={() => handleRemove(item.course_id!, false)}
-                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                      aria-label="Remove course"
-                    >
-                      <FaTrash size={12} />
-                    </button>
-                  </div>
-
-                  <div
-                    className="mt-0 text-slate-700 text-[clamp(11px,0.8vw,16px)] leading-[1.05] font-semibold text-center"
+                    className="absolute flex flex-col items-center cursor-pointer group hover:shadow-xl 
+                    transform transition-all origin-center z-40"
                     style={{
-                      maxWidth: "11vw",
+                      top: item.y,
+                      left: item.x,
+                      width: "11vw",
                     }}
                   >
-                    {course?.name || 'Unknown Course'}
+                    <div className="relative" style={{
+                      width: "5.5vw",
+                      height: "5.5vw",
+                    }}>
+                      <img
+                        src="/imgs/bare/course-notyet.png"
+                        className="absolute h-full w-full top-0 left-0 z-0 object-contain"
+                      />
+                      <button
+                        onClick={() => handleRemove(item.course_id!, false)}
+                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                        aria-label="Remove course"
+                      >
+                        <FaTrash size={12} />
+                      </button>
+                    </div>
+
+                    <div
+                      className="mt-0 text-slate-700 text-[clamp(11px,0.8vw,16px)] leading-[1.05] font-semibold text-center"
+                      style={{
+                        maxWidth: "11vw",
+                      }}
+                    >
+                      {course?.name || 'Unknown Course'}
+                    </div>
                   </div>
-                </div>
-              );
-            } else if (item.certificate_id) {
-              // Render certificate item
-               return (
+                );
+              } else if (item.certificate_id) {
+                // Render certificate item
+                return (
                   <div
                     key={`certificate-${item.certificate_id}`}
                     draggable
                     onDragStart={(e) => handleDragStart(e, item)}
                     onDragEnd={handleDragEnd}
-                    className="absolute flex flex-col items-center cursor-pointer group hover:shadow-xl transform transition-all origin-center z-20"
-                   style={{
-                     top: item.y,
-                     left: item.x,
-                     width: "11vw",
-                   }}
-                >
-                  <div className="relative p-2" style={{
-                    width: "5.5vw",
-                    height: "5.5vw",
-                  }}>
-                    <div className="h-full w-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                      <FaGraduationCap className="text-white text-3xl" />
-                    </div>
-                    <button
-                      onClick={() => handleRemove(item.certificate_id!, true)}
-                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                      aria-label="Remove certificate"
-                    >
-                      <FaTrash size={12} />
-                    </button>
-                  </div>
-
-                  <div
-                    className="mt-0 text-slate-700 text-[clamp(11px,0.8vw,16px)] font-semibold text-center leading-none"
+                    className="absolute flex flex-col items-center cursor-pointer group hover:shadow-xl 
+                    transform transition-all origin-center z-40"
                     style={{
-                      maxWidth: "11vw",
+                      top: item.y,
+                      left: item.x,
+                      width: "11vw",
                     }}
                   >
-                    Certificate
+                    <div className="relative p-2" style={{
+                      width: "5.5vw",
+                      height: "5.5vw",
+                    }}>
+                      <div className="h-full w-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                        <FaGraduationCap className="text-white text-3xl" />
+                      </div>
+                      <button
+                        onClick={() => handleRemove(item.certificate_id!, true)}
+                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                        aria-label="Remove certificate"
+                      >
+                        <FaTrash size={12} />
+                      </button>
+                    </div>
+
+                    <div
+                      className="mt-0 text-slate-700 text-[clamp(11px,0.8vw,16px)] font-semibold text-center leading-none"
+                      style={{
+                        maxWidth: "11vw",
+                      }}
+                    >
+                      Certificate
+                    </div>
                   </div>
-                </div>
-              );
-            } else if (item.type === 'text_markdown') {
-              // Render text_markdown item
-              return (
-                   <div
-                     key={`markdown-${item.x}-${item.y}`}
-                     draggable
-                     onDragStart={(e) => handleDragStart(e, item)}
-                     onDragEnd={handleDragEnd}
-                     onClick={(e) => {
-                       e.stopPropagation();
-                       handleEditMarkdown(item);
-                     }}
-                     className="absolute cursor-pointer group hover:shadow-xl hover:ring-2 hover:ring-blue-400 hover:ring-opacity-50 transform transition-all origin-center z-20"
+                );
+              } else if (item.type === 'text_markdown') {
+                // Render text_markdown item
+                return (
+                  <div
+                    key={`markdown-${item.x}-${item.y}`}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, item)}
+                    onDragEnd={handleDragEnd}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditMarkdown(item);
+                    }}
+                    className="absolute cursor-pointer group hover:shadow-xl hover:ring-2 hover:ring-blue-400 
+                      hover:ring-opacity-50 transform transition-all origin-center z-10"
                     style={{
                       top: item.y,
                       left: item.x,
                       backgroundColor: item.background_color || 'transparent',
-                      padding: '8px',
-                      borderRadius: '4px',
+                      padding: '0px 8px',
+                      borderRadius: '8px',
                       width: item.width || '200px',
                       maxWidth: item.width || '200px',
                       minHeight: item.height || 'auto',
+                      border: item.border_style === 'none' ? 'none' : 
+                              item.border_style === 'solid' ? '2px solid #6b728066' :
+                              item.border_style === 'dash' ? '2px dashed #6b728066' :
+                              item.border_style === 'dot' ? '2px dotted #6b728066' : 'none',
                     }}
-                   title="Markdown Node"
-                 >
-                  <div className="text-sm text-gray-800">
-                    <MarkdownRender>
-                      {item.markdown_content || 'Markdown content'}
-                    </MarkdownRender>
-                  </div>
-                  <button
-                    onClick={() => handleRemoveMarkdown(item)}
-                    className="absolute top-[-20px] right-0 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                    aria-label="Remove markdown node"
+                    title="Markdown Node"
                   >
-                    <FaTrash size={12} />
-                  </button>
-                </div>
-              );
-            } else if (item.type === 'icon') {
-              // Render icon item
-              return (
-                   <div
-                     key={`icon-${item.x}-${item.y}`}
-                     draggable
-                     onDragStart={(e) => handleDragStart(e, item)}
-                     onDragEnd={handleDragEnd}
-                     className="absolute cursor-pointer group hover:shadow-xl transform transition-all origin-center z-20"
-                     style={{
-                       top: item.y,
-                       left: item.x,
-                     }}
-                    title={item.hover_content || 'Icon Node'}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditIcon(item);
-                      
-                    }}
-                  >
-                  <div
-                    className="relative"
-                    style={{
-                      width: item.width || '40px',
-                      height: item.height || '40px',
-                    }}
-                  >
-                    {item.icon_url ? (
-                      <img
-                        src={item.icon_url}
-                        alt={item.hover_content || 'Icon'}
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-300 rounded flex items-center justify-center text-gray-600 text-xs">
-                        Icon
-                      </div>
-                    )}
+                    <div className="text-sm text-gray-800">
+                      <MarkdownRender>
+                        {item.markdown_content || 'Markdown content'}
+                      </MarkdownRender>
+                    </div>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveIcon(item);
-                      }}
+                      onClick={() => handleRemoveMarkdown(item)}
                       className="absolute top-[-20px] right-0 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                      aria-label="Remove icon node"
+                      aria-label="Remove markdown node"
                     >
                       <FaTrash size={12} />
                     </button>
                   </div>
-                </div>
-              );
-            }
-            return null;
-          })}
-        </div>
+                );
+              } else if (item.type === 'icon') {
+                // Render icon item
+                return (
+                  <div
+                    key={`icon-${item.x}-${item.y}`}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, item)}
+                    onDragEnd={handleDragEnd}
+                    className="absolute cursor-pointer group hover:shadow-xl transform transition-all origin-center z-40"
+                    style={{
+                      top: item.y,
+                      left: item.x,
+                    }}
+                    title={item.hover_content || 'Icon Node'}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditIcon(item);
+
+                    }}
+                  >
+                    <div
+                      className="relative"
+                      style={{
+                        width: item.width || '40px',
+                        height: item.height || '40px',
+                      }}
+                    >
+                      {item.icon_url ? (
+                        <img
+                          src={item.icon_url}
+                          alt={item.hover_content || 'Icon'}
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-300 rounded flex items-center justify-center text-gray-600 text-xs">
+                          Icon
+                        </div>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveIcon(item);
+                        }}
+                        className="absolute top-[-20px] right-0 bg-red-500 text-white rounded-full p-1 
+                          opacity-0 group-hover:opacity-100 transition-opacity z-40"
+                        aria-label="Remove icon node"
+                      >
+                        <FaTrash size={12} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })}
+          </div>
         ) : (
           <div className="relative w-full h-[560px] rounded-sm border-2 border-gray-300 bg-gray-50">
             <div className="p-4 h-full flex flex-col">
@@ -759,11 +771,11 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
 
       {/* Markdown Node Form */}
       {showMarkdownForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-100">
           <div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4">
             <h3 className="text-lg font-semibold mb-4">{editingMarkdownNode ? 'Edit Markdown Node' : 'Add Markdown Node'}</h3>
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-4 gap-2">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Width
@@ -804,6 +816,21 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
                     <option value="#fef3c7">Light Yellow</option>
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Border Style
+                  </label>
+                  <select
+                    value={markdownBorderStyle}
+                    onChange={(e) => setMarkdownBorderStyle(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="none">None</option>
+                    <option value="solid">Solid</option>
+                    <option value="dash">Dash</option>
+                    <option value="dot">Dot</option>
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -825,6 +852,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
                   setEditingMarkdownNode(null);
                   setMarkdownContent('# New Markdown\n\nAdd your content here.');
                   setMarkdownBackground('transparent');
+                  setMarkdownBorderStyle('none');
                   setMarkdownWidth('200px');
                   setMarkdownHeight('auto');
                 }}
@@ -840,6 +868,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
                       ...editingMarkdownNode,
                       markdown_content: markdownContent,
                       background_color: markdownBackground,
+                      border_style: markdownBorderStyle,
                       width: markdownWidth,
                       height: markdownHeight,
                     };
@@ -855,6 +884,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
                       y: '50%',
                       markdown_content: markdownContent,
                       background_color: markdownBackground,
+                      border_style: markdownBorderStyle,
                       width: markdownWidth,
                       height: markdownHeight,
                     };
@@ -866,6 +896,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
                   setEditingMarkdownNode(null);
                   setMarkdownContent('# New Markdown\n\nAdd your content here.');
                   setMarkdownBackground('transparent');
+                  setMarkdownBorderStyle('none');
                   setMarkdownWidth('200px');
                   setMarkdownHeight('auto');
                 }}
@@ -880,7 +911,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
 
       {/* Icon Node Form */}
       {showIconForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-100">
           <div className="bg-white p-4 rounded-lg w-[600px] max-w-[600px] mx-4 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold mb-3">{editingMarkdownNode ? 'Edit Icon Node' : 'Add Icon Node'}</h3>
             <div className="space-y-3">
