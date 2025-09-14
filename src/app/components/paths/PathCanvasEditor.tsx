@@ -44,15 +44,17 @@ interface Path {
   background_img?: string;
   maps: MapItem[];
   courses: Course[];
+  configs?: any;
 }
 
 interface PathCanvasEditorProps {
   path: Path;
   onSave: (maps: MapItem[]) => void;
   onBackgroundImageUpdate: (url: string) => void;
+  onCanvasRatioUpdate?: (ratio: string) => void;
 }
 
-const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasEditorProps) => {
+const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate, onCanvasRatioUpdate }: PathCanvasEditorProps) => {
   const [maps, setMaps] = useState<MapItem[]>(path.maps || []);
   const [isJsonMode, setIsJsonMode] = useState(false);
   const [jsonContent, setJsonContent] = useState('');
@@ -75,6 +77,35 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
   const [iconPopupMarkdown, setIconPopupMarkdown] = useState('');
   const [actionType, setActionType] = useState<'link' | 'popup' | ''>('');
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number } | null>(null);
+  const [canvasRatio, setCanvasRatio] = useState<string>(path.configs?.canvas_ratio || '16:9');
+
+  // Canvas ratio options
+  const canvasRatioOptions = [
+    { value: '2:3', label: '2:3 (Portrait)' },
+    { value: '3:4', label: '3:4 (Portrait)' },
+    { value: '1:1', label: '1:1 (Square)' },
+    { value: '4:3', label: '4:3 (Landscape)' },
+    { value: '3:2', label: '3:2 (Landscape)' },
+    { value: '16:9', label: '16:9 (Widescreen)' },
+    { value: '32:9', label: '32:9 (Ultrawide)' },
+    { value: '2.35:1', label: '2.35:1 (Cinema)' },
+    { value: '3:1', label: '3:1 (Ultra Wide)' },
+  ];
+
+  // Calculate aspect ratio padding for responsive container
+  const getAspectRatioPadding = (ratio: string) => {
+    const [width, height] = ratio.split(':').map(Number);
+    const aspectRatio = (height / width) * 100;
+    return `${aspectRatio}%`;
+  };
+
+  // Handle canvas ratio change
+  const handleCanvasRatioChange = (ratio: string) => {
+    setCanvasRatio(ratio);
+    if (onCanvasRatioUpdate) {
+      onCanvasRatioUpdate(ratio);
+    }
+  };
 
   // JSON Editor functions
   const switchToJsonMode = () => {
@@ -377,6 +408,22 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
       <div className="px-2 flex justify-between items-center">
         <div className="text-lg font-semibold">Available Courses</div>
         <div className="flex items-center gap-2">
+          {/* Canvas Ratio Selector */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-neutral-700">Canvas Ratio:</label>
+            <select
+              value={canvasRatio}
+              onChange={(e) => handleCanvasRatioChange(e.target.value)}
+              className="px-3 py-2 border border-neutral-300 rounded-md text-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            >
+              {canvasRatioOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          
           <input
             type="file"
             ref={fileInputRef}
@@ -522,13 +569,19 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
             ref={canvasRef}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            className="relative w-full h-[560px] rounded-sm border-2 border-dashed border-gray-300"
+            className="relative w-full rounded-sm border-2 border-dashed border-gray-300"
             style={{
-              backgroundImage: `url(${path.background_img})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              position: 'relative',
+              width: '100%',
+              paddingBottom: getAspectRatioPadding(canvasRatio)
             }}
           >
+            <div className="absolute inset-0"
+              style={{
+                backgroundImage: `url(${path.background_img})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}>
             <div className="absolute inset-0 bg-white opacity-50 z-0"></div>
             {maps.map((item) => {
               if (item.course_id) {
@@ -716,6 +769,7 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
               }
               return null;
             })}
+            </div>
           </div>
         ) : (
           <div className="relative w-full h-[560px] rounded-sm border-2 border-gray-300 bg-gray-50">

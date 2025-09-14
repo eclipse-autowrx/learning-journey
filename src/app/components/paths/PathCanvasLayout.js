@@ -64,6 +64,13 @@ const isPathCompleted = (path, maps) => {
 
 
 const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
+  // Calculate aspect ratio padding for responsive container
+  const getAspectRatioPadding = (ratio) => {
+    if (!ratio) ratio = '16:9'; // Default to 16:9 if no ratio specified
+    const [width, height] = ratio.split(':').map(Number);
+    const aspectRatio = (height / width) * 100;
+    return `${aspectRatio}%`;
+  };
   const router = useRouter();
   const [showCert, setShowCert] = useState(false)
   const [popupExternalLaunch, setPopupExternalLaunch] = useState(false)
@@ -80,12 +87,18 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
   };
 
   return <div className="px-2 lg:px-4">
-    <div className="relative w-full h-[560px] rounded-sm border-2 border-neutral-200"
+    <div className="relative w-full rounded-sm border-2 border-neutral-200"
       style={{
-        backgroundImage: `url(${path.background_img})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center"
+        position: 'relative',
+        width: '100%',
+        paddingBottom: getAspectRatioPadding(path.configs?.canvas_ratio)
       }}>
+      <div className="absolute inset-0"
+        style={{
+          backgroundImage: `url(${path.background_img})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center"
+        }}>
 
       <div className="z-0 w-full h-full left-0 top-0 opacity-50 bg-white"></div>
 
@@ -334,6 +347,7 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
         }
         return null;
       })}
+      </div>
     </div>
   </div>
 }

@@ -184,37 +184,6 @@ export default function PathDetailPage() {
     }
   };
 
-  const handleCanvasRatioUpdate = async (ratio: string) => {
-    try {
-      // Preserve all existing configs and only update canvas_ratio
-      const updatedConfigs = {
-        ...path?.configs,
-        canvas_ratio: ratio
-      };
-
-      const response = await fetch(`/api/creator/paths/${pathSlug}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          configs: updatedConfigs
-        }),
-      });
-
-      if (response.ok) {
-        showToast.success('Canvas ratio updated successfully');
-        fetchPathData();
-      } else {
-        const error = await response.json();
-        showToast.error(`Error: ${error.error || 'Failed to update canvas ratio'}`);
-      }
-    } catch (error) {
-      console.error('Error updating canvas ratio:', error);
-      showToast.error('Failed to update canvas ratio');
-    }
-  };
-
   const fetchPathData = async () => {
     try {
       const pathRes = await fetch(`/api/creator/paths/${pathSlug}`);
@@ -802,7 +771,6 @@ export default function PathDetailPage() {
                     path={path}
                     onSave={handleSaveCanvas}
                     onBackgroundImageUpdate={handleBackgroundImageUpdate}
-                    onCanvasRatioUpdate={handleCanvasRatioUpdate}
                   />
                 )}
               </div>
