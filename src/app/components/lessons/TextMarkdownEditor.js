@@ -14,6 +14,8 @@ import { showToast } from '@/lib/utils/notifications';
 const TextMarkdownEditor = ({ value, onChange }) => {
   const [markdown, setMarkdown] = useState('');
   const [isLocalizing, setIsLocalizing] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [editorRef, setEditorRef] = useState(null);
 
   useEffect(() => {
     setMarkdown(value?.markdown_content || '');
@@ -103,6 +105,63 @@ const TextMarkdownEditor = ({ value, onChange }) => {
     event.target.value = '';
   };
 
+  const handleUploadImage = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      showToast.error('Please select a valid image file.');
+      event.target.value = '';
+      return;
+    }
+
+    setIsUploadingImage(true);
+    showToast.info('Uploading image...');
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/medias/upload_image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+
+      const { url } = await response.json();
+      
+      // Get cursor position from Monaco editor
+      let insertPosition = markdown.length;
+      if (editorRef) {
+        const position = editorRef.getPosition();
+        if (position) {
+          insertPosition = editorRef.getModel().getOffsetAt(position);
+        }
+      }
+
+      // Create markdown image syntax
+      const imageMarkdown = `![${file.name}](${url})`;
+      
+      // Insert image at cursor position or at the end
+      const beforeCursor = markdown.substring(0, insertPosition);
+      const afterCursor = markdown.substring(insertPosition);
+      const newMarkdown = beforeCursor + imageMarkdown + (afterCursor ? '\n' + afterCursor : '');
+      
+      update(newMarkdown);
+      showToast.success('Image uploaded and inserted successfully.');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      showToast.error('An error occurred while uploading the image.');
+    } finally {
+      setIsUploadingImage(false);
+      event.target.value = '';
+    }
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
@@ -125,6 +184,17 @@ const TextMarkdownEditor = ({ value, onChange }) => {
               className="hidden"
             />
           </label>
+          <label className="inline-flex items-center px-4 py-1 border border-neutral-500 rounded-md cursor-pointer text-sm
+              font-medium text-neutral-700 bg-white hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed">
+            {isUploadingImage ? 'Uploading...' : 'Upload Image'}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleUploadImage}
+              disabled={isUploadingImage}
+              className="hidden"
+            />
+          </label>
           <button
             onClick={handleLocalizeImages}
             disabled={isLocalizing}
@@ -141,6 +211,7 @@ const TextMarkdownEditor = ({ value, onChange }) => {
           language="markdown"
           value={markdown}
           onChange={(value) => update(value || '')}
+          onMount={(editor) => setEditorRef(editor)}
           options={{
             minimap: { enabled: false },
             scrollBeyondLastLine: false,

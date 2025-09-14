@@ -158,7 +158,7 @@ const components = {
     // Images
     img: ({ node, ...props }) => (
         <img 
-            className="max-w-full h-auto mx-auto my-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow" 
+            className="max-w-full h-auto mx-auto my-4 rounded-lg cursor-pointer transition-shadow" 
             onClick={(e) => {
                 const fullscreenDiv = document.createElement('div');
                 fullscreenDiv.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
