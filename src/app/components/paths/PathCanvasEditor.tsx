@@ -382,7 +382,8 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center px-4 py-2 border border-neutral-300 rounded-md shadow-sm text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50"
+            className="inline-flex items-center px-4 py-2 border border-neutral-500 rounded-md cursor-pointer text-sm
+              font-medium text-neutral-700 bg-white hover:bg-neutral-50"
           >
             <FaImage className="mr-2 h-4 w-4" />
             Change Background
@@ -390,7 +391,8 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
           {!isJsonMode ? (
             <button
               onClick={switchToJsonMode}
-              className="inline-flex items-center px-4 py-2 border border-neutral-300 rounded-md shadow-sm text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50"
+              className="inline-flex items-center px-4 py-2 border border-neutral-500 rounded-md cursor-pointer text-sm
+              font-medium text-neutral-700 bg-white hover:bg-neutral-50"
             >
               <FaCode className="mr-2 h-4 w-4" />
               JSON Editor
@@ -406,7 +408,8 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
           )}
           <button
             onClick={() => onSave(maps)}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md cursor-pointer
+               text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
           >
             <FaSave className="mr-2 h-4 w-4" />
             Save Canvas
@@ -415,77 +418,75 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
       </div>
 
       <div className="w-full bg-gray-50 rounded-lg px-4 py-1">
-        <div className="flex gap-2 overflow-x-auto overflow-y-hidden h-[110px]">
+        <div className="flex items-center gap-2 overflow-x-auto overflow-y-hidden h-[124px]">
+          
+
+          {/* Available Courses */}
+          <div className='grow px-2 flex items-center gap-1 overflow-x-auto overflow-y-hidden bg-secondary-50'>
+            {path.courses.length === 0 ? (
+              <div className="w-full flex items-center justify-center">
+                <p className="text-gray-500 text-sm italic">There are no courses in this path. You can add them in the 'Courses' tab.</p>
+              </div>
+            ) : availableCourses.length === 0 ? (
+              <div className="w-full flex items-center justify-center">
+                <p className="text-gray-500 text-sm italic">All courses have been placed on the canvas.</p>
+              </div>
+            ) : (
+              availableCourses.map((course) => (
+                <div
+                  key={course._id}
+                  draggable
+                  onDragStart={(e) => e.dataTransfer.setData('courseId', course._id)}
+                  onDragEnd={handleDragEnd}
+                  className="flex flex-col items-center cursor-pointer flex-shrink-0 "
+                  style={{ width: "140px" }}
+                >
+                  <div className="relative" style={{
+                    width: "72px",
+                    height: "72px",
+                  }}>
+                    <img
+                      src="/imgs/bare/course-notyet.png"
+                      className="h-full w-full object-contain"
+                    />
+                  </div>
+                  <div
+                    className="mt-0 text-slate-700 text-[12px] w-full h-[44px] over-y-hidden font-semibold text-center leading-tight"
+                    title={course.name}
+                  >
+                    {course.name}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
           {/* Certificate Item */}
           {!isCertificatePlaced && (
              <div
                draggable
                onDragStart={(e) => e.dataTransfer.setData('certificateId', 'certificate')}
                onDragEnd={handleDragEnd}
-               className="flex flex-col items-center cursor-pointer flex-shrink-0"
-              style={{ width: "11vw" }}
+               className="flex flex-col items-center cursor-pointer flex-shrink-0 w-fit px-2"
             >
               <div className="relative" style={{
-                width: "5vw",
-                height: "5vw",
+                width: "48px",
+                height: "48px",
               }}>
                 <div className="h-full w-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
                   <FaGraduationCap className="text-white text-2xl" />
                 </div>
               </div>
               <div
-                className="mt-0 text-slate-700 text-[12px] font-semibold text-center leading-none"
-                style={{
-                  maxWidth: "11vw",
-                }}
+                className="mt-0 text-slate-700 text-[12px] font-semibold text-center leading-tight w-full h-fit over-y-hidden"
               >
                 Certificate
               </div>
             </div>
           )}
 
-          {/* Available Courses */}
-          {path.courses.length === 0 ? (
-            <div className="w-full flex items-center justify-center">
-              <p className="text-gray-500 text-sm italic">There are no courses in this path. You can add them in the 'Courses' tab.</p>
-            </div>
-          ) : availableCourses.length === 0 ? (
-            <div className="w-full flex items-center justify-center">
-              <p className="text-gray-500 text-sm italic">All courses have been placed on the canvas.</p>
-            </div>
-          ) : (
-            availableCourses.map((course) => (
-               <div
-                 key={course._id}
-                 draggable
-                 onDragStart={(e) => e.dataTransfer.setData('courseId', course._id)}
-                 onDragEnd={handleDragEnd}
-                 className="flex flex-col items-center cursor-pointer flex-shrink-0"
-                style={{ width: "11vw" }}
-              >
-                <div className="relative" style={{
-                  width: "5vw",
-                  height: "5vw",
-                }}>
-                  <img
-                    src="/imgs/bare/course-notyet.png"
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-                <div
-                  className="mt-0 text-slate-700 text-[12px] font-semibold text-center leading-none"
-                  style={{
-                    maxWidth: "11vw",
-                  }}
-                >
-                  {course.name}
-                </div>
-              </div>
-            ))
-          )}
-
           {/* Add New Node Buttons */}
-          <div className="flex gap-2 mt-4 border-t pt-4">
+          <div className="flex gap-2 py-2">
             <button
               onClick={() => {
                 setEditingMarkdownNode(null);
@@ -493,16 +494,16 @@ const PathCanvasEditor = ({ path, onSave, onBackgroundImageUpdate }: PathCanvasE
               }}
               className="flex flex-col justify-center items-center px-1 py-2 border border-gray-300 rounded-md shadow-sm
                 text-xs text-center font-medium text-neutral-500 bg-white hover:bg-gray-50
-                min-w-[100px]"
+                min-w-[80px] cursor-pointer hover:opacity-80"
             >
               <FaRegStickyNote className="h-6 w-6 mb-1 text-neutral-500" />
               Add Note
             </button>
             <button
               onClick={() => setShowIconForm(true)}
-              className="flex flex-col justify-center items-center px-2 py-2 border border-gray-300 rounded-md
+              className="flex flex-col justify-center items-center px-1 py-2 border border-gray-300 rounded-md
                 shadow-sm text-xs font-medium text-neutral-500 bg-white hover:bg-gray-50
-                min-w-[100px]"
+                min-w-[80px] cursor-pointer hover:opacity-80"
             >
               <FaImage className="h-6 w-6 mb-1 text-neutral-500" />
               + Icon Icon

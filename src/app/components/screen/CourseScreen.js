@@ -18,6 +18,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { genQueryParamsForRequest } from '@/lib/frontend/utils';
 import InteractiveLesson from '../lessons/InteractiveLesson';
 import { saveStateCourseStarted } from "@/lib/frontend/course";
+import VideoLesson from '../lessons/VideoLesson';
+import { showToast } from '@/lib/utils/notifications';
 
 const saveStateLessonFinish = async (course, lesson_slug, data) => {
     if (!course || !course._id || !lesson_slug) return null
@@ -421,10 +423,25 @@ const CourseScreen = ({ course, path_slug }) => {
                                 onSubmitLesson={async (data) => {
                                     const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
                                     if (res && res.success) {
-                                        showLimitedToast('success', `Lesson "${activeLesson.name}" completed!`)
                                     }
                                     let newCourseProgress = res.data
                                     applyNewProgressToCourse(newCourseProgress)
+                                }}
+                            />}
+                            
+                            {activeLesson.lesson_type === 'video' && <VideoLesson lesson={activeLesson}
+                                onCloseRequest={() => {
+                                    gotoNextLesson()
+                                }}
+                                onSumbitLesson={async (data) => {
+                                    let lessonInTable = lessonsTable.find(l => l.slug == activeLesson.slug)
+                                    if (lessonInTable && lessonInTable.context?.state != 'completed') {
+                                        try {
+                                        const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
+                                            let newCourseProgress = res.data
+                                            applyNewProgressToCourse(newCourseProgress)
+                                        } catch (e) { }
+                                    }
                                 }}
                             />}
 
@@ -434,13 +451,9 @@ const CourseScreen = ({ course, path_slug }) => {
                                 }}
                                 onSumbitLesson={async (data) => {
                                     let lessonInTable = lessonsTable.find(l => l.slug == activeLesson.slug)
-                                    // console.log('lessonInTable', lessonInTable)
                                     if (lessonInTable && lessonInTable.context?.state != 'completed') {
                                         try {
                                             const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
-                                            // if (res && res.success) {
-                                            //     showLimitedToast('success', `Lesson "${activeLesson.name}" completed!`)
-                                            // }
                                             let newCourseProgress = res.data
                                             applyNewProgressToCourse(newCourseProgress)
                                         } catch (e) { }
@@ -457,9 +470,6 @@ const CourseScreen = ({ course, path_slug }) => {
                                     let lessonInTable = lessonsTable.find(l => l.slug == activeLesson.slug)
                                     if (lessonInTable && lessonInTable.context?.state != 'completed') {
                                         const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
-                                        // if (res && res.success) {
-                                        //     showLimitedToast('success', `Lesson "${activeLesson.name}" completed!`)
-                                        // }
                                         let newCourseProgress = res.data
                                         applyNewProgressToCourse(newCourseProgress)
                                     }

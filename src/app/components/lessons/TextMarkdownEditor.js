@@ -110,11 +110,13 @@ const TextMarkdownEditor = ({ value, onChange }) => {
         <div className="flex gap-2">
           <button
             onClick={handleDownloadMd}
-            className="px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center px-4 py-1 border border-neutral-500 rounded-md cursor-pointer text-sm
+              font-medium text-neutral-700 bg-white hover:bg-neutral-50"
           >
             Download .md
           </button>
-          <label className="px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 cursor-pointer">
+          <label className="inline-flex items-center px-4 py-1 border border-neutral-500 rounded-md cursor-pointer text-sm
+              font-medium text-neutral-700 bg-white hover:bg-neutral-50">
             Upload .md
             <input
               type="file"
@@ -126,7 +128,8 @@ const TextMarkdownEditor = ({ value, onChange }) => {
           <button
             onClick={handleLocalizeImages}
             disabled={isLocalizing}
-            className="px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:bg-neutral-400"
+            className="inline-flex items-center px-4 py-1 border border-neutral-500 rounded-md cursor-pointer text-sm
+              font-medium text-neutral-700 bg-white hover:bg-neutral-50"
           >
             {isLocalizing ? 'Localizing...' : 'Localize Images'}
           </button>

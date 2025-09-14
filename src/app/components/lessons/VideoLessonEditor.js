@@ -7,6 +7,7 @@
 // SPDX-License-Identifier: MIT
 
 'use client'
+import Editor from '@monaco-editor/react';
 
 export default function VideoLessonEditor({ value, onChange }) {
   const v = value || {}
@@ -22,22 +23,40 @@ export default function VideoLessonEditor({ value, onChange }) {
           onChange={(e) => update({ video_url: e.target.value })}
         />
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Provider</label>
-        <input
-          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-          value={v.video_provider || ''}
-          onChange={(e) => update({ video_provider: e.target.value })}
-        />
+      <div className="flex flex-row gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Provider</label>
+          <input
+            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            value={v.video_provider || ''}
+            onChange={(e) => update({ video_provider: e.target.value })}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Duration (minutes)</label>
+          <input
+            type="number"
+            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            value={minutes}
+            min={0}
+            onChange={(e) => update({ video_duration: Number(e.target.value) * 60 })}
+          />
+        </div>
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Duration (minutes)</label>
-        <input
-          type="number"
-          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-          value={minutes}
-          min={0}
-          onChange={(e) => update({ video_duration: Number(e.target.value) * 60 })}
+     
+      <label className="mt-4 block text-sm font-medium text-gray-700">Description</label>
+      <div className="border pt-1 border-neutral-300 rounded-md overflow-hidden">
+        <Editor
+          height="280px"
+          language="markdown"
+          value={v.markdown_content || ''}
+          onChange={(value) => update({ markdown_content: value || '' })}
+          options={{
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            fontSize: 14,
+            wordWrap: 'on',
+          }}
         />
       </div>
     </div>

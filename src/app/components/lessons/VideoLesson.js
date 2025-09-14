@@ -10,237 +10,121 @@
 
 import { useEffect, useState } from "react"
 import BtnFullRounded from "../atom/BtnFullRounded";
-import Markdown from 'react-markdown'
 import { FaPlay, FaPause, FaExpand, FaCompress } from 'react-icons/fa';
+import MarkdownRender from "../atom/MarkdownRender";
 
 
-const components = {
-    // Headings
-    h1: ({ node, ...props }) => (
-        <h1 className="text-4xl font-extrabold mt-8 mb-4 text-neutral-900 dark:text-neutral-100 border-b pb-2 border-neutral-200 dark:border-neutral-700" {...props} />
-    ),
-    h2: ({ node, ...props }) => (
-        <h2 className="text-3xl font-bold mt-6 mb-3 text-neutral-800 dark:text-neutral-200" {...props} />
-    ),
-    h3: ({ node, ...props }) => (
-        <h3 className="text-2xl font-semibold mt-5 mb-2 text-neutral-700 dark:text-neutral-300" {...props} />
-    ),
-    h4: ({ node, ...props }) => (
-        <h4 className="text-xl font-semibold mt-4 mb-1 text-neutral-600 dark:text-neutral-400" {...props} />
-    ),
-    h5: ({ node, ...props }) => (
-        <h5 className="text-lg font-medium mt-3 text-neutral-600 dark:text-neutral-400" {...props} />
-    ),
-    h6: ({ node, ...props }) => (
-        <h6 className="text-base font-medium mt-2 text-neutral-500 dark:text-neutral-500" {...props} />
-    ),
 
-    // Paragraph
-    p: ({ node, ...props }) => (
-        <p className="mb-4 leading-relaxed text-neutral-700 dark:text-neutral-300" {...props} />
-    ),
+const VideoLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = true }) => {
 
-    // Links
-    a: ({ node, ...props }) => (
-        <a
-            className="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200 underline transition-colors duration-200"
-            target="_blank" // Often good practice for external links
-            rel="noopener noreferrer" // Security best practice
-            {...props}
-        />
-    ),
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-    // Lists
-    ul: ({ node, ...props }) => (
-        <ul className="list-disc pl-6 mb-4 text-neutral-700 dark:text-neutral-300" {...props} />
-    ),
-    ol: ({ node, ...props }) => (
-        <ol className="list-decimal pl-6 mb-4 text-neutral-700 dark:text-neutral-300" {...props} />
-    ),
-    li: ({ node, ...props }) => (
-        <li className="mb-2 leading-relaxed" {...props} />
-    ),
+  if (!lesson) return <></>
 
-    // Blockquote
-    blockquote: ({ node, ...props }) => (
-        <blockquote className="border-l-4 border-neutral-400 pl-4 py-2 my-4 italic text-neutral-600 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-800 rounded" {...props} />
-    ),
+  useEffect(() => {
+    setTimeout(() => {
+      if (onSumbitLesson) {
+        onSumbitLesson({})
+      }
+    }, [3000])
+  }, [])
 
-    // Code
-    code: ({ inline, node, ...props }) => (
-        <code
-            className={`font-mono text-sm ${inline
-                    ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 px-1 py-0.5 rounded'
-                    : 'block bg-neutral-800 text-neutral-200 p-4 rounded-md overflow-x-auto my-4'
-                }`}
-            {...props}
-        />
-    ),
-    // For preformatted blocks (like code blocks)
-    pre: ({ node, ...props }) => (
-        <pre className="bg-neutral-800 text-neutral-200 p-4 rounded-md overflow-x-auto my-4" {...props} />
-    ),
+  const handleTimeUpdate = (e) => {
+    const video = e.target;
+    setProgress((video.currentTime / video.duration) * 100);
+  };
 
+  const handleLoadedMetadata = (e) => {
+    // You might want to do something when video metadata is loaded
+  };
 
-    // Tables
-    table: ({ node, ...props }) => (
-        <table className="w-full border-collapse my-4 text-neutral-700 dark:text-neutral-300" {...props} />
-    ),
-    thead: ({ node, ...props }) => (
-        <thead className="bg-neutral-100 dark:bg-neutral-700 border-b border-neutral-200 dark:border-neutral-600" {...props} />
-    ),
-    th: ({ node, ...props }) => (
-        <th className="px-4 py-2 text-left font-semibold text-neutral-800 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-600" {...props} />
-    ),
-    tbody: ({ node, ...props }) => (
-        <tbody {...props} />
-    ),
-    tr: ({ node, ...props }) => (
-        <tr className="border-b border-neutral-100 dark:border-neutral-700 last:border-b-0 even:bg-neutral-50 dark:even:bg-neutral-800" {...props} />
-    ),
-    td: ({ node, ...props }) => (
-        <td className="px-4 py-2 border border-neutral-200 dark:border-neutral-600" {...props} />
-    ),
+  const togglePlayPause = () => {
+    const video = document.getElementById('lesson-video');
+    if (video) {
+      video.paused ? video.play() : video.pause();
+    }
+  };
 
-    // Images
-    img: ({ node, ...props }) => (
-        <img className="max-w-full h-auto mx-auto my-4 rounded-lg shadow-md" {...props} />
-    ),
+  const toggleFullscreen = () => {
+    const video = document.getElementById('lesson-video');
+    if (!document.fullscreenElement) {
+      video.requestFullscreen().catch(err => {
+        alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
-    // Horizontal Rule
-    hr: ({ node, ...props }) => (
-        <hr className="my-8 border-t-2 border-neutral-200 dark:border-neutral-700" {...props} />
-    ),
-
-    // Strong and Emphasis
-    strong: ({ node, ...props }) => (
-        <strong className="font-bold text-neutral-900 dark:text-neutral-100" {...props} />
-    ),
-    em: ({ node, ...props }) => (
-        <em className="italic" {...props} />
-    ),
-
-    // Other less common but useful elements
-    del: ({ node, ...props }) => (
-        <del className="line-through text-neutral-500 dark:text-neutral-400" {...props} />
-    ),
-    // Keyboard input
-    kbd: ({ node, ...props }) => (
-        <kbd className="inline-block px-1.5 py-0.5 text-xs font-semibold text-neutral-800 dark:text-neutral-200 bg-neutral-100 dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-md shadow-sm" {...props} />
-    ),
-};
-
-
-const VideoLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
-
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [progress, setProgress] = useState(0);
-    const [isFullscreen, setIsFullscreen] = useState(false);
-
-    if (!lesson) return <></>
-
-    useEffect(() => {
-        setTimeout(() => {
-            if (onSumbitLesson) {
-                onSumbitLesson({})
-            }
-        }, [3000])
-    }, [])
-
-    const handleTimeUpdate = (e) => {
-        const video = e.target;
-        setProgress((video.currentTime / video.duration) * 100);
-    };
-
-    const handleLoadedMetadata = (e) => {
-        // You might want to do something when video metadata is loaded
-    };
-
-    const togglePlayPause = () => {
-        const video = document.getElementById('lesson-video');
-        if (video) {
-            video.paused ? video.play() : video.pause();
-        }
-    };
-    
-    const toggleFullscreen = () => {
-        const video = document.getElementById('lesson-video');
-        if (!document.fullscreenElement) {
-            video.requestFullscreen().catch(err => {
-                alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-            });
+  const getVideoEmbedUrl = (url, provider) => {
+    if (provider === 'youtube') {
+      let videoId;
+      try {
+        const urlObj = new URL(url);
+        if (urlObj.hostname === 'youtu.be') {
+          videoId = urlObj.pathname.slice(1);
         } else {
-            document.exitFullscreen();
+          videoId = urlObj.searchParams.get('v');
         }
-    };
+      } catch (e) {
+        // Fallback for invalid URLs
+        const match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        videoId = match && match[1];
+      }
 
-    const getVideoEmbedUrl = (url, provider) => {
-        if (provider === 'youtube') {
-            let videoId;
-            try {
-                const urlObj = new URL(url);
-                if (urlObj.hostname === 'youtu.be') {
-                    videoId = urlObj.pathname.slice(1);
-                } else {
-                    videoId = urlObj.searchParams.get('v');
-                }
-            } catch (e) {
-                // Fallback for invalid URLs
-                const match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-                videoId = match && match[1];
-            }
-
-            if (videoId) {
-                return `https://www.youtube.com/embed/${videoId}`;
-            }
-        }
-        return url;
-    };
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+    }
+    return url;
+  };
 
 
-    return <div className="w-full px-2">
-        <div className="my-2 pb-2 border-b border-neutral-600">
-            <div className="text-xl font-bold text-neutral-900">{lesson.name}</div>
-            <div className="mt-2 text-neutral-500 text-sm leading-tight">{lesson.description}</div>
+  return <div className="w-full px-2">
+    <div className="my-2 pb-2 border-b border-neutral-600">
+      <div className="text-xl font-bold text-neutral-900">{lesson.name}</div>
+      <div className="mt-2 text-neutral-500 text-sm leading-tight">{lesson.description}</div>
+    </div>
+
+    {/* Video Player */}
+    <div className="relative bg-neutral-900">
+      {lesson.video_url ? (
+        lesson.video_provider === 'youtube' ? (
+          <iframe
+            className="w-full h-96"
+            src={getVideoEmbedUrl(lesson.video_url, 'youtube')}
+            title={lesson.name}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        ) : (
+          <video
+            id="lesson-video"
+            className="w-full h-96 object-contain"
+            onTimeUpdate={handleTimeUpdate}
+            onLoadedMetadata={handleLoadedMetadata}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            controls
+          >
+            <source src={lesson.video_url} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        )
+      ) : (
+        <div className="w-full h-96 flex items-center justify-center bg-neutral-900">
+          <div className="text-center text-white">
+            <p className="text-lg mb-4">Video content not available</p>
+            <p className="text-sm text-neutral-400">Please check the video URL configuration</p>
+          </div>
         </div>
+      )}
 
-        {/* Video Player */}
-        <div className="relative bg-neutral-900">
-          {lesson.video_url ? (
-            lesson.video_provider === 'youtube' ? (
-              <iframe
-                className="w-full h-96"
-                src={getVideoEmbedUrl(lesson.video_url, 'youtube')}
-                title={lesson.name}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            ) : (
-              <video
-                id="lesson-video"
-                className="w-full h-96 object-contain"
-                onTimeUpdate={handleTimeUpdate}
-                onLoadedMetadata={handleLoadedMetadata}
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
-                controls
-              >
-                <source src={lesson.video_url} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            )
-          ) : (
-            <div className="w-full h-96 flex items-center justify-center bg-neutral-900">
-              <div className="text-center text-white">
-                <p className="text-lg mb-4">Video content not available</p>
-                <p className="text-sm text-neutral-400">Please check the video URL configuration</p>
-              </div>
-            </div>
-          )}
-
-          {/* Custom Controls Overlay - Hide for YouTube */}
-          {/* {lesson.video_provider !== 'youtube' && (
+      {/* Custom Controls Overlay - Hide for YouTube */}
+      {/* {lesson.video_provider !== 'youtube' && (
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
               <div className="flex items-center justify-between">
                 <button
@@ -268,36 +152,44 @@ const VideoLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
               </div>
             </div>
           )} */}
-        </div>
+    </div>
 
-        {/* Progress Bar */}
-        <div className="p-4 bg-neutral-50">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-neutral-700">Progress</span>
-            <span className="text-sm text-neutral-500">{Math.round(progress)}%</span>
-          </div>
-          <div className="w-full bg-neutral-200 rounded-full h-2">
-            <div
-              className="bg-secondary-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+    {/* Progress Bar */}
+    {lesson.video_provider !== 'youtube' &&
+      <div className="p-4 bg-neutral-50">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-neutral-700">Progress</span>
+          <span className="text-sm text-neutral-500">{Math.round(progress)}%</span>
         </div>
+        <div className="w-full bg-neutral-200 rounded-full h-2">
+          <div
+            className="bg-secondary-500 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+    }
 
-        {/* Lesson Info */}
-        <div className="p-6">
-          <div className="flex flex-wrap gap-2 mb-4">
-            {lesson.tags?.map((tag, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-primary-100 text-primary-800 text-sm rounded-full"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-          
-          {lesson.completion_criteria && (
+    {/* Lesson Info */}
+    <div className="p-6">
+      <div className="flex flex-wrap gap-2 mb-4">
+        {lesson.tags?.map((tag, index) => (
+          <span
+            key={index}
+            className="px-3 py-1 bg-primary-100 text-primary-800 text-sm rounded-full"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+
+      { lesson.markdown_content && <div className="max-w-none px-2 py-1 lg:px-6 min-h-[12px] bg-white">
+          <MarkdownRender> 
+              {lesson.markdown_content}
+          </MarkdownRender>
+      </div>}
+
+      {/* {lesson.completion_criteria && (
             <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
               <h3 className="font-medium text-primary-900 mb-2">Completion Criteria</h3>
               <p className="text-primary-800 text-sm">
@@ -305,8 +197,22 @@ const VideoLesson = ({ lesson, onCloseRequest, onSumbitLesson }) => {
                 {lesson.completion_criteria === 'complete' && 'Complete the entire video to finish this lesson'}
               </p>
             </div>
-          )}
-        </div>
+          )} */}
     </div>
-}
+
+    <div className="px-4 py-4 flex items-center space-x-2">
+      <div className="grow"></div>
+
+    {showNextButton && <BtnFullRounded
+        onClick={() => {
+          if (onCloseRequest) {
+            onCloseRequest({})
+          }
+        }}>
+        Next Lesson
+      </BtnFullRounded>
+    }
+    </div>
+  </div>
+} 
 export default VideoLesson;

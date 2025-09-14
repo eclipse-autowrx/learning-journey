@@ -475,12 +475,9 @@ export default function CourseDetailPage() {
       case 'interactive':
         return {
           ...common,
-          name: (lesson as any).sequence?.name || lesson.name,
-          description: (lesson as any).sequence?.description || lesson.description,
-          auto_run_next: (lesson as any).sequence?.auto_run_next ?? true,
-          auto_start: (lesson as any).sequence?.auto_start ?? true,
-          trigger_source: (lesson as any).sequence?.trigger_source || 'learning',
-          actions: (lesson as any).sequence?.actions || [],
+          name: (lesson as any).name || lesson.name,
+          description: (lesson as any).description || lesson.description,
+          sequence: (lesson as any).sequence || {},
         };
       default:
         return common;
@@ -960,14 +957,6 @@ Start writing your lesson content here.`;
 
             {activeTab === 'lessons' && (
               <div>
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg leading-6 font-medium text-neutral-900">Lessons</h3>
-                  <Btn onClick={openCreateLesson}>
-                    <FaPlus className="mr-2 h-4 w-4" />
-                    Add Lesson
-                  </Btn>
-                </div>
-
                 {lessons.length === 0 ? (
                   <div className="text-center py-12">
                     <FaBook className="mx-auto h-12 w-12 text-neutral-400" />
@@ -977,7 +966,14 @@ Start writing your lesson content here.`;
                 ) : (
                   <div className="flex gap-6">
                     {/* Left: lesson list */}
-                                      <div className="w-[320px] min-w-[320px]">
+                    <div className="w-[320px] min-w-[320px]">
+                      <div className="flex justify-between items-center mb-1">
+                        <h3 className="text-lg leading-6 font-medium text-neutral-900">Lessons</h3>
+                        <Btn onClick={openCreateLesson} variant="outlined">
+                          <FaPlus className="h-3 w-3 mr-2" />
+                          Add Lesson
+                        </Btn>
+                      </div>
                       <DragDropContext onDragEnd={onDragEnd}>
                         <Droppable droppableId="lessons">
                           {(provided) => (
@@ -1129,7 +1125,7 @@ Start writing your lesson content here.`;
                                   const adapted = mapLessonForRender(editableLesson as Lesson);
                                   switch (editableLesson?.lesson_type) {
                                     case 'video':
-                                      return <VideoLesson lesson={adapted as any} onSumbitLesson={() => { }} onCloseRequest={() => { }} />
+                                      return <VideoLesson lesson={adapted as any} onSumbitLesson={() => { }} onCloseRequest={() => { }} showNextButton={false}/>
                                     case 'text-markdown':
                                       return <TextMarkdownLesson lesson={adapted as any} onSumbitLesson={() => { }} onCloseRequest={() => { }} showNextButton={false} />
                                     case 'quiz':
