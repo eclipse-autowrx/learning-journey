@@ -957,13 +957,6 @@ Start writing your lesson content here.`;
 
             {activeTab === 'lessons' && (
               <div>
-                {lessons.length === 0 ? (
-                  <div className="text-center py-12">
-                    <FaBook className="mx-auto h-12 w-12 text-neutral-400" />
-                    <h3 className="mt-2 text-sm font-medium text-neutral-900">No lessons</h3>
-                    <p className="mt-1 text-sm text-neutral-500">This course doesn't have any lessons yet.</p>
-                  </div>
-                ) : (
                   <div className="flex gap-6">
                     {/* Left: lesson list */}
                     <div className="w-[320px] min-w-[320px]">
@@ -982,6 +975,14 @@ Start writing your lesson content here.`;
                               ref={provided.innerRef}
                               className="bg-white border border-neutral-200 rounded-lg overflow-hidden"
                             >
+                              {lessons.length === 0 && (
+                                <div className="text-center py-12">
+                                  <FaBook className="mx-auto h-12 w-12 text-neutral-400" />
+                                  <h3 className="mt-2 text-sm font-medium text-neutral-900">No lessons</h3>
+                                  <p className="mt-1 text-sm text-neutral-500">This course doesn't have any lessons yet.</p>
+                                </div>
+                              )}
+                              
                               <ul className="divide-y divide-neutral-200">
                                 {lessons.map((l: any, index: number) => (
                                   <Draggable key={l._id} draggableId={l._id} index={index}>
@@ -1164,7 +1165,6 @@ Start writing your lesson content here.`;
                       )}
                     </div>
                   </div>
-                )}
               </div>
             )}
           </div>

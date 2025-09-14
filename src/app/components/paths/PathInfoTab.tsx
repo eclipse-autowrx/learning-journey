@@ -8,7 +8,7 @@
 
 'use client';
 
-import { FaSave, FaTimes, FaEdit, FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import { FaSave, FaTimes, FaEdit, FaArrowUp, FaArrowDown, FaEye } from 'react-icons/fa';
 import Btn from '@/app/components/atom/Btn';
 import TagEditor from '@/app/components/atom/TagEditor';
 import ImageEditor from '@/app/components/atom/ImageEditor';
@@ -127,10 +127,19 @@ export default function PathInfoTab({
               </Btn>
             </>
           ) : (
-            <Btn onClick={onStartEdit}>
-              <FaEdit className="mr-2 h-4 w-4" />
-              Edit Path
-            </Btn>
+            <>
+              <Btn 
+                variant="outlined" 
+                onClick={() => window.open(`/path/${pathSlug}`, '_blank')}
+              >
+                <FaEye className="mr-2 h-4 w-4" />
+                Preview
+              </Btn>
+              <Btn onClick={onStartEdit}>
+                <FaEdit className="mr-2 h-4 w-4" />
+                Edit Path
+              </Btn>
+            </>
           )}
         </div>
       </div>
