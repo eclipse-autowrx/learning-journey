@@ -80,7 +80,7 @@ export default function Home() {
 
           <div className="flex-2 px-2 grid place-items-center">
             <img
-              className="w-[40vw] h-[200px] sm:w-[40vw] object-contain"
+              className="w-[80vw] h-[200px] sm:w-[40vw] object-contain"
               src={homeConfig.imageUrl}
               alt="Hero image"
             />

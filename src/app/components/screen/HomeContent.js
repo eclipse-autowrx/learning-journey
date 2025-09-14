@@ -248,37 +248,32 @@ const HomeContent = ({ }) => {
         }
     };
 
-
-
     return (
-        <div id='pathList' className="bg-white min-h-screen text-center">
-            <div className="max-w-[1515px] mx-auto px-8 md:px-24 py-8">
-                {/* Main Title - Exact Figma Layout */}
+        <div id='pathList' className="bg-white text-center min-h-screen">
+            
+            <div className="max-w-[1515px] mx-auto px-2 sm:px-6 lg:px-12 py-8">
                 <div className="mb-8">
                     <h1 className="font-bold text-[40px] 
-                        leading-[1.2] tracking-[-0.03em] text-neutral-600">
+                        leading-[1.2] text-neutral-600">
                         Follow our Paths</h1>
                 </div>
 
-                {/* Loading Indicator */}
                 {isLoading && (
                     <div className="flex flex-col items-center justify-center py-16">
-                        <div className="relative">
-                            {/* Spinning circle */}
+                            <div className="relative">
                             <div className="w-16 h-16 border-4 rounded-full animate-spin" style={{borderColor: 'var(--primary-lighter)', borderTopColor: 'var(--primary)'}}></div>
-                            {/* Inner pulse */}
                             <div className="absolute inset-0 w-16 h-16 border-4 border-transparent rounded-full animate-spin" style={{borderTopColor: 'var(--primary-darker)', animationDirection: 'reverse', animationDuration: '0.8s'}}></div>
                         </div>
                         <p className="mt-4 font-medium text-lg" style={{color: 'var(--primary-dark)'}}>Loading learning paths...</p>
                     </div>
                 )}
 
-                {/* Collections - Exact Figma Structure */}
                 {!isLoading && (
                     <div className="space-y-16">
                         {items.map((collection, gIndex) => (
-                        <div key={gIndex} id={collection.id || collection.slug || collection.name} className="space-y-3 bg-primary-50 rounded-lg px-6 py-6">
-                            {/* Collection Header - Exact Figma Layout */}
+                        <div key={gIndex} id={collection.id || collection.slug || collection.name} 
+                            className="space-y-3 bg-primary-50 rounded-lg px-2 sm:px-6 py-4 sm:py-6">
+                            
                             <div className="space-y-0 w-full">
                                 <div className="py-0 block items-center justify-center">
                                     <span className="font-bold text-[28px] leading-[1.33] tracking-[-0.03em] text-primary-700">
@@ -290,18 +285,17 @@ const HomeContent = ({ }) => {
                                 </p>
                             </div>
 
-                            {/* Course Cards Grid - Responsive Layout */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6">
                                 {collection.paths?.map((path, pathIndex) => (
                                     <div 
                                         key={pathIndex} 
-                                        className={`bg-white rounded-lg shadow-lg text-left flex flex-col h-[380px] cursor-pointer overflow-x-hidden ${
+                                        className={`bg-white rounded-lg shadow-lg text-left flex flex-col h-[380px] 
+                                                cursor-pointer overflow-x-hidden ${
                                             path.state === 'locked' ? 'opacity-80' : ''
                                         }`}
                                         onClick={() => handlePathClick(path)}
                                     >
                                         <div className="w-full h-[200px] min-h-[200px] relative overflow-hidden rounded-t-lg">
-                                            {/* Show gradient if image failed to load */}
                                             {isImageError(path._id) ? (
                                                 <div className="absolute top-0 left-0 w-full h-full rounded-t-lg transition-transform duration-300 ease-in-out hover:scale-110" 
                                                     style={{background: 'linear-gradient(to bottom right, var(--color-neutral-500), var(--color-neutral-400), var(--color-neutral-200))'}}></div>
@@ -318,8 +312,7 @@ const HomeContent = ({ }) => {
                                                     Level {path.level || path.difficulty || 1}
                                                 </div>
                                             </div>
-                                            
-                                            {/* Lock icon for locked paths */}
+                                        
                                             {path.state === 'locked' && (
                                                 <div className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-2">
                                                     <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -329,7 +322,6 @@ const HomeContent = ({ }) => {
                                             )}
                                         </div>
                                         
-                                        {/* Course Content - Exact Figma Layout */}
                                         <div className="flex-1 flex flex-col justify-between p-4">
                                             <div className="flex flex-col gap-1">
                                                 <h3 className="font-semibold text-base md:text-lg xl:text-xl line-clamp-1
@@ -342,7 +334,6 @@ const HomeContent = ({ }) => {
                                                 </p>
                                             </div>
 
-                                             {/* Progress Section - Only show for authenticated users */}
                                              {isAuthenticated && path.courses && path.courses.length > 0 && (
                                                  <div className="flex items-center gap-1 mt-2">
                                                      <div className="flex items-center">
@@ -354,7 +345,6 @@ const HomeContent = ({ }) => {
                                                  </div>
                                              )}
 
-                                             {/* Show "Not Started" for unauthenticated users */}
                                              {!isAuthenticated && !authLoading && path.courses && path.courses.length > 0 && (
                                                  <div className="flex items-center gap-1 mt-2">
                                                      <div className="flex items-center">
