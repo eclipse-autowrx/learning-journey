@@ -5,6 +5,7 @@ import { check_auth } from '@/lib/backend/check_auth';
 import { ExternalUserService } from '@/lib/backend/user_service';
 import { CertificateService } from '@/lib/certificate-service';
 import { CertificateDBService } from '@/lib/certificate-db-service';
+import { PathService } from '@/lib/services/dataService';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -40,15 +41,32 @@ export default async function handler(req, res) {
     // Initialize database service
     const dbService = new CertificateDBService();
     
+    // Get path data to check required courses
+    const pathData = await PathService.getById(pathId);
+    
+    if (pathData) {
+      console.log('Path data:', {
+        name: pathData.name,
+        required_course_ids: pathData.required_course_ids,
+        courses: pathData.courses?.map(c => ({ id: c._id, name: c.name }))
+      });
+    }
+    
     // Check if path is actually completed
-    const pathCompleted = await dbService.checkPathCompletion(user_id, pathId);
+    const requiredCourseIds = pathData ? pathData.required_course_ids : [];
+    const pathCompleted = await dbService.checkPathCompletion(user_id, pathId, requiredCourseIds);
+    
+    console.log('Path completion check in complete-path API:', pathCompleted);
     
     if (!pathCompleted) {
+      console.log('Path not completed, returning error');
       return res.status(400).json({ 
         success: false, 
         error: 'Path not completed yet' 
       });
     }
+    
+    console.log('Path is completed, proceeding with certificate generation');
 
     // Check if certificate already exists
     const existingCertificate = await dbService.getExistingCertificate(user_id, pathId);
@@ -62,29 +80,49 @@ export default async function handler(req, res) {
     }
 
     // Generate certificate
-    const certificateService = new CertificateService();
-    const certificate = await certificateService.generatePathCertificate(
-      user_id,
-      userName,
-      pathId,
-      pathName
-    );
-
-    // Save certificate links to database
-    const saved = await dbService.saveCertificateLinks(user_id, pathId, certificate);
+    console.log('Generating certificate for:', { user_id, userName, pathId, pathName });
     
-    if (!saved) {
+    try {
+      console.log('Creating CertificateService instance...');
+      const certificateService = new CertificateService();
+      console.log('CertificateService created successfully');
+      
+      console.log('About to call generatePathCertificate...');
+      const certificate = await certificateService.generatePathCertificate(
+        user_id,
+        userName,
+        pathId,
+        pathName
+      );
+      
+      console.log('Generated certificate:', certificate);
+      console.log('Certificate type:', typeof certificate);
+      console.log('Certificate keys:', Object.keys(certificate || {}));
+
+      // Save certificate links to database
+      const saved = await dbService.saveCertificateLinks(user_id, pathId, certificate);
+      
+      if (!saved) {
+        console.log('Failed to save certificate to database');
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to save certificate to database'
+        });
+      }
+
+      console.log('Certificate saved successfully');
+      res.status(200).json({
+        success: true,
+        message: 'Certificate generated successfully',
+        certificate: certificate
+      });
+    } catch (certError) {
+      console.error('Error generating certificate:', certError);
       return res.status(500).json({
         success: false,
-        error: 'Failed to save certificate to database'
+        error: `Certificate generation failed: ${certError.message}`
       });
     }
-
-    res.status(200).json({
-      success: true,
-      message: 'Certificate generated successfully',
-      certificate: certificate
-    });
 
   } catch (error) {
     console.error('Error completing path and generating certificate:', error);

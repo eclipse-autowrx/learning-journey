@@ -69,6 +69,21 @@ const nextConfig: NextConfig = {
 
   // Enable compression
   compress: true,
+
+  // Rewrite rules for media files
+  async rewrites() {
+    const rewrites = [];
+
+    // Map /certificates/ to MEDIA_STORE_PATH/certificates if available
+    if (process.env.MEDIA_STORE_PATH) {
+      rewrites.push({
+        source: '/certificates/:path*',
+        destination: `${process.env.MEDIA_STORE_PATH}/certificates/:path*`,
+      });
+    }
+
+    return rewrites;
+  },
 };
 
 export default nextConfig;

@@ -9,13 +9,14 @@
 'use client'
 
 import { useRouter } from "next/navigation";
-import CertificateScreen from "../atom/CertificateScreen";
+import CertificateModal from "../CertificateModal";
 import { useState } from "react"
 import Popup from "../atom/Popup";
 import { IoClose } from "react-icons/io5";
 import BtnFullRounded from "../atom/BtnFullRounded";
 import { FaLock, FaGraduationCap} from "react-icons/fa";
 import MarkdownRender from "../atom/MarkdownRender";
+import { useAuth } from "@/lib/frontend/auth";
 
 import { saveStateCourseStarted } from "@/lib/frontend/course"
 
@@ -72,16 +73,19 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
     return `${aspectRatio}%`;
   };
   const router = useRouter();
+  const { userId } = useAuth();
   const [showCert, setShowCert] = useState(false)
   const [popupExternalLaunch, setPopupExternalLaunch] = useState(false)
   const [showMarkdownPopup, setShowMarkdownPopup] = useState(false)
   const [currentItem, setCurrentItem] = useState(null)
+  const [certificateLoading, setCertificateLoading] = useState(false)
 
   const pathCompleted = isPathCompleted(path, maps);
 
   // Function to handle certificate click
-  const handleCertificateClick = () => {
+  const handleCertificateClick = async () => {
     if (pathCompleted) {
+      setCertificateLoading(true);
       setShowCert(true);
     }
   };
@@ -110,9 +114,16 @@ const PathCanvasLayout = ({ path, maps, onRequestUpdateProgress }) => {
 
       <div className="absolute top-0 left-0 right-0 bottom-0 opacity-10 bg-white z-10"></div>
 
-      {/* Certificate Screen */}
-      {showCert && <CertificateScreen 
-        requestClose={() => setShowCert(false)} 
+      {/* Certificate Modal */}
+      {showCert && <CertificateModal 
+        isOpen={showCert}
+        onClose={() => {
+          setShowCert(false);
+          setCertificateLoading(false);
+        }}
+        pathId={path._id}
+        pathName={path.name}
+        userId={userId}
       />}
 
       {/* External Launch Popup */}

@@ -12,10 +12,21 @@ import { loadCertificateConfig, calculatePositions } from './certificate-config.
  */
 export class CertificateService {
   constructor() {
-    this.certificatesDir = path.join(process.cwd(), 'public', 'certificates');
+    // Use MEDIA_STORE_PATH if available, fallback to public/certificates
+    this.certificatesDir = process.env.MEDIA_STORE_PATH
+      ? path.join(process.env.MEDIA_STORE_PATH, 'certificates')
+      : path.join(process.cwd(), 'public', 'certificates');
+    
     this.pdfDir = path.join(this.certificatesDir, 'pdf');
     this.pngDir = path.join(this.certificatesDir, 'png');
     this.tempDir = path.join(process.cwd(), 'temp');
+    
+    // console.log('CertificateService initialized with directories:', {
+    //   certificatesDir: this.certificatesDir,
+    //   pdfDir: this.pdfDir,
+    //   pngDir: this.pngDir,
+    //   mediaStorePath: process.env.MEDIA_STORE_PATH || 'not set'
+    // });
     
     // Ensure directories exist
     this.ensureDirectories();
@@ -40,6 +51,8 @@ export class CertificateService {
    */
   async generatePathCertificate(userId, userName, pathId, pathName, customUserName = null) {
     try {
+      console.log('Starting certificate generation for:', { userId, userName, pathId, pathName });
+      
       const displayName = customUserName || userName;
       const issueDate = new Date().toLocaleDateString('en-US', { 
         year: 'numeric', 
@@ -59,20 +72,35 @@ export class CertificateService {
       const pdfPath = path.join(this.pdfDir, pdfFileName);
       const pngPath = path.join(this.pngDir, pngFileName);
 
+      console.log('Generated filenames:', { pdfFileName, pngFileName });
+      console.log('File paths:', { pdfPath, pngPath });
+
       // Generate PDF certificate
+      console.log('Generating PDF certificate...');
       const pdfBuffer = await this.generatePDFCertificate(displayName, pathName, issueDate);
+      console.log('PDF generated, size:', pdfBuffer.length);
+      
       fs.writeFileSync(pdfPath, pdfBuffer);
+      console.log('PDF saved to:', pdfPath);
 
       // Convert PDF to PNG
+      console.log('Converting PDF to PNG...');
       const pngBuffer = await this.convertPDFToPNG(pdfBuffer);
+      console.log('PNG generated, size:', pngBuffer.length);
+      
       fs.writeFileSync(pngPath, pngBuffer);
+      console.log('PNG saved to:', pngPath);
 
-      // Return public URLs
-      return {
+      // Return public URLs (assuming /certificates/ is mapped to MEDIA_STORE_PATH/certificates)
+      const result = {
         pdfUrl: `/certificates/pdf/${pdfFileName}`,
         pngUrl: `/certificates/png/${pngFileName}`,
-        fileName: baseFileName
+        fileName: baseFileName,
+        generatedAt: new Date().toISOString()
       };
+      
+      console.log('Certificate generation completed:', result);
+      return result;
 
     } catch (error) {
       console.error('Error generating path certificate:', error);
@@ -157,27 +185,42 @@ export class CertificateService {
    */
   async convertPDFToPNG(pdfBuffer) {
     try {
+      console.log('Starting PDF to PNG conversion...');
+      
       // Load configuration for PNG settings
       const config = loadCertificateConfig();
+      console.log('PNG config:', { png_dpi: config.png_dpi });
       
       // Create a temporary PDF file
       const tempPdfPath = path.join(this.tempDir, `temp_certificate_${Date.now()}.pdf`);
       fs.writeFileSync(tempPdfPath, pdfBuffer);
+      console.log('Temporary PDF created:', tempPdfPath);
 
       // Use system pdftocairo command to convert PDF to PNG
       const outputBaseName = `temp_certificate_${Date.now()}`;
       
       // Convert PDF to PNG with configurable DPI
       const command = `/opt/homebrew/bin/pdftocairo -png -r ${config.png_dpi} -f 1 -l 1 "${tempPdfPath}" "${path.join(this.tempDir, outputBaseName)}"`;
+      console.log('Running command:', command);
+      
       execSync(command, { stdio: 'pipe' });
+      console.log('pdftocairo command completed');
 
       // Read the generated PNG file (pdftocairo adds -1 to the filename)
       const actualOutputPath = path.join(this.tempDir, `${outputBaseName}-1.png`);
+      console.log('Looking for PNG file:', actualOutputPath);
+      
+      if (!fs.existsSync(actualOutputPath)) {
+        throw new Error(`PNG file not found at: ${actualOutputPath}`);
+      }
+      
       const pngBuffer = fs.readFileSync(actualOutputPath);
+      console.log('PNG file read, size:', pngBuffer.length);
 
       // Clean up temporary files
       fs.unlinkSync(tempPdfPath);
       fs.unlinkSync(actualOutputPath);
+      console.log('Temporary files cleaned up');
 
       return pngBuffer;
 

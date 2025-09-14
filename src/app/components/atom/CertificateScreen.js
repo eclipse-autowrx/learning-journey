@@ -19,14 +19,14 @@ const CertificateScreen = ({requestClose}) => {
             </div>
             
             <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg">
-                <FaSpinner className="animate-spin text-4xl text-blue-600 mb-4" />
+                <FaSpinner className="animate-spin text-4xl text-secondary-600 mb-4" />
                 <p className="text-xl text-gray-700 mb-2 font-semibold">Certificate Processing</p>
                 <p className="text-sm text-gray-500 text-center">
                     Your certificate is being processed. We will notify you later when it's ready.
                 </p>
                 <button 
                     onClick={requestClose}
-                    className="mt-6 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    className="mt-6 px-6 py-2 bg-secondary-600 text-white rounded hover:bg-secondary-700 transition-colors"
                 >
                     Close
                 </button>
