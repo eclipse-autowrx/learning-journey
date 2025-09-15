@@ -38,43 +38,45 @@ const remarkInlineCode = () => {
   };
 };
   
-const CodeBlock = ({ className, children, ...props }) => {
-    const match = /language-(\w+)/.exec(className || '');
-    const language = match ? match[1] : 'text';
-    const codeString = String(children).replace(/\n$/, '');
-    
-    const handleCopy = () => {
-      navigator.clipboard.writeText(codeString);
-    };
-    
-    return (
-      <div className="relative">
-        <button
-          onClick={handleCopy}
-          className="absolute top-2 right-2 z-10 bg-neutral-700 hover:bg-gray-600 text-white text-xs px-2 py-1 rounded transition-colors duration-200"
-          title="Copy code"
-        >
-          Copy
-        </button>
+   const CodeBlock = ({ className, children, ...props }) => {
+     const match = /language-(\w+)/.exec(className || '');
+     const language = match ? match[1] : 'text';
+     const codeString = String(children).replace(/\n$/, '');
+
+     const handleCopy = () => {
+       navigator.clipboard.writeText(codeString);
+     };
+
+     return (
+        <div className="relative overflow-x-auto max-w-full">
+         <button
+           onClick={handleCopy}
+           className="absolute top-2 right-2 z-10 bg-neutral-700 hover:bg-gray-600 text-white text-xs px-2 py-1 rounded transition-colors duration-200"
+           title="Copy code"
+         >
+           Copy
+         </button>
         <SyntaxHighlighter
           style={vscDarkPlus}
           language={language}
-          PreTag="div"
+          PreTag="pre"
           customStyle={{
             margin: '0rem 0',
             borderRadius: '8px',
             fontSize: '14px',
             lineHeight: '1.0',
+            maxWidth: '100%',
+            overflowX: 'auto',
           }}
           showLineNumbers={true}
           wrapLines={true}
           {...props}
         >
-          {codeString}
-        </SyntaxHighlighter>
-      </div>
-    );
-  };
+           {codeString}
+         </SyntaxHighlighter>
+       </div>
+     );
+   };
 
 const components = {
     // Headings
@@ -260,9 +262,9 @@ const MarkdownRender = ({ children }) => {
     // const processedContent = preprocessContent(children);
 
     return (
-        <div className={`markdown-render font-content`}>
-            <Markdown 
-                components={components} 
+        <div className={`markdown-render font-content overflow-x-auto max-w-full`}>
+            <Markdown
+                components={components}
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw]}
             >

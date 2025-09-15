@@ -956,7 +956,7 @@ Start writing your lesson content here.`;
             )}
 
             {activeTab === 'lessons' && (
-              <div>
+              <div className='w-full'>
                   <div className="flex gap-6">
                     {/* Left: lesson list */}
                     <div className="w-[320px] min-w-[320px]">
@@ -1024,7 +1024,7 @@ Start writing your lesson content here.`;
                     </div>
 
                     {/* Right: view/edit tabs with render and editor side-by-side */}
-                    <div className="flex-1">
+                    <div className="grow overflow-x-hidden">
                       {!selectedLesson ? (
                         <div className="h-full flex items-center justify-center text-neutral-500">Select a lesson to view/edit</div>
                       ) : (
@@ -1086,7 +1086,7 @@ Start writing your lesson content here.`;
                             </div>
                           </div>
 
-                          <div className="p-4">
+                          <div className="p-4 w-full overflow-x-hidden">
                             {lessonDetailTab === 'info' && (
                               <div className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1121,7 +1121,7 @@ Start writing your lesson content here.`;
                             )}
 
                             {lessonDetailTab === 'view' && (
-                              <div>
+                              <div className='w-full overflow-x-hidden'>
                                 {(() => {
                                   const adapted = mapLessonForRender(editableLesson as Lesson);
                                   switch (editableLesson?.lesson_type) {
