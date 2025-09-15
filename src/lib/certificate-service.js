@@ -200,7 +200,7 @@ export class CertificateService {
       const outputBaseName = `temp_certificate_${Date.now()}`;
       
       // Convert PDF to PNG with configurable DPI
-      const command = `/opt/homebrew/bin/pdftocairo -png -r ${config.png_dpi} -f 1 -l 1 "${tempPdfPath}" "${path.join(this.tempDir, outputBaseName)}"`;
+      const command = `pdftocairo -png -r ${config.png_dpi} -f 1 -l 1 "${tempPdfPath}" "${path.join(this.tempDir, outputBaseName)}"`;
       console.log('Running command:', command);
       
       execSync(command, { stdio: 'pipe' });

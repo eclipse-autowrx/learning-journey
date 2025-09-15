@@ -142,7 +142,7 @@ async function convertPDFToPNG(pdfBuffer) {
     const outputPath = path.join(tempDir, `${outputBaseName}.png`);
     
     // Convert PDF to PNG with configurable DPI
-    const command = `/opt/homebrew/bin/pdftocairo -png -r ${config.png_dpi} -f 1 -l 1 "${tempPdfPath}" "${path.join(tempDir, outputBaseName)}"`;
+    const command = `pdftocairo -png -r ${config.png_dpi} -f 1 -l 1 "${tempPdfPath}" "${path.join(tempDir, outputBaseName)}"`;
     execSync(command, { stdio: 'pipe' });
 
     // Read the generated PNG file (pdftocairo adds -1 to the filename)
