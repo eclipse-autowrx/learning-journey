@@ -9,6 +9,7 @@
 import React from 'react';
 import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import remarkGfm from 'remark-gfm';
 import { Quicksand } from "next/font/google";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, oneDark, prism, materialDark, atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -19,6 +20,23 @@ const quicksand = Quicksand({
     display: 'swap',
     variable: '--font-content',
   });
+
+// Custom remark plugin to properly mark inline code
+const remarkInlineCode = () => {
+  return (tree) => {
+    const visit = (node, parent) => {
+      if (node.type === 'inlineCode') {
+        // This is inline code - mark it as such
+        node.inline = true;
+      }
+      
+      if (node.children) {
+        node.children.forEach(child => visit(child, node));
+      }
+    };
+    visit(tree);
+  };
+};
   
 const CodeBlock = ({ className, children, ...props }) => {
     const match = /language-(\w+)/.exec(className || '');
@@ -112,22 +130,22 @@ const components = {
 
     // Code
     code({ node, inline, className, children, ...props }) {
-        if (!inline) {
-            return (
-                <CodeBlock className={className} {...props}>
-                    {children}
-                </CodeBlock>
-            );
-        }
-        return (
-            <code 
-                className={`font-mono text-sm bg-gray-200 dark:bg-neutral-700 text-gray-800
-                     dark:text-gray-200 px-1 py-0.5 rounded ${className}`}
-                {...props}
-            >
+        // Check if this is inline code - react-markdown should pass inline prop
+        // Also check if there's no className (which indicates inline code)
+        const isInline = inline === true || !className;
+        
+        if (!isInline) {
+            return <CodeBlock className={className} {...props}>
                 {children}
-            </code>
-        );
+            </CodeBlock>
+        }
+        return <code 
+            className={`font-mono text-sm bg-gray-200 dark:bg-neutral-700 text-gray-800
+                 dark:text-gray-200 px-1 py-0.5 rounded ${className || ''}`}
+            {...props}
+        >
+            {children}
+        </code>
     },
     // For preformatted blocks (like code blocks)
     pre: ({ node, ...props }) => (
@@ -229,9 +247,25 @@ const components = {
 
 
 const MarkdownRender = ({ children }) => {
+    // Preprocess content to wrap single words in backticks
+    // const preprocessContent = (content) => {
+    //     if (typeof content !== 'string') return content;
+        
+    //     // This regex matches single words and wraps them in backticks
+    //     return content.replace(/\b([a-zA-Z_][a-zA-Z0-9_-]*)\b/g, (match, word) => {
+    //         return `\`${word}\``;
+    //     });
+    // };
+
+    // const processedContent = preprocessContent(children);
+
     return (
         <div className={`markdown-render font-content`}>
-            <Markdown components={components} rehypePlugins={[rehypeRaw]}>
+            <Markdown 
+                components={components} 
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeRaw]}
+            >
                 {children}
             </Markdown>
         </div>
