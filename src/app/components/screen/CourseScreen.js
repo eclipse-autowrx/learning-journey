@@ -396,7 +396,7 @@ const CourseScreen = ({ course, path_slug }) => {
                 </div>
             )}
 
-            <div className={`${lessonsTable.length === 1 ? 'w-full max-w-6xl' : 'grow'} border border-neutral-200 bg-white rounded flex flex-col relative`}
+            <div className={`${lessonsTable.length === 1 ? 'w-full max-w-6xl' : 'grow'} overflow-hidden border border-neutral-200 bg-white rounded flex flex-col relative`}
                 style={{ maxHeight: 'calc(100vh - 40px)' }}>
                 <div ref={scrollContainerRef} className='absolue w-full h-full top-0 left-0 bottom-0 right-0 overflow-y-auto'>
                     {isCourseFinished ? (
