@@ -93,11 +93,8 @@ async function handler(req, res) {
 
 
         const ext = path.extname(file.originalFilename || '').toLowerCase();
-        const allowedExts = ['.png', '.jpg', '.jpeg', '.webp'];
-        if (!allowedExts.includes(ext)) {
-            res.status(400).json({ error: 'Unsupported file type' });
-            return;
-        }
+        const allowedImageExts = ['.png', '.jpg', '.jpeg', '.webp'];
+        const isImageFile = allowedImageExts.includes(ext);
 
         // Helper function to slugify the original filename (without extension)
         function slugify(str) {
@@ -150,73 +147,78 @@ async function handler(req, res) {
                 return res.status(500).json({ error: 'Failed to save file' });
             }
 
-            // INSERT_YOUR_CODE
+            let publicUrl = `/images/${uniqueName}`;
+            let publicThumbUrl = null;
 
-            // Read the image
-            let image;
-            try {
-                image = sharp(destPath);
-            } catch (e) {
-                return res.status(415).json({ error: 'Unable to read image' });
-            }
-
-            // Get metadata to check size
-            const metadata = await image.metadata();
-
-            // If image is larger than 1200 in width or height, resize it
-            if (metadata.width > MAX_IMG_SIZE || metadata.height > MAX_IMG_SIZE) {
-                const resizedBuffer = await image
-                    .resize({
-                        width: MAX_IMG_SIZE,
-                        height: MAX_IMG_SIZE,
-                        fit: 'inside',
-                        withoutEnlargement: true,
-                    })
-                    .toBuffer();
-
-                // Create a temporary file for the resized image to avoid Windows file lock issues
-                const tempResizedPath = path.join(process.cwd(), '.tmp_uploads', `resized_${uniqueName}`);
+            if (isImageFile) {
+                // Process as image file
+                // Read the image
+                let image;
                 try {
-                    // Write resized image to temp file first
-                    await fs.promises.writeFile(tempResizedPath, resizedBuffer);
-                    
-                    // Then replace the original file atomically
-                    await fs.promises.copyFile(tempResizedPath, destPath);
-                    
-                    // Clean up temp resized file
-                    try {
-                        await fs.promises.unlink(tempResizedPath);
-                    } catch (cleanupErr) {
-                        // Warning: Could not delete temp resized file
-                    }
-                } catch (resizeErr) {
-                    console.error('Failed to save resized image:', resizeErr);
-                    // Continue with original image if resize fails
+                    image = sharp(destPath);
+                } catch (e) {
+                    return res.status(415).json({ error: 'Unable to read image' });
                 }
+
+                // Get metadata to check size
+                const metadata = await image.metadata();
+
+                // If image is larger than 1200 in width or height, resize it
+                if (metadata.width > MAX_IMG_SIZE || metadata.height > MAX_IMG_SIZE) {
+                    const resizedBuffer = await image
+                        .resize({
+                            width: MAX_IMG_SIZE,
+                            height: MAX_IMG_SIZE,
+                            fit: 'inside',
+                            withoutEnlargement: true,
+                        })
+                        .toBuffer();
+
+                    // Create a temporary file for the resized image to avoid Windows file lock issues
+                    const tempResizedPath = path.join(process.cwd(), '.tmp_uploads', `resized_${uniqueName}`);
+                    try {
+                        // Write resized image to temp file first
+                        await fs.promises.writeFile(tempResizedPath, resizedBuffer);
+                        
+                        // Then replace the original file atomically
+                        await fs.promises.copyFile(tempResizedPath, destPath);
+                        
+                        // Clean up temp resized file
+                        try {
+                            await fs.promises.unlink(tempResizedPath);
+                        } catch (cleanupErr) {
+                            // Warning: Could not delete temp resized file
+                        }
+                    } catch (resizeErr) {
+                        console.error('Failed to save resized image:', resizeErr);
+                        // Continue with original image if resize fails
+                    }
+                }
+
+                // Create a thumbnail (max 480x480)
+                const thumbName = `${slug}_${randomStr}_thumb.png`;
+                const thumbPath = path.join(MEDIA_STORE_PATH, thumbName);
+
+                try {
+                    await sharp(destPath)
+                        .resize({
+                            width: THUMBNAIL_SIZE,
+                            height: THUMBNAIL_SIZE,
+                            fit: 'inside',
+                            withoutEnlargement: true,
+                        })
+                        .png()
+                        .toFile(thumbPath);
+                    
+                    publicThumbUrl = `/images/${thumbName}`;
+                } catch (thumbErr) {
+                    console.error('Failed to create thumbnail:', thumbErr);
+                    // Continue without thumbnail if creation fails
+                }
+            } else {
+                // Handle as normal file - no image processing, use same URL for both image and thumbnail
+                publicThumbUrl = publicUrl;
             }
-
-            // Create a thumbnail (max 480x480)
-            const thumbName = `${slug}_${randomStr}_thumb.png`;
-            const thumbPath = path.join(MEDIA_STORE_PATH, thumbName);
-
-            try {
-                await sharp(destPath)
-                    .resize({
-                        width: THUMBNAIL_SIZE,
-                        height: THUMBNAIL_SIZE,
-                        fit: 'inside',
-                        withoutEnlargement: true,
-                    })
-                    .png()
-                    .toFile(thumbPath);
-            } catch (thumbErr) {
-                console.error('Failed to create thumbnail:', thumbErr);
-                // Continue without thumbnail if creation fails
-            }
-
-            // Construct public URL (assuming /images/ is mapped to MEDIA_STORE_PATH)
-            const publicUrl = `/images/${uniqueName}`;
-            const publicThumbUrl = thumbPath ? `/images/${thumbName}` : null;
 
             if (!res.headersSent) {
                 res.status(200).json({
