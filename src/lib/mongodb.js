@@ -17,11 +17,9 @@
 import mongoose from "mongoose";
 import './models/index.js'; // Import all models to ensure they are registered
 
-const MONGO_URI = process.env.MONGO_URI;
-
-if (!MONGO_URI) {
-  throw new Error("Please define the MONGO_URI environment variable");
-}
+// Get MONGO_URI from environment, but don't throw error immediately
+// This allows the environment to be loaded after import
+let MONGO_URI = process.env.MONGO_URI;
 
 /** Cached connection */
 let cached = global.mongoose;
@@ -31,6 +29,15 @@ if (!cached) {
 }
 
 async function connectToDatabase() {
+  // Check for MONGO_URI at connection time, not import time
+  if (!MONGO_URI) {
+    MONGO_URI = process.env.MONGO_URI;
+  }
+  
+  if (!MONGO_URI) {
+    throw new Error("Please define the MONGO_URI environment variable");
+  }
+
   if (cached.conn) {
     return cached.conn;
   }

@@ -420,7 +420,7 @@ const CourseScreen = ({ course, path_slug }) => {
                                 onCloseRequest={() => {
                                     gotoNextLesson()
                                 }}
-                                onSubmitLesson={async (data) => {
+                                onSumbitLesson={async (data) => {
                                     const res = await saveStateLessonFinish(course, activeLesson.slug, data || {})
                                     if (res && res.success) {
                                     }

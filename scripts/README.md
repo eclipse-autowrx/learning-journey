@@ -1,6 +1,6 @@
-# Database Backup and Restore Scripts
+# Learning Journey Scripts
 
-This directory contains scripts for backing up and restoring the MongoDB database for the Learning Journey application.
+This directory contains various utility scripts for the Learning Journey application, including database backup/restore and path progress management.
 
 ## Prerequisites
 
@@ -10,15 +10,15 @@ This directory contains scripts for backing up and restoring the MongoDB databas
 
 ## Available Scripts
 
-### Backup Scripts
+### Database Management
 
-1. **Node.js Version**: `scripts/backup-db.js` ✅ **Recommended**
-2. **Shell Script Version**: `scripts/backup-db.sh` ⚠️ **May have timing issues on Windows**
+1. **Backup**: `scripts/backup-db.js` ✅ **Recommended**
+2. **Restore**: `scripts/restore-db.js` ✅ **Recommended**
+3. **Shell Scripts**: `scripts/backup-db.sh` & `scripts/restore-db.sh` ⚠️ **May have timing issues on Windows**
 
-### Restore Scripts
+### Path Progress Management
 
-1. **Node.js Version**: `scripts/restore-db.js` ✅ **Recommended**
-2. **Shell Script Version**: `scripts/restore-db.sh` ⚠️ **May have timing issues on Windows**
+1. **Update Path Progress**: `scripts/update-path-progress.js` ✅ **Main script for path progress**
 
 ## Usage
 
@@ -70,6 +70,13 @@ bash scripts/restore-db.sh backups/learning-journey-backup-2024-01-15T10-30-00-0
 ./scripts/restore-db.sh backups/learning-journey-backup-2024-01-15T10-30-00-000Z.zip
 ```
 
+#### Update Path Progress
+
+```bash
+# Update all path progress based on course completion
+node scripts/update-path-progress.js
+```
+
 ## What the Scripts Do
 
 ### Backup Process
@@ -91,6 +98,19 @@ bash scripts/restore-db.sh backups/learning-journey-backup-2024-01-15T10-30-00-0
 6. **Restore Database**: Uses `mongorestore` to restore the database
 7. **Clean Up**: Removes temporary files from both container and host
 8. **Report Results**: Confirms successful restoration
+
+### Path Progress Update Process
+
+1. **Load Environment**: Reads database configuration from .env file or uses fallback
+2. **Connect to Database**: Establishes connection to MongoDB
+3. **Get All Paths**: Retrieves all learning paths from the database
+4. **Process Each Path**: For each path, gets all users with progress records
+5. **Recalculate Progress**: For each user, recalculates path completion based on:
+   - Required course completion (prioritized)
+   - Elective group completion
+   - Minimum course requirements
+6. **Update Records**: Updates path progress with correct completion status
+7. **Report Results**: Shows summary of users checked and updated
 
 ## Backup File Location
 
@@ -194,17 +214,18 @@ If a backup or restore operation fails:
 
 ## Automation
 
-You can automate backups by:
+You can automate these scripts by:
 
 1. **Cron Job** (Linux/macOS):
    ```bash
    # Add to crontab -e
    0 2 * * * cd /path/to/learning-journey && npm run backup
+   0 3 * * * cd /path/to/learning-journey && node scripts/update-path-progress.js
    ```
 
-2. **Windows Task Scheduler**: Create a scheduled task to run the backup script
+2. **Windows Task Scheduler**: Create scheduled tasks to run the scripts
 
-3. **Docker Compose**: Add backup service to docker-compose.yml for automated backups
+3. **Docker Compose**: Add services to docker-compose.yml for automated operations
 
 ## Support
 

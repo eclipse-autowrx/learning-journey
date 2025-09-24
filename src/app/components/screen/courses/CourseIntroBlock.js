@@ -39,7 +39,7 @@ const CourseIntroBlock = ({course}) => {
 
                 <div className='flex flex-row items-center'> 
                     <BsDot size={30}/>
-                    {course.num_certified_learners} learners got certification  </div>
+                    {course.completion_count || 0} learners got certification  </div>
             </div>
             
 

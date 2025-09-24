@@ -175,13 +175,20 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
                const resultData = await res.json();
                if (resultData.success) {
                  setQuizResult(resultData);
-                 const scorePercentage = (resultData.score / resultData.total) * 100;
-                 if (scorePercentage >= PASSING_SCORE_PERCENTAGE) {
+                 const scorePercentage = resultData.score_percentage || (resultData.score / resultData.total) * 100;
+                 const passed = resultData.passed || scorePercentage >= PASSING_SCORE_PERCENTAGE;
+                 
+                 if (passed) {
                    setUserPassed(true);
                    setTextResult(`You passed! You answered ${resultData.score} out of ${resultData.total} questions correctly.`);
+                   // Progress is automatically updated by the backend when quiz is passed
                    if (onSumbitLesson) {
-                     let data = questions.map(q => { return { answerIndex: q.answerIndex } })
-                     onSumbitLesson(data)
+                     onSumbitLesson({
+                       quiz_results: resultData,
+                       answers: questions.map(q => ({ answerIndex: q.answerIndex })),
+                       score_percentage: scorePercentage,
+                       passed: true
+                     });
                    }
                  } else {
                    setUserPassed(false);

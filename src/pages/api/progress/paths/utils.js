@@ -20,12 +20,22 @@ export const getPathRuleConfig = (path) => {
 
 export const upsertPathProgressForUser = async ({ user_id, path_id }) => {
   await connectToDatabase();
-  const path = await Path.findById(path_id).select('course_ids extends required_course_ids').lean();
+  const path = await Path.findById(path_id).select('course_ids extends required_course_ids courses').lean();
   if (!path) return null;
   const rule = getPathRuleConfig(path);
 
-  // Build course state map from CourseProgress
-  const courseIds = (path.course_ids || (path.courses || []).map(c => String(c))).map(String);
+  // Build course state map from CourseProgress (prioritize required_course_ids for certification)
+  let courseIds = [];
+  if (path.required_course_ids && path.required_course_ids.length > 0) {
+    // Use required courses for certification
+    courseIds = path.required_course_ids;
+  } else if (path.course_ids && path.course_ids.length > 0) {
+    // Fallback to course_ids
+    courseIds = path.course_ids;
+  } else if (path.courses && path.courses.length > 0) {
+    // Fallback to courses
+    courseIds = path.courses.map(c => String(c));
+  }
   const progresses = await CourseProgress.find({ user_id, course_id: { $in: courseIds } }).lean();
   const courseStatesById = new Map(courseIds.map(id => [id, STATE_NOT_STARTED]));
   const courseFinishedById = new Map();
@@ -71,9 +81,10 @@ export const updatePathsForCourse = async ({ user_id, course_id }) => {
   const paths = await Path.find({
     $or: [
       { course_ids: String(course_id) },
+      { required_course_ids: String(course_id) },
       ...(oid ? [{ courses: { $in: [oid] } }] : [])
     ]
-  }).select('_id course_ids courses extends').lean();
+  }).select('_id course_ids courses extends required_course_ids').lean();
 
   const results = [];
   for (const p of paths) {

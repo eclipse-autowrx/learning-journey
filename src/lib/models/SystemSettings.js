@@ -49,7 +49,6 @@ const SystemSettingsSchema = new mongoose.Schema(
 );
 
 // Indexes for better performance
-SystemSettingsSchema.index({ key: 1 });
 SystemSettingsSchema.index({ category: 1 });
 SystemSettingsSchema.index({ secret: 1 });
 

@@ -169,6 +169,26 @@ export const CourseService = {
     return course;
   },
 
+  async getByLessonSlug(lessonSlug) {
+    await connectToDatabase();
+    // First find the lesson to get its ID
+    const lesson = await Lesson.findOne({ slug: lessonSlug }).lean();
+    if (!lesson) return null;
+    
+    // Then find the course that contains this lesson
+    const course = await Course.findOne({ lessons: lesson._id })
+      .populate('lessons', 'name slug description lesson_type state duration created_at markdown_content content quiz_questions passing_score max_attempts video_url video_duration video_provider interactive_config sequence')
+      .lean();
+    
+    if (course && course.lessons) {
+      const lessonIds = course.lessons.map(lesson => lesson._id || lesson);
+      const populatedLessons = await Lesson.find({ '_id': { $in: lessonIds } }).lean();
+      const lessonMap = new Map(populatedLessons.map(lesson => [lesson._id.toString(), lesson]));
+      course.lessons = course.lessons.map(lesson => lessonMap.get((lesson._id || lesson).toString())).filter(Boolean);
+    }
+    return course;
+  },
+
   async create(data) {
     await connectToDatabase();
     

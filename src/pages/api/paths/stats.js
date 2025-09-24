@@ -39,7 +39,6 @@ export default async function handler(req, res) {
         const pathObjectId = new Types.ObjectId(path_id);
         
         // Get the path to find all required courses
-        
         const pathDoc = await Path.findById(pathObjectId).lean();
         if (!pathDoc) {
             return res.status(404).json({ success: false, error: 'Path not found' });
@@ -48,6 +47,19 @@ export default async function handler(req, res) {
         // Get all PathProgress records for this path to count learners
         const pathProgresses = await PathProgress.find({ path_id: pathObjectId }).lean();
         const totalLearners = pathProgresses.length;
+        
+        // Get course IDs for this path (prioritize required_course_ids for certification)
+        let courseIds = [];
+        if (pathDoc.required_course_ids && pathDoc.required_course_ids.length > 0) {
+            // Use required courses for certification
+            courseIds = pathDoc.required_course_ids;
+        } else if (pathDoc.course_ids && pathDoc.course_ids.length > 0) {
+            // Fallback to course_ids
+            courseIds = pathDoc.course_ids;
+        } else if (pathDoc.courses && pathDoc.courses.length > 0) {
+            // Fallback to courses
+            courseIds = pathDoc.courses.map(c => c.toString());
+        }
         
         // For certified learners, we need to validate actual completion
         // A user should only be considered certified if they completed ALL required courses
@@ -58,13 +70,13 @@ export default async function handler(req, res) {
                 // Verify this user actually completed all required courses
                 const userCourseProgresses = await CourseProgress.find({
                     user_id: pathProgress.user_id,
-                    course_id: { $in: pathDoc.courses }
+                    course_id: { $in: courseIds }
                 }).lean();
                 
                 const completedCourses = userCourseProgresses.filter(cp => cp.state === STATE_COMPLETED);
                 
                 // Only count as certified if ALL path courses are completed
-                if (completedCourses.length === pathDoc.courses.length) {
+                if (completedCourses.length === courseIds.length && courseIds.length > 0) {
                     trueCertifiedLearners++;
                 }
             }

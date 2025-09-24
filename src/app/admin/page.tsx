@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { FaCog, FaList, FaRoute, FaPalette, FaHome } from 'react-icons/fa';
+import { FaCog, FaList, FaRoute, FaPalette, FaHome, FaTools } from 'react-icons/fa';
 import UserBadge from '@/app/components/atom/UserBadge';
 import { useAuth } from '@/lib/frontend/auth';
 import CollectionsTab from './components/CollectionsTab';
@@ -11,6 +11,7 @@ import PathsTab from './components/PathsTab';
 import SettingsTab from './components/SettingsTab';
 import ColorThemeTab from './components/ColorThemeTab';
 import HomeCfgTab from './components/HomeCfgTab';
+import SystemToolsTab from './components/SystemToolsTab';
 
 function AdminPageInner() {
   const pathname = usePathname();
@@ -19,19 +20,19 @@ function AdminPageInner() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   
   // Get initial tab from URL parameter, default to 'collections'
-  const getInitialTab = (): 'collections' | 'paths' | 'settings' | 'theme' | 'home' => {
+  const getInitialTab = (): 'collections' | 'paths' | 'settings' | 'theme' | 'home' | 'tools' => {
     const tabParam = searchParams?.get('tab');
-    const validTabs = ['collections', 'paths', 'settings', 'theme', 'home'];
+    const validTabs = ['collections', 'paths', 'settings', 'theme', 'home', 'tools'];
     return validTabs.includes(tabParam || '') ? (tabParam as any) : 'collections';
   };
   
-  const [activeTab, setActiveTab] = useState<'collections' | 'paths' | 'settings' | 'theme' | 'home'>(getInitialTab);
+  const [activeTab, setActiveTab] = useState<'collections' | 'paths' | 'settings' | 'theme' | 'home' | 'tools'>(getInitialTab);
 
   const [loading, setLoading] = useState(true);
   const [hasManageUsers, setHasManageUsers] = useState<boolean | null>(null);
 
   // Function to handle tab changes and update URL
-  const handleTabChange = (tab: 'collections' | 'paths' | 'settings' | 'theme' | 'home') => {
+  const handleTabChange = (tab: 'collections' | 'paths' | 'settings' | 'theme' | 'home' | 'tools') => {
     setActiveTab(tab);
     // Update URL with new tab parameter
     const params = new URLSearchParams(searchParams?.toString() || '');
@@ -42,7 +43,7 @@ function AdminPageInner() {
   // Sync tab state with URL parameter changes (for browser back/forward)
   useEffect(() => {
     const tabParam = searchParams?.get('tab');
-    const validTabs = ['collections', 'paths', 'settings', 'theme', 'home'];
+    const validTabs = ['collections', 'paths', 'settings', 'theme', 'home', 'tools'];
     if (tabParam && validTabs.includes(tabParam)) {
       setActiveTab(tabParam as any);
     }
@@ -215,6 +216,21 @@ function AdminPageInner() {
                 <FaHome className="inline-block mr-2" />
                 Home Cfg
               </button>
+              <button
+                onClick={() => handleTabChange('tools')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'tools'
+                    ? ''
+                    : 'border-transparent'
+                }`}
+                style={{
+                  borderBottomColor: activeTab === 'tools' ? 'var(--color-primary-500)' : 'transparent',
+                  color: activeTab === 'tools' ? 'var(--color-primary-500)' : 'var(--text-tertiary)'
+                }}
+              >
+                <FaTools className="inline-block mr-2" />
+                System Tools
+              </button>
             </nav>
           </div>
 
@@ -235,6 +251,9 @@ function AdminPageInner() {
               )}
               {activeTab === 'home' && (
                 <HomeCfgTab hasManageUsers={hasManageUsers} />
+              )}
+              {activeTab === 'tools' && (
+                <SystemToolsTab hasManageUsers={hasManageUsers} />
               )}
             </div>
           </div>
