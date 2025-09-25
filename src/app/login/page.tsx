@@ -9,7 +9,7 @@ const DEFAULT_SERVER_BASE_URL = 'https://backend-core-dev.digital.auto/v2'
 function LoginPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { isAuthenticated, loading: authLoading } = useAuth()
+  const { isAuthenticated, loading: authLoading, refreshAuth } = useAuth()
 
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
@@ -63,6 +63,9 @@ function LoginPageInner() {
         throw new Error(err?.error || err?.message || `Failed to establish session (${appAuthRes.status})`)
       }
 
+      // Refresh authentication state to reflect the new login
+      await refreshAuth()
+      
       const dest = getSafeReturnTo(searchParams?.get('returnTo'))
       router.replace(dest)
     } catch (err: any) {
@@ -120,6 +123,9 @@ function LoginPageInner() {
         throw new Error(err?.error || err?.message || `Failed to establish session (${appAuthRes.status})`)
       }
 
+      // Refresh authentication state to reflect the new registration
+      await refreshAuth()
+      
       const dest = getSafeReturnTo(searchParams?.get('returnTo'))
       router.replace(dest)
     } catch (err: any) {

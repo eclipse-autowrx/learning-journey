@@ -75,10 +75,8 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
     if (!lesson || !lesson.quiz_questions || !lesson.quiz_questions.length) {
       setNumQuestions(0)
       setCurQuestionIndex(0)
-      setActiveQuestion(null)
       setQuestions([])
     }
-    setActiveQuestion(null)
     setCurQuestionIndex(0)
     setNumQuestions(lesson.quiz_questions.length)
     setQuestions(lesson.quiz_questions)
@@ -104,11 +102,15 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
   }, [questions])
 
   useEffect(() => {
+    // console.log(`useEffect ==================================================`)
+    // console.log(`curQuestionIndex`, curQuestionIndex)
+    // console.log(`questions`, questions)
     try {
       let question = questions[curQuestionIndex]
       setActiveQuestion(question)
     } catch (e) {
-
+      console.log(e)
+      setActiveQuestion(null)
     }
   }, [curQuestionIndex, questions])
 
@@ -292,6 +294,8 @@ const QuizLesson = ({ lesson, onCloseRequest, onSumbitLesson, showNextButton = t
             {activeQuestion && <QuizQuestion question={activeQuestion} index={curQuestionIndex + 1}
               onGotAnswer={setAnswerForThisQuestion}
             />}
+
+            {!activeQuestion && <div className="text-red-500">No active lessons</div>}
           </div>
         </div>
       </>

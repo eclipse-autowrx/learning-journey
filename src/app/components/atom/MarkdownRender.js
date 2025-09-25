@@ -6,13 +6,14 @@
 //
 // SPDX-License-Identifier: MIT
 
-import React from 'react';
+import React, { useState } from 'react';
 import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import { Quicksand } from "next/font/google";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, oneDark, prism, materialDark, atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { MdImageNotSupported } from 'react-icons/md';
 
 
 const quicksand = Quicksand({
@@ -77,6 +78,115 @@ const remarkInlineCode = () => {
        </div>
      );
    };
+
+// Custom Image component with loading and error states
+const ImageWithPlaceholder = ({ src, alt, ...props }) => {
+  const [imageState, setImageState] = useState('loading'); // 'loading', 'loaded', 'error'
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+
+  // Load image in background to trigger onLoad/onError events
+  React.useEffect(() => {
+    if (!src) {
+      setImageState('error');
+      return;
+    }
+
+    const img = new Image();
+    
+    const handleImageLoad = (e) => {
+      setImageState('loaded');
+      setImageDimensions({
+        width: e.target.naturalWidth,
+        height: e.target.naturalHeight
+      });
+    };
+
+    const handleImageError = () => {
+      setImageState('error');
+    };
+
+    img.onload = handleImageLoad;
+    img.onerror = handleImageError;
+    img.src = src;
+
+    // Cleanup
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [src]);
+
+  const handleImageClick = (e) => {
+    if (imageState !== 'loaded') return;
+    
+    const fullscreenDiv = document.createElement('div');
+    fullscreenDiv.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
+    fullscreenDiv.innerHTML = `
+        <div class="relative w-screen h-screen">
+            <img src="${e.target.src}" alt="${e.target.alt || ''}" class="w-screen h-screen object-contain" />
+            <button class="absolute top-4 right-4 text-white text-5xl bg-neutral-700 bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-70 transition-colors" onclick="this.parentElement.parentElement.remove()">
+                ×
+            </button>
+        </div>
+    `;
+    document.body.appendChild(fullscreenDiv);
+    
+    // Close on click outside image
+    fullscreenDiv.addEventListener('click', (event) => {
+        if (event.target === fullscreenDiv) {
+            fullscreenDiv.remove();
+        }
+    });
+    
+    // Close on escape key
+    const handleEscape = (event) => {
+        if (event.key === 'Escape') {
+            fullscreenDiv.remove();
+            document.removeEventListener('keydown', handleEscape);
+        }
+    };
+    document.addEventListener('keydown', handleEscape);
+  };
+
+  // Loading placeholder
+  if (imageState === 'loading') {
+    return (
+      <div className="max-w-full mx-auto my-4 rounded-lg bg-neutral-50 animate-pulse 
+        flex items-center justify-center min-h-[300px]">
+        <div className="flex flex-col items-center space-y-2">
+          <div className="w-8 h-8 border-4 border-neutral-400 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-neutral-500 text-sm">Loading image...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Error placeholder
+  if (imageState === 'error') {
+    return (
+      <div className="max-w-full mx-auto my-4 rounded-lg
+             bg-gray-100 flex items-center
+              justify-center min-h-[300px]">
+        <div className="flex flex-col items-center space-y-2 text-neutral-300">
+          <MdImageNotSupported className="w-12 h-12" />
+          <span className="text-sm">Failed to load image</span>
+          {/* <span className="text-xs text-neutral-400">{alt || 'No description'}</span> */}
+        </div>
+      </div>
+    );
+  }
+
+  // Loaded image
+  return (
+    <img 
+      src={src}
+      alt={alt}
+      className="max-w-full h-auto mx-auto my-4 rounded-lg cursor-pointer transition-shadow hover:shadow-lg" 
+      onClick={handleImageClick}
+      {...props} 
+    />
+  );
+};
 
 const components = {
     // Headings
@@ -176,39 +286,7 @@ const components = {
 
     // Images
     img: ({ node, ...props }) => (
-        <img 
-            className="max-w-full h-auto mx-auto my-4 rounded-lg cursor-pointer transition-shadow" 
-            onClick={(e) => {
-                const fullscreenDiv = document.createElement('div');
-                fullscreenDiv.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
-                fullscreenDiv.innerHTML = `
-                    <div class="relative w-screen h-screen">
-                        <img src="${e.target.src}" alt="${e.target.alt || ''}" class="w-screen h-screen object-contain" />
-                        <button class="absolute top-4 right-4 text-white text-5xl bg-neutral-700 bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-70 transition-colors" onclick="this.parentElement.parentElement.remove()">
-                            ×
-                        </button>
-                    </div>
-                `;
-                document.body.appendChild(fullscreenDiv);
-                
-                // Close on click outside image
-                fullscreenDiv.addEventListener('click', (event) => {
-                    if (event.target === fullscreenDiv) {
-                        fullscreenDiv.remove();
-                    }
-                });
-                
-                // Close on escape key
-                const handleEscape = (event) => {
-                    if (event.key === 'Escape') {
-                        fullscreenDiv.remove();
-                        document.removeEventListener('keydown', handleEscape);
-                    }
-                };
-                document.addEventListener('keydown', handleEscape);
-            }}
-            {...props} 
-        />
+        <ImageWithPlaceholder {...props} />
     ),
 
     // Horizontal Rule
@@ -248,17 +326,6 @@ const components = {
 
 
 const MarkdownRender = ({ children }) => {
-    // Preprocess content to wrap single words in backticks
-    // const preprocessContent = (content) => {
-    //     if (typeof content !== 'string') return content;
-        
-    //     // This regex matches single words and wraps them in backticks
-    //     return content.replace(/\b([a-zA-Z_][a-zA-Z0-9_-]*)\b/g, (match, word) => {
-    //         return `\`${word}\``;
-    //     });
-    // };
-
-    // const processedContent = preprocessContent(children);
 
     return (
         <div className={`markdown-render font-content overflow-x-auto max-w-full`}>
