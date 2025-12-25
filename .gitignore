@@ -16,12 +16,14 @@
 # next.js
 /.next/
 /out/
+/backups/
 
 /test-certificates
 /temp
 
 # production
 /build
+/temp
 
 # misc
 .DS_Store
@@ -41,14 +43,23 @@ yarn-error.log*
 # vercel
 .vercel
 
+# docker test data
+.docker-test-data
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
 # database backups
 
-# media files
-public/files/*
-public/images/*
+# media files (symlinks and content)
+public/files
+public/images
+public/certificates/pdf/*
+public/certificates/png/*
+!public/certificates/pdf/.gitkeep
+!public/certificates/png/.gitkeep
+
+# Keep directory structure but ignore symlinks
 !public/files/.gitkeep
 !public/images/.gitkeep

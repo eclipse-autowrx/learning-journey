@@ -16,7 +16,6 @@ docker-compose.dev.yml
 docker-compose.prod.yml
 .dockerignore
 SETUP.md
-scripts
 mongo-init
 nginx
 env.dev.example

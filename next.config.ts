@@ -74,11 +74,25 @@ const nextConfig: NextConfig = {
   async rewrites() {
     const rewrites = [];
 
-    // Map /certificates/ to MEDIA_STORE_PATH/certificates if available
-    if (process.env.MEDIA_STORE_PATH) {
+    // Map media paths to API routes to serve from MEDIA_STORE_PATH
+    // Next.js standalone mode doesn't properly serve files from symlinked directories
+    if (!isDev && process.env.MEDIA_STORE_PATH) {
+      // Map /certificates/* to API route
       rewrites.push({
         source: '/certificates/:path*',
-        destination: `${process.env.MEDIA_STORE_PATH}/certificates/:path*`,
+        destination: '/api/certificates/:path*',
+      });
+      
+      // Map /images/* to API route
+      rewrites.push({
+        source: '/images/:path*',
+        destination: '/api/images/:path*',
+      });
+      
+      // Map /files/* to API route
+      rewrites.push({
+        source: '/files/:path*',
+        destination: '/api/files/:path*',
       });
     }
 

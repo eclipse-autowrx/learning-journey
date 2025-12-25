@@ -13,7 +13,9 @@ import { execSync } from 'child_process';
  * This script runs after the Next.js build to pre-generate commonly accessed pages
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3099';
+// Use NEXT_PUBLIC_BASE_URL if set, otherwise construct from PORT env var (defaults to 3000)
+const PORT = process.env.PORT || '3000';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || `http://localhost:${PORT}`;
 const isDev = process.env.NODE_ENV !== 'production';
 
 console.log('🚀 Starting page pre-warming process...');
@@ -43,8 +45,11 @@ async function prewarmPage(url) {
     console.log(`📄 Pre-warming: ${url}`);
 
     // Use curl to request the page (this will trigger ISR if configured)
-    const command = `curl -s -o /dev/null -w "%{http_code}" "${url}"`;
-    const statusCode = execSync(command, { encoding: 'utf8' }).trim();
+    // Use single quotes for the format string to avoid shell interpretation issues
+    const statusCode = execSync(
+      `curl -s -o /dev/null -w '%{http_code}' "${url}"`,
+      { encoding: 'utf8', shell: '/bin/sh' }
+    ).trim();
 
     if (statusCode === '200') {
       console.log(`✅ Successfully pre-warmed: ${url}`);
@@ -56,14 +61,30 @@ async function prewarmPage(url) {
   }
 }
 
+async function waitForServer(url, maxRetries = 30) {
+  console.log('⏳ Waiting for server to be ready...');
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const command = `curl -s -o /dev/null -w "%{http_code}" --max-time 2 "${url}" || echo "000"`;
+      const statusCode = execSync(command, { encoding: 'utf8' }).trim();
+      if (statusCode !== '000' && statusCode !== '') {
+        console.log(`✅ Server is ready (status: ${statusCode})`);
+        return true;
+      }
+    } catch (error) {
+      // Server not ready yet
+    }
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  console.log('⚠️  Server may not be ready, proceeding anyway...');
+  return false;
+}
+
 async function prewarmPages() {
   console.log(`🌐 Pre-warming pages on ${BASE_URL}`);
 
-  // Wait a bit for the server to be ready
-  if (!isDev) {
-    console.log('⏳ Waiting for server to be ready...');
-    await new Promise(resolve => setTimeout(resolve, 3000));
-  }
+  // Wait for server to be ready
+  await waitForServer(`${BASE_URL}/api/health`);
 
   // Pre-warm static pages
   for (const page of pagesToPrewarm) {

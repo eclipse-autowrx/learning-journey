@@ -225,7 +225,7 @@ You can automate these scripts by:
 
 2. **Windows Task Scheduler**: Create scheduled tasks to run the scripts
 
-3. **Docker Compose**: Add services to docker-compose.yml for automated operations
+3. **Docker Compose**: Use docker-compose.dev.yml for development or docker-compose.prod.yml for production
 
 ## Support
 

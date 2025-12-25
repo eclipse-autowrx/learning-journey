@@ -93,27 +93,19 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ## Available Scripts
 
-### Development
-- `npm run setup:dev` - Automated development setup
-- `npm run docker:dev:up` - Start development services (MongoDB + MongoDB Express)
-- `npm run docker:dev:down` - Stop development services
-- `npm run docker:dev:logs` - View development logs
+### Essential Commands
 - `npm run dev` - Start development server
-
-### Production
-- `npm run setup:prod` - Automated production setup
-- `npm run docker:prod:up` - Start production services
-- `npm run docker:prod:down` - Stop production services
-- `npm run docker:prod:logs` - View production logs
-- `npm run docker:prod:admin` - Start with MongoDB Express
-- `npm run docker:prod:nginx` - Start with Nginx
-- `npm run docker:prod:full` - Start with all services
 - `npm run build` - Build for production
 - `npm run start` - Start production server
-
-### General
+- `npm run lint` - Run linter
 - `npm run migrate` - Migrate mock data to database
-- `npm run lint` - Run ESLint
+
+### Additional Scripts
+
+For maintenance tasks, run scripts directly from `scripts/` directory:
+- `node scripts/backup-db.js` - Backup database
+- `node scripts/restore-db.js` - Restore database
+- See [DEVELOPMENT.md](./DEVELOPMENT.md) for more details
 
 ## API Endpoints
 

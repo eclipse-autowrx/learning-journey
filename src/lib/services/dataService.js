@@ -407,21 +407,3 @@ export const CourseProgressService = {
   }
 };
 
-// Mock Data Service (fallback)
-export const MockDataService = {
-  async getPaths() {
-    // Import mock data if needed
-    const { PATHS } = await import('../mock_data/paths.js');
-    return PATHS;
-  },
-
-  async getCourses() {
-    const { ALL_COURSES } = await import('../mock_data/all_courses.js');
-    return ALL_COURSES;
-  },
-
-  async getCollections() {
-    // Return empty array for collections as they're new
-    return [];
-  }
-};

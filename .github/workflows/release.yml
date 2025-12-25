@@ -50,4 +50,36 @@ jobs:
         with:
           context: .
           push: ${{ steps.docker_login.outcome == 'success' }}
-          tags: ghcr.io/${{ github.repository_owner }}/learning-journey:${{ env.TAG }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/learning-journey:${{ env.TAG }}
+            ghcr.io/${{ github.repository_owner }}/learning-journey:latest
+
+      - name: Create deployment package
+        run: |
+          mkdir -p release-assets
+          cp deploy/docker-compose.prod.yml release-assets/
+          cp deploy/env.prod.example release-assets/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            release-assets/docker-compose.prod.yml
+            release-assets/env.prod.example
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## Docker Image
+            - Image: `ghcr.io/${{ github.repository_owner }}/learning-journey:${{ env.TAG }}`
+            - Latest: `ghcr.io/${{ github.repository_owner }}/learning-journey:latest`
+            
+            ## Deployment Files
+            Download the attached files for deployment:
+            - `docker-compose.prod.yml` - Docker Compose configuration
+            - `env.prod.example` - Environment variables template
+            
+            See [DEPLOYMENT.md](../blob/main/DEPLOYMENT.md) for deployment instructions.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
