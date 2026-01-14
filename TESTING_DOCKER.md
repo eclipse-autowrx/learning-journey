@@ -43,7 +43,7 @@ Update the bind mount path in `docker-compose.prod.yml` to use the absolute path
 ```bash
 # Update the data directory path to be absolute
 DATA_DIR=$(pwd -P)/data
-sed -i "s|device: /opt/learning-journey/data|device: ${DATA_DIR}|" docker-compose.prod.yml
+sed -i "s|device: \${PWD}/data|device: ${DATA_DIR}|" docker-compose.prod.yml
 
 # Create the data directory
 mkdir -p data
@@ -116,7 +116,7 @@ sed -i 's|NEXT_PUBLIC_BASE_URL=https://your-domain.com:3090|NEXT_PUBLIC_BASE_URL
 
 # Update bind mount path
 DATA_DIR=$(pwd -P)/data
-sed -i "s|device: /opt/learning-journey/data|device: ${DATA_DIR}|" docker-compose.prod.yml
+sed -i "s|device: \${PWD}/data|device: ${DATA_DIR}|" docker-compose.prod.yml
 
 # Create data directory
 mkdir -p data
