@@ -76,7 +76,7 @@ const nextConfig: NextConfig = {
 
     // Map media paths to API routes to serve from MEDIA_STORE_PATH
     // Next.js standalone mode doesn't properly serve files from symlinked directories
-    if (!isDev && process.env.MEDIA_STORE_PATH) {
+    if (!isDev) {
       // Map /certificates/* to API route
       rewrites.push({
         source: '/certificates/:path*',

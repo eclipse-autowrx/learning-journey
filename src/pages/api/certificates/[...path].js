@@ -22,9 +22,16 @@ export default async function handler(req, res) {
         return;
     }
 
-    const MEDIA_STORE_PATH = process.env.MEDIA_STORE_PATH
-        ? path.join(process.env.MEDIA_STORE_PATH, 'certificates')
-        : path.join(process.cwd(), 'public', 'certificates');
+    let MEDIA_STORE_PATH;
+    if (process.env.MEDIA_STORE_PATH) {
+        MEDIA_STORE_PATH = path.join(process.env.MEDIA_STORE_PATH, 'certificates');
+    } else if (process.env.NODE_ENV === 'production') {
+        // Production fallback: check /app/data/certificates (volume mount location)
+        MEDIA_STORE_PATH = '/app/data/certificates';
+    } else {
+        // Development fallback: use public/certificates
+        MEDIA_STORE_PATH = path.join(process.cwd(), 'public', 'certificates');
+    }
 
     // Get the file path from the URL (e.g., 'pdf/filename.pdf' or 'png/filename.png')
     const filePath = Array.isArray(req.query.path) 

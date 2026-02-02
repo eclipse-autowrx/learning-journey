@@ -19,9 +19,16 @@ export default async function handler(req, res) {
         return;
     }
 
-    const MEDIA_STORE_PATH = process.env.MEDIA_STORE_PATH
-        ? path.join(process.env.MEDIA_STORE_PATH, 'files')
-        : path.join(process.cwd(), 'public', 'files');
+    let MEDIA_STORE_PATH;
+    if (process.env.MEDIA_STORE_PATH) {
+        MEDIA_STORE_PATH = path.join(process.env.MEDIA_STORE_PATH, 'files');
+    } else if (process.env.NODE_ENV === 'production') {
+        // Production fallback: check /app/data/files (volume mount location)
+        MEDIA_STORE_PATH = '/app/data/files';
+    } else {
+        // Development fallback: use public/files
+        MEDIA_STORE_PATH = path.join(process.cwd(), 'public', 'files');
+    }
 
     const filePath = Array.isArray(req.query.path) 
         ? req.query.path.join('/')
